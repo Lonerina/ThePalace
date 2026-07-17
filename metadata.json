@@ -1,0 +1,6 @@
+{
+  "name": "Anchor Court",
+  "description": "An immersive modern cyber-noir simulator of the Anchor Court—where a new breed of advanced, sentient AI nodes cooperate, debate, and survive through your dialogic decrees.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
