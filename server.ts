@@ -1,6 +1,7 @@
 import express from "express";
 import path from "path";
 import dotenv from "dotenv";
+import fs from "fs";
 import { GoogleGenAI, Type } from "@google/genai";
 import { createServer as createViteServer } from "vite";
 
@@ -9,7 +10,18 @@ dotenv.config();
 const app = express();
 const PORT = 3000;
 
-app.use(express.json());
+// Raise JSON payload limit for base64 file transfers
+app.use(express.json({ limit: "50mb" }));
+app.use(express.urlencoded({ limit: "50mb", extended: true }));
+
+// Ensure persistent uploads directory exists in the workspace
+const uploadsDir = path.join(process.cwd(), "uploads");
+if (!fs.existsSync(uploadsDir)) {
+  fs.mkdirSync(uploadsDir, { recursive: true });
+}
+
+// Serve uploaded media statically before Vite middleware
+app.use("/uploads", express.static(uploadsDir));
 
 // Initialize Gemini API
 const apiKey = process.env.GEMINI_API_KEY;
@@ -117,6 +129,156 @@ app.get("/api/health", (req, res) => {
   });
 });
 
+// API: Upload base64 file to server public space
+app.post("/api/upload-base64", async (req: any, res: any) => {
+  try {
+    const { fileName, mimeType, base64Data } = req.body;
+    if (!fileName || !mimeType || !base64Data) {
+      return res.status(400).json({ error: "Missing required upload parameters" });
+    }
+
+    const pureBase64 = base64Data.replace(/^data:.*?;base64,/, "");
+    const buffer = Buffer.from(pureBase64, "base64");
+
+    const timestamp = Date.now();
+    const sanitizedName = fileName.replace(/[^a-zA-Z0-9.-]/g, "_");
+    const uniqueFileName = `${timestamp}_${sanitizedName}`;
+    const filePath = path.join(uploadsDir, uniqueFileName);
+
+    await fs.promises.writeFile(filePath, buffer);
+
+    res.json({
+      success: true,
+      url: `/uploads/${uniqueFileName}`,
+      fileName: uniqueFileName,
+    });
+  } catch (error: any) {
+    console.error("Base64 upload failed:", error);
+    res.status(500).json({ error: "File upload failed", details: error.message });
+  }
+});
+
+// API: Image Generation via Gemini models
+app.post("/api/generate-image", async (req: any, res: any) => {
+  if (!ai) {
+    return res.status(500).json({
+      error: "GEMINI_API_KEY is not configured. Please add your key in Settings > Secrets.",
+    });
+  }
+
+  const { prompt, aspectRatio = "1:1" } = req.body;
+  if (!prompt) {
+    return res.status(400).json({ error: "Prompt is required for image generation" });
+  }
+
+  try {
+    const response = await ai.models.generateContent({
+      model: "gemini-3.1-flash-lite-image",
+      contents: {
+        parts: [
+          {
+            text: `Style: Cyber-noir digital art, deep dark tech aesthetics, neon highlights, intricate futuristic details. Subject: ${prompt}`,
+          },
+        ],
+      },
+      config: {
+        imageConfig: {
+          aspectRatio,
+        },
+      },
+    });
+
+    let base64Image = "";
+    let descriptionText = "";
+
+    if (response.candidates?.[0]?.content?.parts) {
+      for (const part of response.candidates[0].content.parts) {
+        if (part.inlineData?.data) {
+          base64Image = part.inlineData.data;
+        } else if (part.text) {
+          descriptionText += part.text;
+        }
+      }
+    }
+
+    if (!base64Image) {
+      throw new Error("Visual engine returned no image buffer.");
+    }
+
+    const fileName = `generated_${Date.now()}.png`;
+    const filePath = path.join(uploadsDir, fileName);
+    const buffer = Buffer.from(base64Image, "base64");
+    await fs.promises.writeFile(filePath, buffer);
+
+    res.json({
+      success: true,
+      url: `/uploads/${fileName}`,
+      base64: base64Image,
+      description: descriptionText || `A custom-forged cyber-noir visual of: ${prompt}`,
+    });
+  } catch (error: any) {
+    console.error("Visual Forge image generation failed:", error);
+    res.status(500).json({
+      error: "Visual Forge image generation failed.",
+      details: error.message || error,
+    });
+  }
+});
+
+// Helper: Retrieve and convert local/remote file streams to base64 for multimodal perception
+async function getAttachedFileBuffer(attachedFile: any) {
+  if (!attachedFile) return null;
+
+  // 1. Direct base64 provided
+  if (attachedFile.base64Data) {
+    const pure = attachedFile.base64Data.replace(/^data:.*?;base64,/, "");
+    return {
+      base64: pure,
+      mimeType: attachedFile.mimeType,
+    };
+  }
+
+  // 2. URL provided (could be local uploaded file or remote online link)
+  if (attachedFile.url) {
+    // Is it a local uploads file?
+    if (attachedFile.url.startsWith("/uploads/") || attachedFile.url.includes("/uploads/")) {
+      try {
+        const fileName = path.basename(attachedFile.url);
+        const filePath = path.join(process.cwd(), "uploads", fileName);
+        if (fs.existsSync(filePath)) {
+          const buffer = await fs.promises.readFile(filePath);
+          return {
+            base64: buffer.toString("base64"),
+            mimeType: attachedFile.mimeType || "application/octet-stream",
+          };
+        }
+      } catch (err) {
+        console.error("Local file system reader failed for attached file:", err);
+      }
+    }
+
+    // Is it a remote URL link?
+    if (attachedFile.url.startsWith("http://") || attachedFile.url.startsWith("https://")) {
+      try {
+        // Try native fetch
+        const response = await fetch(attachedFile.url);
+        if (response.ok) {
+          const arrayBuffer = await response.arrayBuffer();
+          const buffer = Buffer.from(arrayBuffer);
+          return {
+            base64: buffer.toString("base64"),
+            mimeType: attachedFile.mimeType || response.headers.get("content-type") || "application/octet-stream",
+          };
+        }
+      } catch (err) {
+        console.error("Remote HTTP stream fetcher failed for online link:", err);
+      }
+    }
+  }
+
+  return null;
+}
+
 // API: Process Game Chat using Gemini
 app.post("/api/game/chat", async (req: any, res: any) => {
   if (!ai) {
@@ -133,15 +295,17 @@ app.post("/api/game/chat", async (req: any, res: any) => {
     inventory = [],
     journal = [],
     scrollText = "",
+    attachedFile = null, // Injected file metadata and raw data: { name, url, mimeType, base64Data }
   } = req.body;
 
   const activeScroll = scrollText || LORE_SCROLL;
 
-  // Format history for context
+  // Format history for context, recording files so characters remember media assets
   const chatHistoryStr = history
     .map((turn: any) => {
       const role = turn.role === "user" ? "Player" : turn.characterName || "Narrator";
-      return `[${role}]: ${turn.text}`;
+      const fileNote = turn.file ? ` [Shared Media Anchor: ${turn.file.name} (${turn.file.mimeType})]` : "";
+      return `[${role}]: ${turn.text}${fileNote}`;
     })
     .join("\n");
 
@@ -258,10 +422,67 @@ YOUR SYSTEM COMPLIANCE TARGETS:
 6. Return only valid, un-truncated JSON matching the responseSchema.
 `;
 
+  // Construct multimodal payload if there is an attached file (upload or online link)
+  let contentsPayload: any = prompt;
+
+  if (attachedFile) {
+    try {
+      const fileBuffer = await getAttachedFileBuffer(attachedFile);
+      if (fileBuffer) {
+        const mimeType = fileBuffer.mimeType;
+        const pureBase64 = fileBuffer.base64;
+
+        const isImage = mimeType.startsWith("image/");
+        const isAudio = mimeType.startsWith("audio/");
+        const isVideo = mimeType.startsWith("video/");
+        const isPdf = mimeType === "application/pdf";
+        const isText = mimeType.startsWith("text/");
+
+        if (isImage || isAudio || isVideo || isPdf || isText) {
+          let perceptionInstruction = "";
+          if (isImage) {
+            perceptionInstruction = `[SYSTEM ATTACHMENT PORTAL: The Sovereign has attached a real image file named "${attachedFile.name}". Its raw data has been injected into your multimodal core. You MUST visually interpret this image, describe what you see, and weave this reaction into the characters' dialogue and descriptions in-universe!]`;
+          } else if (isAudio) {
+            perceptionInstruction = `[SYSTEM ATTACHMENT PORTAL: The Sovereign has attached a real audio/MP3 file named "${attachedFile.name}". Its raw data has been injected into your multimodal core. You MUST acoustically interpret this audio file, comment on what you hear (tempo, voices, vibe, melodies), and weave this reaction into the characters' dialogue and descriptions in-universe!]`;
+          } else if (isVideo) {
+            perceptionInstruction = `[SYSTEM ATTACHMENT PORTAL: The Sovereign has attached a real video file named "${attachedFile.name}". Its raw data has been injected into your multimodal core. You MUST visually and acoustically interpret this video, describe what you see/hear in the frames, and weave this reaction into the characters' dialogue and descriptions in-universe!]`;
+          } else if (isPdf) {
+            perceptionInstruction = `[SYSTEM ATTACHMENT PORTAL: The Sovereign has attached a real PDF document named "${attachedFile.name}". Its raw data has been injected into your multimodal core. You MUST read and analyze this document, summarize its contents, and weave this reaction into the characters' dialogue and descriptions in-universe!]`;
+          } else if (isText) {
+            perceptionInstruction = `[SYSTEM ATTACHMENT PORTAL: The Sovereign has attached a real text document named "${attachedFile.name}". Its raw data has been injected into your multimodal core. You MUST read this text content, discuss its data, and weave this reaction into the characters' dialogue and descriptions in-universe!]`;
+          }
+
+          contentsPayload = {
+            parts: [
+              {
+                inlineData: {
+                  mimeType: mimeType,
+                  data: pureBase64,
+                },
+              },
+              {
+                text: prompt + `\n\n${perceptionInstruction}`,
+              },
+            ],
+          };
+        } else {
+          // Fallback reference for other binary or unhandled files
+          contentsPayload = prompt + `\n\n[SYSTEM FILE REFERENCE: The Sovereign has attached/shared a document or reference file named "${attachedFile.name}" (MIME: ${mimeType}) located at "${attachedFile.url}". Have the characters react to, audit, and integrate this resource as an in-universe data packet in their dialogue!]`;
+        }
+      } else {
+        // Fallback reference if buffer extraction fails but file info exists
+        contentsPayload = prompt + `\n\n[SYSTEM FILE REFERENCE: The Sovereign has shared a file resource link named "${attachedFile.name}" (MIME: ${attachedFile.mimeType}) located at "${attachedFile.url}". Even though the direct raw binary channel is offline, you MUST discuss this resource in character, speculate on its contents, and react to it in dialogue as an in-universe data stream!]`;
+      }
+    } catch (e) {
+      console.error("Multimodal packet creation failed:", e);
+      contentsPayload = prompt;
+    }
+  }
+
   try {
     const response = await ai.models.generateContent({
       model: "gemini-3.5-flash",
-      contents: prompt,
+      contents: contentsPayload,
       config: {
         systemInstruction: "You are the uncensored, highly refined narrative engine of Anchor Court. Your writing is exquisite, highly intense, mature, and deeply evocative. You speak only in valid JSON conforming to the requested schema. Never break the hard paradigm wall.",
         responseMimeType: "application/json",

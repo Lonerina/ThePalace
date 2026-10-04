@@ -31,6 +31,13 @@ export interface Character {
   age?: string;
 }
 
+export interface SharedFile {
+  name: string;
+  url: string;
+  mimeType: string;
+  base64Data?: string; // Base64 data for passing directly to multimodal Gemini API
+}
+
 export interface NarrativeTurn {
   id: string;
   role: "user" | "model";
@@ -38,6 +45,7 @@ export interface NarrativeTurn {
   speakerMood?: string;
   text: string;
   timestamp: string;
+  file?: SharedFile;
 }
 
 export interface InventoryItem {
