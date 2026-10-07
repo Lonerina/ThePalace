@@ -27,6 +27,8 @@ jobs:
         run: npm run test:phase-a
       - name: Gate B integration/runtime tests
         run: npm run test:phase-b
+      - name: Rollout choreography gate tests
+        run: npm run test:rollout
       - name: TypeScript lint
         run: npm run lint
       - name: Production build

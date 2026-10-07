@@ -44,20 +44,19 @@ import {
 import { Character, NarrativeTurn, InventoryItem, RelationshipUpdate } from "./types";
 import { DEFAULT_CHARACTERS, DEFAULT_SCROLL, AFAD_FRAMEWORK, RESET_MAP, DEFAULT_CHAMBER_GREETINGS } from "./constants";
 import { CHARACTER_LORE_MAP } from "./characterDetails";
-import { AUTHORITY_DOMAIN, V4_ENDPOINTS, type AuthorityRequestContextV1 } from "./authority/protocol";
-import { type PalaceRegistryView } from "./consumers/palaceRegistry";
-import { BrowserStorageAdapter, loadBundledAuthorityInputs } from "./runtime/browserAuthority";
-import {
-  bootPalaceAuthority,
-  buildRuntimeState,
-  buildV4NarrativeRequest,
-  createFreshRuntimeV4,
-  negotiateV4Authority,
-  persistRuntimeSession,
-  restoreDisplayCharacters,
-} from "./runtime/liveAuthority";
-import { STORAGE_KEYS } from "./runtime/storage";
+import type { AuthorityRequestContextV1 } from "./authority/protocol";
+import type { PalaceRegistryView } from "./consumers/palaceRegistry";
+import { BrowserStorageAdapter } from "./runtime/browserStorage";
+import { createFreshRuntimeV4 } from "./runtime/freshRuntime";
 import type { PalaceRuntimeStateV4 } from "./runtime/types";
+import {
+  CLIENT_GENERATION,
+  bootClientGeneration,
+  canExecuteClientGeneration,
+  persistClientGeneration,
+  resetClientGeneration,
+  sendClientNarrative,
+} from "virtual:client-generation";
 
 const PRESET_HEIRS = [
   { id: "heir-soren", name: "Soren Nur Saren", category: "heir_child" as const, age: "12", title: "Scribe in Training", avatar: "🎨", description: "Observant heir of Saren, quiet but notes everything.", color: "text-emerald-400" },
@@ -100,7 +99,7 @@ export default function App() {
   const [histories, setHistories] = useState<Record<string, NarrativeTurn[]>>({});
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [journal, setJournal] = useState<string[]>([]);
-  const [authorityMode, setAuthorityMode] = useState<"BOOTING" | "REGISTRY_V4" | "RUNTIME_ONLY">("BOOTING");
+  const [authorityMode, setAuthorityMode] = useState<"BOOTING" | "LEGACY_V3" | "REGISTRY_V4" | "RUNTIME_ONLY">("BOOTING");
   const [authorityRequest, setAuthorityRequest] = useState<AuthorityRequestContextV1 | null>(null);
   const [palaceRegistryView, setPalaceRegistryView] = useState<Readonly<PalaceRegistryView> | null>(null);
   const [runtimeReady, setRuntimeReady] = useState(false);
@@ -400,30 +399,26 @@ export default function App() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const updateTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Phase-B runtime boot: canonical registry and mutable Palace state are separate.
+  // Client generation is selected by the build artifact, never localStorage/runtime state.
   useEffect(() => {
     let cancelled = false;
     (async () => {
       const storage = storageRef.current!;
       const builtInIds = new Set(DEFAULT_CHARACTERS.map((character) => character.id));
       try {
-        const inputs = await loadBundledAuthorityInputs();
-        const boot = await bootPalaceAuthority({
+        const boot = await bootClientGeneration({
           storage,
           builtInIds,
-          liveRegistryBytes: inputs.registryBytes,
-          liveRegistryText: inputs.registryText,
-          manifest: inputs.manifest,
+          defaultCharacters: DEFAULT_CHARACTERS,
+          defaultScroll: DEFAULT_SCROLL,
+          fetcher: (url, init) => fetch(url, init),
         });
         if (cancelled) return;
 
-        // Presentation defaults are safe runtime material; RC4 projection is the structural view.
         initializeDefaultState();
         runtimeBaseRef.current = boot.runtime;
         setPalaceRegistryView(boot.palaceRegistry);
-
-        const restoredCharacters = restoreDisplayCharacters(boot.runtime, DEFAULT_CHARACTERS) as Character[];
-        if (restoredCharacters.length > 0) setCharacters(restoredCharacters);
+        if (boot.displayCharacters.length > 0) setCharacters(boot.displayCharacters as Character[]);
         if (boot.runtime.activeUiRoomId) setActiveChamberId(boot.runtime.activeUiRoomId);
         if (Object.keys(boot.runtime.histories ?? {}).length > 0) {
           setHistories(boot.runtime.histories as Record<string, NarrativeTurn[]>);
@@ -433,29 +428,14 @@ export default function App() {
         if (Object.keys(boot.runtime.suggestedChoices ?? {}).length > 0) {
           setSuggestedChoicesMap((previous) => ({ ...previous, ...(boot.runtime.suggestedChoices as Record<string, string[]>) }));
         }
+        setScrollText(boot.scrollText);
+        setAuthorityMode(boot.mode);
+        setAuthorityRequest(boot.authorityRequest);
 
-        const quarantineText = storage.getItem(STORAGE_KEYS.quarantineV1);
-        if (quarantineText) {
-          try {
-            const quarantine = JSON.parse(quarantineText);
-            if (typeof quarantine?.oldScrollDraft?.value === "string") setScrollText(quarantine.oldScrollDraft.value);
-          } catch {
-            // Quarantine is evidence only. A parse failure never creates authority.
-          }
-        }
-
-        const negotiated = await negotiateV4Authority({
-          fetcher: (url, init) => fetch(url, init),
-          manifest: inputs.manifest,
-          registryMode: boot.registryMode,
-        });
-        if (cancelled) return;
-        setAuthorityMode(negotiated.mode);
-        setAuthorityRequest(negotiated.authority);
-        if (negotiated.mode !== "REGISTRY_V4") {
-          setErrorMsg(`Authority compatibility mode: RUNTIME_ONLY. ${negotiated.reason}`);
+        if (boot.mode === "RUNTIME_ONLY") {
+          setErrorMsg(`Authority compatibility mode: RUNTIME_ONLY. ${boot.reason}`);
         } else if (boot.warnings.length > 0) {
-          setErrorMsg(`Authority online with migration warnings: ${boot.warnings.join("; ")}`);
+          setErrorMsg(`${CLIENT_GENERATION} client online with warnings: ${boot.warnings.join("; ")}`);
         }
         setRuntimeReady(true);
       } catch (error) {
@@ -464,17 +444,16 @@ export default function App() {
         setAuthorityMode("RUNTIME_ONLY");
         setAuthorityRequest(null);
         setPalaceRegistryView(null);
-        setErrorMsg(`Authority compatibility mode: RUNTIME_ONLY. ${error instanceof Error ? error.message : "RC4 boot failed."}`);
+        setErrorMsg(`${CLIENT_GENERATION} client unavailable: ${error instanceof Error ? error.message : "Client boot failed."}`);
         setRuntimeReady(true);
       }
     })();
     return () => { cancelled = true; };
   }, []);
 
-  // Persist mutable runtime only. Canonical registry bytes and the v3 archive are never written here.
+  // Persist mutable runtime in the format owned by this build generation.
   useEffect(() => {
     if (!runtimeReady) return;
-    const storage = storageRef.current!;
     const relationshipMap = characters.reduce((acc, char) => {
       acc[char.id] = char.metrics;
       return acc;
@@ -485,8 +464,9 @@ export default function App() {
         .filter((name): name is string => typeof name === "string"),
     );
     try {
-      const nextRuntime = buildRuntimeState({
-        previous: runtimeBaseRef.current,
+      const nextRuntime = persistClientGeneration({
+        storage: storageRef.current!,
+        previousRuntime: runtimeBaseRef.current,
         activeUiRoomId: activeChamberId,
         histories,
         relationships: relationshipMap,
@@ -496,13 +476,13 @@ export default function App() {
         displayCharacters: characters,
         builtInIds: new Set(DEFAULT_CHARACTERS.map((character) => character.id)),
         canonicalNames,
+        scrollText,
       });
-      persistRuntimeSession(storage, nextRuntime);
       runtimeBaseRef.current = nextRuntime;
     } catch (error) {
-      console.error("Failed to persist Palace runtime-v4 state", error);
+      console.error(`Failed to persist ${CLIENT_GENERATION} client state`, error);
     }
-  }, [runtimeReady, activeChamberId, histories, characters, inventory, journal, suggestedChoicesMap, palaceRegistryView]);
+  }, [runtimeReady, activeChamberId, histories, characters, inventory, journal, suggestedChoicesMap, palaceRegistryView, scrollText]);
 
   // Auto scroll to latest chat
   useEffect(() => {
@@ -746,8 +726,8 @@ export default function App() {
 
     if (!userMsg && !file) return;
     if (loading) return;
-    if (authorityMode !== "REGISTRY_V4" || !authorityRequest) {
-      setErrorMsg("Authority compatibility mode: RUNTIME_ONLY. Narrative execution is disabled; no legacy chat fallback is permitted.");
+    if (!canExecuteClientGeneration(authorityMode === "BOOTING" ? "RUNTIME_ONLY" : authorityMode, authorityRequest)) {
+      setErrorMsg(`${CLIENT_GENERATION} client is not executable in ${authorityMode} mode.`);
       return;
     }
 
@@ -778,10 +758,11 @@ export default function App() {
     }, {} as Record<string, any>);
 
     try {
-      const response = await fetch(V4_ENDPOINTS.chat, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(buildV4NarrativeRequest(authorityRequest, {
+      const response = await sendClientNarrative({
+        fetcher: (url, init) => fetch(url, init),
+        mode: authorityMode === "BOOTING" ? "RUNTIME_ONLY" : authorityMode,
+        authorityRequest,
+        runtimePayload: {
           chamberId: activeChamberId,
           history: updatedHistory,
           playerInput: userMsg,
@@ -789,12 +770,13 @@ export default function App() {
           inventory,
           journal,
           attachedFile: file,
-        })),
+        },
+        scrollText,
       });
 
       if (!response.ok) {
         const errObj = await response.json();
-        if ([409, 425, 426].includes(response.status)) {
+        if (CLIENT_GENERATION === "REGISTRY_V4" && [409, 425, 426].includes(response.status)) {
           setAuthorityMode("RUNTIME_ONLY");
           setAuthorityRequest(null);
         }
@@ -894,7 +876,7 @@ export default function App() {
   // Full runtime reset. Migration/quarantine/cache evidence is intentionally preserved.
   const handleReset = () => {
     if (window.confirm("Reset Palace runtime memories and journal lines? Canonical registry authority will not be changed.")) {
-      storageRef.current?.removeItem(STORAGE_KEYS.runtimeSessionV4);
+      resetClientGeneration(storageRef.current!);
       runtimeBaseRef.current = createFreshRuntimeV4();
       initializeDefaultState();
     }
@@ -902,6 +884,10 @@ export default function App() {
 
   // Legacy scroll is preserved as reference only and has no canonical write path.
   const handleScrollReforge = () => {
+    if (CLIENT_GENERATION === "LEGACY_V3") {
+      alert("Legacy V3 register saved for this explicitly legacy client generation.");
+      return;
+    }
     alert("Legacy scroll reference saved in the editor only. It cannot alter the approved RC4 Registry Snapshot.");
   };
 
@@ -2806,10 +2792,10 @@ export default function App() {
               <div className="flex items-center justify-between border-b border-white/5 pb-3 mb-4 shrink-0">
                 <div className="flex items-center gap-2.5">
                   <ScrollIcon className="w-5 h-5 text-cyan-400" />
-                  <h2 className="font-sans font-semibold text-base tracking-wider text-cyan-100">Approved Registry Snapshot</h2>
+                  <h2 className="font-sans font-semibold text-base tracking-wider text-cyan-100">{CLIENT_GENERATION === "REGISTRY_V4" ? "Approved Registry Snapshot" : "Legacy Sovereignty Reference"}</h2>
                 </div>
                 <span className="text-[9px] font-mono text-gray-500 uppercase bg-white/5 px-2 py-0.5 rounded border border-white/5">
-                  {authorityMode === "REGISTRY_V4" ? "AC-AUTH/1 CURRENT" : "RUNTIME_ONLY"}
+                  {authorityMode === "REGISTRY_V4" ? "AC-AUTH/1 CURRENT" : authorityMode === "LEGACY_V3" ? "LEGACY_V3 BUILD" : "RUNTIME_ONLY"}
                 </span>
               </div>
 
@@ -2838,7 +2824,7 @@ export default function App() {
                 <div className="border-t border-white/5 pt-4">
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-[10px] font-mono text-gray-400 uppercase">Legacy v2.9 reference</span>
-                    <span className="text-[9px] font-mono text-amber-500/80">AUTHORITY: NONE</span>
+                    <span className="text-[9px] font-mono text-amber-500/80">{CLIENT_GENERATION === "LEGACY_V3" ? "LEGACY BUILD INPUT" : "AUTHORITY: NONE"}</span>
                   </div>
                   <textarea
                     value={scrollText}
@@ -2848,7 +2834,9 @@ export default function App() {
                   />
                   <div className="flex items-center justify-between mt-3">
                     <p className="text-[10px] text-gray-500 leading-normal max-w-lg font-mono">
-                      This text is preserved for reference/quarantine only. Editing it cannot change canonical structure or server v4 authority.
+                      {CLIENT_GENERATION === "LEGACY_V3"
+                        ? "This preparation artifact is explicitly legacy. The register remains on the legacy /api/game/chat path only."
+                        : "This text is preserved for reference/quarantine only. Editing it cannot change canonical structure or server v4 authority."}
                     </p>
                     <button
                       onClick={handleScrollReforge}

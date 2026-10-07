@@ -59,7 +59,6 @@ export function handshakeMatchesCurrent(handshake: AuthorityHandshakeV1, current
 export const V4_ENDPOINTS = Object.freeze({
   authority: "/api/v4/authority",
   chat: "/api/v4/game/chat",
-  legacyChat: "/api/game/chat",
 });
 
 export function decideV4ClientRouting(

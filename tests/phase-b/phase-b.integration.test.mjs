@@ -36,6 +36,7 @@ const balloonPath = path.join(root, "registry/rc4/02_istana_pulang.v4.0-RC4.json
 const manifestPath = path.join(root, "registry/approved/approved-snapshots.v1.json");
 const gatewayPolicyPath = path.join(root, "deployment/authority-gateway-policy.v1.json");
 const appPath = path.join(root, "src/App.tsx");
+const v4ClientPath = path.join(root, "src/client/registryV4Generation.ts");
 const serverPath = path.join(root, "server.ts");
 
 const registryText = fs.readFileSync(registryPath, "utf8");
@@ -49,6 +50,7 @@ const registry = loadRegistrySnapshot(registryRaw);
 const balloon = loadBalloonFixture(balloonRaw, registry);
 const anchor = currentAnchor(manifest, AUTHORITY_DOMAIN);
 const appSource = fs.readFileSync(appPath, "utf8");
+const v4ClientSource = fs.readFileSync(v4ClientPath, "utf8");
 const serverSource = fs.readFileSync(serverPath, "utf8");
 
 const EXPECTED_REGISTRY_SHA = "e2da00bff04ed7b4f96396e43a1c74a904c1a17c4319f6c96f5b3246abeb5d4f";
@@ -458,13 +460,14 @@ test("GATE-B-16 no cutover mode permits legacy and v4 chat simultaneously", () =
   assert.equal(legacy.cutoverEpoch < lock.cutoverEpoch && lock.cutoverEpoch < v4.cutoverEpoch, true);
 });
 
-test("GATE-B-17 live App uses v4-only authority path and never writes v3", () => {
-  assert.match(appSource, /V4_ENDPOINTS\.chat/);
-  assert.match(appSource, /loadBundledAuthorityInputs/);
-  assert.match(appSource, /negotiateV4Authority/);
-  assert.equal(appSource.includes('fetch("/api/game/chat"'), false);
-  assert.equal(appSource.includes('localStorage.setItem("anchor_court_game_state_v3"'), false);
-  assert.match(appSource, /RUNTIME_ONLY/);
+test("GATE-B-17 REGISTRY_V4 client generation remains v4-only and never dynamically falls back", () => {
+  assert.match(appSource, /virtual:client-generation/);
+  assert.match(v4ClientSource, /V4_ENDPOINTS\.chat/);
+  assert.match(v4ClientSource, /loadBundledAuthorityInputs/);
+  assert.match(v4ClientSource, /negotiateV4Authority/);
+  assert.equal(v4ClientSource.includes("/api/game/chat"), false);
+  assert.equal(v4ClientSource.includes("legacyGeneration"), false);
+  assert.match(v4ClientSource, /RUNTIME_ONLY/);
 });
 
 test("GATE-B-18 live server wires v4 endpoints, gates legacy, and contains no shared legacy structural fallback", () => {

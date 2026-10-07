@@ -18,6 +18,9 @@
     "paths": {
       "@/*": [
         "./*"
+      ],
+      "virtual:client-generation": [
+        "./src/client/registryV4Generation.ts"
       ]
     },
     "allowImportingTsExtensions": true,

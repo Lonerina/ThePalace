@@ -4,13 +4,20 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "tsx server.ts",
-    "build": "vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs",
+    "dev": "CLIENT_GENERATION=LEGACY_V3 tsx server.ts",
+    "build": "npm run build:legacy && npm run verify:artifact:legacy && npm run build:v4 && npm run verify:artifact:v4",
     "start": "node dist/server.cjs",
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit",
     "test:phase-a": "rm -rf .phase-a-dist && tsc -p tests/tsconfig.phase-a.json && node --test tests/phase-a/phase-a.contract.test.mjs",
-    "test:phase-b": "rm -rf .phase-b-dist && tsc -p tests/tsconfig.phase-b.json && node --test tests/phase-b/phase-b.integration.test.mjs"
+    "test:phase-b": "rm -rf .phase-b-dist && tsc -p tests/tsconfig.phase-b.json && node --test tests/phase-b/phase-b.integration.test.mjs",
+    "dev:legacy": "CLIENT_GENERATION=LEGACY_V3 tsx server.ts",
+    "dev:v4": "CLIENT_GENERATION=REGISTRY_V4 tsx server.ts",
+    "build:legacy": "rm -rf dist && CLIENT_GENERATION=LEGACY_V3 vite build --mode legacy-v3 && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs",
+    "build:v4": "rm -rf dist && CLIENT_GENERATION=REGISTRY_V4 vite build --mode registry-v4 && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs",
+    "verify:artifact:legacy": "node scripts/assert-client-generation-artifact.mjs LEGACY_V3",
+    "verify:artifact:v4": "node scripts/assert-client-generation-artifact.mjs REGISTRY_V4",
+    "test:rollout": "rm -rf .phase-b-dist && tsc -p tests/tsconfig.phase-b.json && node --test tests/rollout/rollout-gate.test.mjs"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",
