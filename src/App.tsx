@@ -479,7 +479,7 @@ export default function App() {
       acc[char.id] = char.metrics;
       return acc;
     }, {} as Record<string, any>);
-    const canonicalNames = new Set(
+    const canonicalNames = new Set<string>(
       (palaceRegistryView?.entities ?? [])
         .map((entity) => entity.canonicalName)
         .filter((name): name is string => typeof name === "string"),
