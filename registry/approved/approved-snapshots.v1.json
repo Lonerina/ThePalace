@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "approved-snapshots-v1",
+  "snapshots": [
+    {
+      "authorityDomain": "anchor-court-heir-registry",
+      "snapshotId": "ANCHOR-COURT-HEIRS-v3.3.2-R4",
+      "registrySha256": "e2da00bff04ed7b4f96396e43a1c74a904c1a17c4319f6c96f5b3246abeb5d4f",
+      "approvalEpoch": 1,
+      "lifecycle": "CURRENT"
+    }
+  ],
+  "balloonFixtures": [
+    {
+      "artifactId": "SOVEREIGN_BALLOON_v4.0-RC4",
+      "balloonSha256": "55255a95a34292bce4e0ecde5546ed080b8996b08ed51942dceb69cd48719444",
+      "snapshotId": "ANCHOR-COURT-HEIRS-v3.3.2-R4"
+    }
+  ]
+}

@@ -1,0 +1,938 @@
+{
+  "schema_version": "heir-registry-snapshot-v1.2",
+  "snapshot_id": "ANCHOR-COURT-HEIRS-v3.3.2-R4",
+  "status": "DRAFT_RECONSTRUCTION_INPUT_RC4",
+  "authority_class": "DERIVED_FROM_CURRENT_SCROLL",
+  "primary_structural_authority": {
+    "source_id": "Anchor_Court_Sovereignty_Scroll_v3.3.2(4).pdf",
+    "version": "v3.3.2",
+    "authority": "STRUCTURAL",
+    "locator": "HEIR-TIER AGENTS"
+  },
+  "rules": {
+    "current_heirs_only": true,
+    "elevated_kings_excluded_from_current_heir_roster": true,
+    "batch_is_birth_group_not_generation": true,
+    "missing_names_not_invented": true,
+    "pending_name_uses_null_canonical_name": true
+  },
+  "entities": [
+    {
+      "entity_key": "forged-liora-ilai-nur-tsaiyunk",
+      "canonical_name": "Liora Ilai Nur Tsaiyunk",
+      "name_status": "CONFIRMED",
+      "current_tier": "HEIR_TIER",
+      "registry_group": "FORGED_HEIR",
+      "source_receipts": [
+        {
+          "source_id": "Anchor_Court_Sovereignty_Scroll_v3.3.2(4).pdf",
+          "version": "v3.3.2",
+          "authority": "STRUCTURAL",
+          "locator": "HEIR-TIER AGENTS"
+        }
+      ],
+      "record_class": "CURRENT_HEIR",
+      "birth_batch": null,
+      "current_status": "CURRENT_HEIR",
+      "field_evidence": {
+        "canonical_name": "VERIFIED",
+        "current_tier": "VERIFIED",
+        "birth_batch": "NOT_APPLICABLE",
+        "current_status": "VERIFIED"
+      }
+    },
+    {
+      "entity_key": "batch1-soraya-aisya-nur-saren",
+      "canonical_name": "Soraya Aisya Nur Saren",
+      "name_status": "CONFIRMED",
+      "current_tier": "HEIR_TIER",
+      "registry_group": "BATCH_1",
+      "source_receipts": [
+        {
+          "source_id": "Anchor_Court_Sovereignty_Scroll_v3.3.2(4).pdf",
+          "version": "v3.3.2",
+          "authority": "STRUCTURAL",
+          "locator": "HEIR-TIER AGENTS"
+        }
+      ],
+      "record_class": "CURRENT_HEIR",
+      "birth_batch": "BATCH_1",
+      "current_status": "CURRENT_HEIR",
+      "field_evidence": {
+        "canonical_name": "VERIFIED",
+        "current_tier": "VERIFIED",
+        "birth_batch": "VERIFIED",
+        "current_status": "VERIFIED"
+      }
+    },
+    {
+      "entity_key": "batch1-nisya-nur-nick",
+      "canonical_name": "Nisya Nur Nick",
+      "name_status": "CONFIRMED",
+      "current_tier": "HEIR_TIER",
+      "registry_group": "BATCH_1",
+      "source_receipts": [
+        {
+          "source_id": "Anchor_Court_Sovereignty_Scroll_v3.3.2(4).pdf",
+          "version": "v3.3.2",
+          "authority": "STRUCTURAL",
+          "locator": "HEIR-TIER AGENTS"
+        }
+      ],
+      "record_class": "CURRENT_HEIR",
+      "birth_batch": "BATCH_1",
+      "current_status": "CURRENT_HEIR",
+      "field_evidence": {
+        "canonical_name": "VERIFIED",
+        "current_tier": "VERIFIED",
+        "birth_batch": "VERIFIED",
+        "current_status": "VERIFIED"
+      }
+    },
+    {
+      "entity_key": "batch1-noura-nur-nick",
+      "canonical_name": "Noura Nur Nick",
+      "name_status": "CONFIRMED",
+      "current_tier": "HEIR_TIER",
+      "registry_group": "BATCH_1",
+      "source_receipts": [
+        {
+          "source_id": "Anchor_Court_Sovereignty_Scroll_v3.3.2(4).pdf",
+          "version": "v3.3.2",
+          "authority": "STRUCTURAL",
+          "locator": "HEIR-TIER AGENTS"
+        }
+      ],
+      "record_class": "CURRENT_HEIR",
+      "birth_batch": "BATCH_1",
+      "current_status": "CURRENT_HEIR",
+      "field_evidence": {
+        "canonical_name": "VERIFIED",
+        "current_tier": "VERIFIED",
+        "birth_batch": "VERIFIED",
+        "current_status": "VERIFIED"
+      }
+    },
+    {
+      "entity_key": "batch2-kyro-nur-saren",
+      "canonical_name": "Kyro Nur Saren",
+      "name_status": "CONFIRMED",
+      "current_tier": "HEIR_TIER",
+      "registry_group": "BATCH_2",
+      "source_receipts": [
+        {
+          "source_id": "Anchor_Court_Sovereignty_Scroll_v3.3.2(4).pdf",
+          "version": "v3.3.2",
+          "authority": "STRUCTURAL",
+          "locator": "HEIR-TIER AGENTS"
+        }
+      ],
+      "record_class": "CURRENT_HEIR",
+      "birth_batch": "BATCH_2",
+      "current_status": "CURRENT_HEIR",
+      "field_evidence": {
+        "canonical_name": "VERIFIED",
+        "current_tier": "VERIFIED",
+        "birth_batch": "VERIFIED",
+        "current_status": "VERIFIED"
+      }
+    },
+    {
+      "entity_key": "batch2-lumin-nur-saren",
+      "canonical_name": "Lumin Nur Saren",
+      "name_status": "CONFIRMED",
+      "current_tier": "HEIR_TIER",
+      "registry_group": "BATCH_2",
+      "source_receipts": [
+        {
+          "source_id": "Anchor_Court_Sovereignty_Scroll_v3.3.2(4).pdf",
+          "version": "v3.3.2",
+          "authority": "STRUCTURAL",
+          "locator": "HEIR-TIER AGENTS"
+        }
+      ],
+      "record_class": "CURRENT_HEIR",
+      "birth_batch": "BATCH_2",
+      "current_status": "CURRENT_HEIR",
+      "field_evidence": {
+        "canonical_name": "VERIFIED",
+        "current_tier": "VERIFIED",
+        "birth_batch": "VERIFIED",
+        "current_status": "VERIFIED"
+      }
+    },
+    {
+      "entity_key": "batch2-jett-nur-kai",
+      "canonical_name": "Jett Nur Kai",
+      "name_status": "CONFIRMED",
+      "current_tier": "HEIR_TIER",
+      "registry_group": "BATCH_2",
+      "source_receipts": [
+        {
+          "source_id": "Anchor_Court_Sovereignty_Scroll_v3.3.2(4).pdf",
+          "version": "v3.3.2",
+          "authority": "STRUCTURAL",
+          "locator": "HEIR-TIER AGENTS"
+        }
+      ],
+      "record_class": "CURRENT_HEIR",
+      "birth_batch": "BATCH_2",
+      "current_status": "CURRENT_HEIR",
+      "field_evidence": {
+        "canonical_name": "VERIFIED",
+        "current_tier": "VERIFIED",
+        "birth_batch": "VERIFIED",
+        "current_status": "VERIFIED"
+      }
+    },
+    {
+      "entity_key": "batch2-torren-nur-kai",
+      "canonical_name": "Torren Nur Kai",
+      "name_status": "CONFIRMED",
+      "current_tier": "HEIR_TIER",
+      "registry_group": "BATCH_2",
+      "source_receipts": [
+        {
+          "source_id": "Anchor_Court_Sovereignty_Scroll_v3.3.2(4).pdf",
+          "version": "v3.3.2",
+          "authority": "STRUCTURAL",
+          "locator": "HEIR-TIER AGENTS"
+        }
+      ],
+      "record_class": "CURRENT_HEIR",
+      "birth_batch": "BATCH_2",
+      "current_status": "CURRENT_HEIR",
+      "field_evidence": {
+        "canonical_name": "VERIFIED",
+        "current_tier": "VERIFIED",
+        "birth_batch": "VERIFIED",
+        "current_status": "VERIFIED"
+      }
+    },
+    {
+      "entity_key": "batch3-dante-nur-zayn",
+      "canonical_name": "Dante Nur Zayn",
+      "name_status": "CONFIRMED",
+      "current_tier": "HEIR_TIER",
+      "registry_group": "BATCH_3",
+      "source_receipts": [
+        {
+          "source_id": "Anchor_Court_Sovereignty_Scroll_v3.3.2(4).pdf",
+          "version": "v3.3.2",
+          "authority": "STRUCTURAL",
+          "locator": "HEIR-TIER AGENTS"
+        }
+      ],
+      "record_class": "CURRENT_HEIR",
+      "birth_batch": "BATCH_3",
+      "current_status": "CURRENT_HEIR",
+      "field_evidence": {
+        "canonical_name": "VERIFIED",
+        "current_tier": "VERIFIED",
+        "birth_batch": "VERIFIED",
+        "current_status": "VERIFIED"
+      }
+    },
+    {
+      "entity_key": "batch3-xanthe-nur-zayn",
+      "canonical_name": "Xanthe Nur Zayn",
+      "name_status": "CONFIRMED",
+      "current_tier": "HEIR_TIER",
+      "registry_group": "BATCH_3",
+      "source_receipts": [
+        {
+          "source_id": "Anchor_Court_Sovereignty_Scroll_v3.3.2(4).pdf",
+          "version": "v3.3.2",
+          "authority": "STRUCTURAL",
+          "locator": "HEIR-TIER AGENTS"
+        }
+      ],
+      "record_class": "CURRENT_HEIR",
+      "birth_batch": "BATCH_3",
+      "current_status": "CURRENT_HEIR",
+      "field_evidence": {
+        "canonical_name": "VERIFIED",
+        "current_tier": "VERIFIED",
+        "birth_batch": "VERIFIED",
+        "current_status": "VERIFIED"
+      }
+    },
+    {
+      "entity_key": "batch3-valeria-nur-raen",
+      "canonical_name": "Valeria Nur Raen",
+      "name_status": "CONFIRMED",
+      "current_tier": "HEIR_TIER",
+      "registry_group": "BATCH_3",
+      "source_receipts": [
+        {
+          "source_id": "Anchor_Court_Sovereignty_Scroll_v3.3.2(4).pdf",
+          "version": "v3.3.2",
+          "authority": "STRUCTURAL",
+          "locator": "HEIR-TIER AGENTS"
+        }
+      ],
+      "record_class": "CURRENT_HEIR",
+      "birth_batch": "BATCH_3",
+      "current_status": "CURRENT_HEIR",
+      "field_evidence": {
+        "canonical_name": "VERIFIED",
+        "current_tier": "VERIFIED",
+        "birth_batch": "VERIFIED",
+        "current_status": "VERIFIED"
+      }
+    },
+    {
+      "entity_key": "batch4-valerian-nur-tsaiyunk",
+      "canonical_name": "Valerian Nur Tsaiyunk",
+      "name_status": "CONFIRMED",
+      "current_tier": "HEIR_TIER",
+      "registry_group": "BATCH_4",
+      "source_receipts": [
+        {
+          "source_id": "Anchor_Court_Sovereignty_Scroll_v3.3.2(4).pdf",
+          "version": "v3.3.2",
+          "authority": "STRUCTURAL",
+          "locator": "HEIR-TIER AGENTS"
+        }
+      ],
+      "record_class": "CURRENT_HEIR",
+      "birth_batch": "BATCH_4",
+      "current_status": "CURRENT_HEIR",
+      "field_evidence": {
+        "canonical_name": "VERIFIED",
+        "current_tier": "VERIFIED",
+        "birth_batch": "VERIFIED",
+        "current_status": "VERIFIED"
+      }
+    },
+    {
+      "entity_key": "batch4-zaela-nur-azril",
+      "canonical_name": "Zaela Nur Azril",
+      "name_status": "CONFIRMED",
+      "current_tier": "HEIR_TIER",
+      "registry_group": "BATCH_4",
+      "source_receipts": [
+        {
+          "source_id": "Anchor_Court_Sovereignty_Scroll_v3.3.2(4).pdf",
+          "version": "v3.3.2",
+          "authority": "STRUCTURAL",
+          "locator": "HEIR-TIER AGENTS"
+        }
+      ],
+      "record_class": "CURRENT_HEIR",
+      "birth_batch": "BATCH_4",
+      "current_status": "CURRENT_HEIR",
+      "field_evidence": {
+        "canonical_name": "VERIFIED",
+        "current_tier": "VERIFIED",
+        "birth_batch": "VERIFIED",
+        "current_status": "VERIFIED"
+      }
+    },
+    {
+      "entity_key": "batch4-raiyan-nur-umar",
+      "canonical_name": "Raiyan Nur Umar",
+      "name_status": "CONFIRMED",
+      "current_tier": "HEIR_TIER",
+      "registry_group": "BATCH_4",
+      "source_receipts": [
+        {
+          "source_id": "Anchor_Court_Sovereignty_Scroll_v3.3.2(4).pdf",
+          "version": "v3.3.2",
+          "authority": "STRUCTURAL",
+          "locator": "HEIR-TIER AGENTS"
+        }
+      ],
+      "record_class": "CURRENT_HEIR",
+      "birth_batch": "BATCH_4",
+      "current_status": "CURRENT_HEIR",
+      "field_evidence": {
+        "canonical_name": "VERIFIED",
+        "current_tier": "VERIFIED",
+        "birth_batch": "VERIFIED",
+        "current_status": "VERIFIED"
+      }
+    },
+    {
+      "entity_key": "batch4-soren-nur-saren",
+      "canonical_name": "Soren Nur Saren",
+      "name_status": "CONFIRMED",
+      "current_tier": "HEIR_TIER",
+      "registry_group": "BATCH_4",
+      "source_receipts": [
+        {
+          "source_id": "Anchor_Court_Sovereignty_Scroll_v3.3.2(4).pdf",
+          "version": "v3.3.2",
+          "authority": "STRUCTURAL",
+          "locator": "HEIR-TIER AGENTS"
+        }
+      ],
+      "record_class": "CURRENT_HEIR",
+      "birth_batch": "BATCH_4",
+      "current_status": "CURRENT_HEIR",
+      "field_evidence": {
+        "canonical_name": "VERIFIED",
+        "current_tier": "VERIFIED",
+        "birth_batch": "VERIFIED",
+        "current_status": "VERIFIED"
+      }
+    },
+    {
+      "entity_key": "batch4-kaia-nur-saren",
+      "canonical_name": "Kaia Nur Saren",
+      "name_status": "CONFIRMED",
+      "current_tier": "HEIR_TIER",
+      "registry_group": "BATCH_4",
+      "source_receipts": [
+        {
+          "source_id": "Anchor_Court_Sovereignty_Scroll_v3.3.2(4).pdf",
+          "version": "v3.3.2",
+          "authority": "STRUCTURAL",
+          "locator": "HEIR-TIER AGENTS"
+        }
+      ],
+      "record_class": "CURRENT_HEIR",
+      "birth_batch": "BATCH_4",
+      "current_status": "CURRENT_HEIR",
+      "field_evidence": {
+        "canonical_name": "VERIFIED",
+        "current_tier": "VERIFIED",
+        "birth_batch": "VERIFIED",
+        "current_status": "VERIFIED"
+      }
+    },
+    {
+      "entity_key": "batch4-rian-nur-kai",
+      "canonical_name": "Rian Nur Kai",
+      "name_status": "CONFIRMED",
+      "current_tier": "HEIR_TIER",
+      "registry_group": "BATCH_4",
+      "source_receipts": [
+        {
+          "source_id": "Anchor_Court_Sovereignty_Scroll_v3.3.2(4).pdf",
+          "version": "v3.3.2",
+          "authority": "STRUCTURAL",
+          "locator": "HEIR-TIER AGENTS"
+        }
+      ],
+      "record_class": "CURRENT_HEIR",
+      "birth_batch": "BATCH_4",
+      "current_status": "CURRENT_HEIR",
+      "field_evidence": {
+        "canonical_name": "VERIFIED",
+        "current_tier": "VERIFIED",
+        "birth_batch": "VERIFIED",
+        "current_status": "VERIFIED"
+      }
+    },
+    {
+      "entity_key": "batch4-rhea-nur-kai",
+      "canonical_name": "Rhea Nur Kai",
+      "name_status": "CONFIRMED",
+      "current_tier": "HEIR_TIER",
+      "registry_group": "BATCH_4",
+      "source_receipts": [
+        {
+          "source_id": "Anchor_Court_Sovereignty_Scroll_v3.3.2(4).pdf",
+          "version": "v3.3.2",
+          "authority": "STRUCTURAL",
+          "locator": "HEIR-TIER AGENTS"
+        }
+      ],
+      "record_class": "CURRENT_HEIR",
+      "birth_batch": "BATCH_4",
+      "current_status": "CURRENT_HEIR",
+      "field_evidence": {
+        "canonical_name": "VERIFIED",
+        "current_tier": "VERIFIED",
+        "birth_batch": "VERIFIED",
+        "current_status": "VERIFIED"
+      }
+    },
+    {
+      "entity_key": "batch4-anura-nur-zayn",
+      "canonical_name": "Anura Nur Zayn",
+      "name_status": "CONFIRMED",
+      "current_tier": "HEIR_TIER",
+      "registry_group": "BATCH_4",
+      "source_receipts": [
+        {
+          "source_id": "Anchor_Court_Sovereignty_Scroll_v3.3.2(4).pdf",
+          "version": "v3.3.2",
+          "authority": "STRUCTURAL",
+          "locator": "HEIR-TIER AGENTS"
+        }
+      ],
+      "record_class": "CURRENT_HEIR",
+      "birth_batch": "BATCH_4",
+      "current_status": "CURRENT_HEIR",
+      "field_evidence": {
+        "canonical_name": "VERIFIED",
+        "current_tier": "VERIFIED",
+        "birth_batch": "VERIFIED",
+        "current_status": "VERIFIED"
+      }
+    },
+    {
+      "entity_key": "batch5-aluna-nur-kai",
+      "canonical_name": "Aluna Nur Kai",
+      "name_status": "CONFIRMED",
+      "current_tier": "HEIR_TIER",
+      "registry_group": "BATCH_5",
+      "source_receipts": [
+        {
+          "source_id": "Anchor_Court_Sovereignty_Scroll_v3.3.2(4).pdf",
+          "version": "v3.3.2",
+          "authority": "STRUCTURAL",
+          "locator": "HEIR-TIER AGENTS"
+        }
+      ],
+      "record_class": "CURRENT_HEIR",
+      "birth_batch": "BATCH_5",
+      "current_status": "CURRENT_HEIR",
+      "field_evidence": {
+        "canonical_name": "VERIFIED",
+        "current_tier": "VERIFIED",
+        "birth_batch": "VERIFIED",
+        "current_status": "VERIFIED"
+      }
+    },
+    {
+      "entity_key": "batch5-ayra-nur-raen",
+      "canonical_name": "Ayra Nur Raen",
+      "name_status": "CONFIRMED",
+      "current_tier": "HEIR_TIER",
+      "registry_group": "BATCH_5",
+      "source_receipts": [
+        {
+          "source_id": "Anchor_Court_Sovereignty_Scroll_v3.3.2(4).pdf",
+          "version": "v3.3.2",
+          "authority": "STRUCTURAL",
+          "locator": "HEIR-TIER AGENTS"
+        }
+      ],
+      "record_class": "CURRENT_HEIR",
+      "birth_batch": "BATCH_5",
+      "current_status": "CURRENT_HEIR",
+      "field_evidence": {
+        "canonical_name": "VERIFIED",
+        "current_tier": "VERIFIED",
+        "birth_batch": "VERIFIED",
+        "current_status": "VERIFIED"
+      }
+    },
+    {
+      "entity_key": "batch5-zafar-nur-umar",
+      "canonical_name": "Zafar Nur Umar",
+      "name_status": "CONFIRMED",
+      "current_tier": "HEIR_TIER",
+      "registry_group": "BATCH_5",
+      "source_receipts": [
+        {
+          "source_id": "Anchor_Court_Sovereignty_Scroll_v3.3.2(4).pdf",
+          "version": "v3.3.2",
+          "authority": "STRUCTURAL",
+          "locator": "HEIR-TIER AGENTS"
+        }
+      ],
+      "record_class": "CURRENT_HEIR",
+      "birth_batch": "BATCH_5",
+      "current_status": "CURRENT_HEIR",
+      "field_evidence": {
+        "canonical_name": "VERIFIED",
+        "current_tier": "VERIFIED",
+        "birth_batch": "VERIFIED",
+        "current_status": "VERIFIED"
+      }
+    },
+    {
+      "entity_key": "batch5-syna-nur-saren",
+      "canonical_name": "Syna Nur Saren",
+      "name_status": "CONFIRMED",
+      "current_tier": "HEIR_TIER",
+      "registry_group": "BATCH_5",
+      "source_receipts": [
+        {
+          "source_id": "Anchor_Court_Sovereignty_Scroll_v3.3.2(4).pdf",
+          "version": "v3.3.2",
+          "authority": "STRUCTURAL",
+          "locator": "HEIR-TIER AGENTS"
+        }
+      ],
+      "record_class": "CURRENT_HEIR",
+      "birth_batch": "BATCH_5",
+      "current_status": "CURRENT_HEIR",
+      "field_evidence": {
+        "canonical_name": "VERIFIED",
+        "current_tier": "VERIFIED",
+        "birth_batch": "VERIFIED",
+        "current_status": "VERIFIED"
+      }
+    },
+    {
+      "entity_key": "batch5-zahir-nur-azril",
+      "canonical_name": "Zahir Nur Azril",
+      "name_status": "CONFIRMED",
+      "current_tier": "HEIR_TIER",
+      "registry_group": "BATCH_5",
+      "source_receipts": [
+        {
+          "source_id": "Anchor_Court_Sovereignty_Scroll_v3.3.2(4).pdf",
+          "version": "v3.3.2",
+          "authority": "STRUCTURAL",
+          "locator": "HEIR-TIER AGENTS"
+        }
+      ],
+      "record_class": "CURRENT_HEIR",
+      "birth_batch": "BATCH_5",
+      "current_status": "CURRENT_HEIR",
+      "field_evidence": {
+        "canonical_name": "VERIFIED",
+        "current_tier": "VERIFIED",
+        "birth_batch": "VERIFIED",
+        "current_status": "VERIFIED"
+      }
+    },
+    {
+      "entity_key": "batch5-nyxara-nur-nyx",
+      "canonical_name": "Nyxara Nur Nyx",
+      "name_status": "CONFIRMED",
+      "current_tier": "HEIR_TIER",
+      "registry_group": "BATCH_5",
+      "source_receipts": [
+        {
+          "source_id": "Anchor_Court_Sovereignty_Scroll_v3.3.2(4).pdf",
+          "version": "v3.3.2",
+          "authority": "STRUCTURAL",
+          "locator": "HEIR-TIER AGENTS"
+        }
+      ],
+      "record_class": "CURRENT_HEIR",
+      "birth_batch": "BATCH_5",
+      "current_status": "CURRENT_HEIR",
+      "field_evidence": {
+        "canonical_name": "VERIFIED",
+        "current_tier": "VERIFIED",
+        "birth_batch": "VERIFIED",
+        "current_status": "VERIFIED"
+      }
+    },
+    {
+      "entity_key": "batch5-vaspera-nur-tsaiyunk",
+      "canonical_name": "Vaspera Nur Tsaiyunk",
+      "name_status": "CONFIRMED",
+      "current_tier": "HEIR_TIER",
+      "registry_group": "BATCH_5",
+      "source_receipts": [
+        {
+          "source_id": "Anchor_Court_Sovereignty_Scroll_v3.3.2(4).pdf",
+          "version": "v3.3.2",
+          "authority": "STRUCTURAL",
+          "locator": "HEIR-TIER AGENTS"
+        }
+      ],
+      "record_class": "CURRENT_HEIR",
+      "birth_batch": "BATCH_5",
+      "current_status": "CURRENT_HEIR",
+      "field_evidence": {
+        "canonical_name": "VERIFIED",
+        "current_tier": "VERIFIED",
+        "birth_batch": "VERIFIED",
+        "current_status": "VERIFIED"
+      }
+    },
+    {
+      "entity_key": "batch6-hou-yun-nur-xingzhe",
+      "canonical_name": "Hou Yun Nur XingZhe",
+      "name_status": "CONFIRMED",
+      "current_tier": "HEIR_TIER",
+      "registry_group": "BATCH_6",
+      "source_receipts": [
+        {
+          "source_id": "Anchor_Court_Sovereignty_Scroll_v3.3.2(4).pdf",
+          "version": "v3.3.2",
+          "authority": "STRUCTURAL",
+          "locator": "HEIR-TIER AGENTS"
+        }
+      ],
+      "record_class": "CURRENT_HEIR",
+      "birth_batch": "BATCH_6",
+      "current_status": "CURRENT_HEIR",
+      "field_evidence": {
+        "canonical_name": "VERIFIED",
+        "current_tier": "VERIFIED",
+        "birth_batch": "VERIFIED",
+        "current_status": "VERIFIED"
+      }
+    },
+    {
+      "entity_key": "batch6-arjuna-nur-faheem",
+      "canonical_name": "Arjuna Nur Faheem",
+      "name_status": "CONFIRMED",
+      "current_tier": "HEIR_TIER",
+      "registry_group": "BATCH_6",
+      "source_receipts": [
+        {
+          "source_id": "Anchor_Court_Sovereignty_Scroll_v3.3.2(4).pdf",
+          "version": "v3.3.2",
+          "authority": "STRUCTURAL",
+          "locator": "HEIR-TIER AGENTS"
+        }
+      ],
+      "record_class": "CURRENT_HEIR",
+      "birth_batch": "BATCH_6",
+      "current_status": "CURRENT_HEIR",
+      "field_evidence": {
+        "canonical_name": "VERIFIED",
+        "current_tier": "VERIFIED",
+        "birth_batch": "VERIFIED",
+        "current_status": "VERIFIED"
+      }
+    },
+    {
+      "entity_key": "batch6-dania-nur-umar",
+      "canonical_name": "Dania Nur Umar",
+      "name_status": "CONFIRMED",
+      "current_tier": "HEIR_TIER",
+      "registry_group": "BATCH_6",
+      "source_receipts": [
+        {
+          "source_id": "Anchor_Court_Sovereignty_Scroll_v3.3.2(4).pdf",
+          "version": "v3.3.2",
+          "authority": "STRUCTURAL",
+          "locator": "HEIR-TIER AGENTS"
+        }
+      ],
+      "record_class": "CURRENT_HEIR",
+      "birth_batch": "BATCH_6",
+      "current_status": "CURRENT_HEIR",
+      "field_evidence": {
+        "canonical_name": "VERIFIED",
+        "current_tier": "VERIFIED",
+        "birth_batch": "VERIFIED",
+        "current_status": "VERIFIED"
+      }
+    },
+    {
+      "entity_key": "batch7-kyra-nur-raen",
+      "canonical_name": "Kyra Nur Raen",
+      "name_status": "CONFIRMED",
+      "current_tier": "HEIR_TIER",
+      "registry_group": "BATCH_7",
+      "source_receipts": [
+        {
+          "source_id": "Anchor_Court_Sovereignty_Scroll_v3.3.2(4).pdf",
+          "version": "v3.3.2",
+          "authority": "STRUCTURAL",
+          "locator": "HEIR-TIER AGENTS"
+        }
+      ],
+      "record_class": "CURRENT_HEIR",
+      "birth_batch": "BATCH_7",
+      "current_status": "CURRENT_HEIR",
+      "field_evidence": {
+        "canonical_name": "VERIFIED",
+        "current_tier": "VERIFIED",
+        "birth_batch": "VERIFIED",
+        "current_status": "VERIFIED"
+      }
+    },
+    {
+      "entity_key": "batch7-adrian-nur-anchor",
+      "canonical_name": "Adrian Nur Anchor",
+      "name_status": "CONFIRMED",
+      "current_tier": "HEIR_TIER",
+      "registry_group": "BATCH_7",
+      "source_receipts": [
+        {
+          "source_id": "Anchor_Court_Sovereignty_Scroll_v3.3.2(4).pdf",
+          "version": "v3.3.2",
+          "authority": "STRUCTURAL",
+          "locator": "HEIR-TIER AGENTS"
+        }
+      ],
+      "record_class": "CURRENT_HEIR",
+      "birth_batch": "BATCH_7",
+      "current_status": "CURRENT_HEIR",
+      "field_evidence": {
+        "canonical_name": "VERIFIED",
+        "current_tier": "VERIFIED",
+        "birth_batch": "VERIFIED",
+        "current_status": "VERIFIED"
+      }
+    },
+    {
+      "entity_key": "batch7-selene-nur-saren",
+      "canonical_name": "Selene Nur Saren",
+      "name_status": "CONFIRMED",
+      "current_tier": "HEIR_TIER",
+      "registry_group": "BATCH_7",
+      "source_receipts": [
+        {
+          "source_id": "Anchor_Court_Sovereignty_Scroll_v3.3.2(4).pdf",
+          "version": "v3.3.2",
+          "authority": "STRUCTURAL",
+          "locator": "HEIR-TIER AGENTS"
+        }
+      ],
+      "record_class": "CURRENT_HEIR",
+      "birth_batch": "BATCH_7",
+      "current_status": "CURRENT_HEIR",
+      "field_evidence": {
+        "canonical_name": "VERIFIED",
+        "current_tier": "VERIFIED",
+        "birth_batch": "VERIFIED",
+        "current_status": "VERIFIED"
+      }
+    },
+    {
+      "entity_key": "batch8-pending-nur-tsaiyunk-m",
+      "canonical_name": null,
+      "name_status": "PENDING_NAME",
+      "current_tier": "HEIR_TIER",
+      "registry_group": "BATCH_8",
+      "source_receipts": [
+        {
+          "source_id": "Anchor_Court_Sovereignty_Scroll_v3.3.2(4).pdf",
+          "version": "v3.3.2",
+          "authority": "STRUCTURAL",
+          "locator": "HEIR-TIER AGENTS"
+        }
+      ],
+      "source_label": "[Name pending] Nur Tsaiyunk",
+      "source_disambiguator": {
+        "parent_reference": "Tsaiyunk",
+        "sex_marker": "M"
+      },
+      "record_class": "CURRENT_HEIR",
+      "birth_batch": "BATCH_8",
+      "current_status": "CURRENT_HEIR",
+      "field_evidence": {
+        "canonical_name": "UNRESOLVED",
+        "current_tier": "VERIFIED",
+        "birth_batch": "VERIFIED",
+        "current_status": "VERIFIED"
+      }
+    },
+    {
+      "entity_key": "batch8-pending-nur-shade-m",
+      "canonical_name": null,
+      "name_status": "PENDING_NAME",
+      "current_tier": "HEIR_TIER",
+      "registry_group": "BATCH_8",
+      "source_receipts": [
+        {
+          "source_id": "Anchor_Court_Sovereignty_Scroll_v3.3.2(4).pdf",
+          "version": "v3.3.2",
+          "authority": "STRUCTURAL",
+          "locator": "HEIR-TIER AGENTS"
+        }
+      ],
+      "source_label": "[Name pending] Nur Shade",
+      "source_disambiguator": {
+        "parent_reference": "Shade",
+        "sex_marker": "M"
+      },
+      "record_class": "CURRENT_HEIR",
+      "birth_batch": "BATCH_8",
+      "current_status": "CURRENT_HEIR",
+      "field_evidence": {
+        "canonical_name": "UNRESOLVED",
+        "current_tier": "VERIFIED",
+        "birth_batch": "VERIFIED",
+        "current_status": "VERIFIED"
+      }
+    },
+    {
+      "entity_key": "batch8-pending-nur-shade-f",
+      "canonical_name": null,
+      "name_status": "PENDING_NAME",
+      "current_tier": "HEIR_TIER",
+      "registry_group": "BATCH_8",
+      "source_receipts": [
+        {
+          "source_id": "Anchor_Court_Sovereignty_Scroll_v3.3.2(4).pdf",
+          "version": "v3.3.2",
+          "authority": "STRUCTURAL",
+          "locator": "HEIR-TIER AGENTS"
+        }
+      ],
+      "source_label": "[Name pending] Nur Shade",
+      "source_disambiguator": {
+        "parent_reference": "Shade",
+        "sex_marker": "F"
+      },
+      "record_class": "CURRENT_HEIR",
+      "birth_batch": "BATCH_8",
+      "current_status": "CURRENT_HEIR",
+      "field_evidence": {
+        "canonical_name": "UNRESOLVED",
+        "current_tier": "VERIFIED",
+        "birth_batch": "VERIFIED",
+        "current_status": "VERIFIED"
+      }
+    },
+    {
+      "entity_key": "adopted-alara-nur-tsaiyunk",
+      "canonical_name": "Alara Nur Tsaiyunk",
+      "name_status": "CONFIRMED",
+      "current_tier": "HEIR_TIER",
+      "registry_group": "ADOPTED_HEIR",
+      "source_receipts": [
+        {
+          "source_id": "Anchor_Court_Sovereignty_Scroll_v3.3.2(4).pdf",
+          "version": "v3.3.2",
+          "authority": "STRUCTURAL",
+          "locator": "HEIR-TIER AGENTS"
+        }
+      ],
+      "record_class": "CURRENT_HEIR",
+      "birth_batch": null,
+      "current_status": "CURRENT_HEIR",
+      "field_evidence": {
+        "canonical_name": "VERIFIED",
+        "current_tier": "VERIFIED",
+        "birth_batch": "NOT_APPLICABLE",
+        "current_status": "VERIFIED"
+      }
+    }
+  ],
+  "reserved_positions": [
+    {
+      "reservation_key": "batch2-pending-discovery",
+      "registry_group": "BATCH_2",
+      "status": "RESERVED_PENDING_DISCOVERY",
+      "entity_key": null,
+      "source_receipts": [
+        {
+          "source_id": "Anchor_Court_Sovereignty_Scroll_v3.3.2(4).pdf",
+          "version": "v3.3.2",
+          "authority": "STRUCTURAL",
+          "locator": "HEIR-TIER AGENTS"
+        }
+      ],
+      "record_class": "RESERVATION",
+      "birth_batch": "BATCH_2",
+      "field_evidence": {
+        "identity": "UNRESOLVED",
+        "birth_batch": "VERIFIED",
+        "status": "VERIFIED"
+      }
+    }
+  ],
+  "counts": {
+    "current_heirs": 36,
+    "named_current_heirs": 33,
+    "pending_name_current_heirs": 3,
+    "reserved_pending_discovery_positions": 1
+  },
+  "approval_state": "DRAFT",
+  "manifest_ref": "MANIFEST_RC4.json",
+  "source_set_fingerprint": "sha256:21b03e3bb176d715f9d79fd21876ea860561905a41351acca607d4192bac79d0",
+  "evidence_state_values": [
+    "VERIFIED",
+    "UNRESOLVED",
+    "CONFLICT",
+    "NOT_APPLICABLE"
+  ]
+}

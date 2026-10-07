@@ -1,0 +1,23 @@
+{
+  "schemaVersion": "authority-gateway-policy-v1",
+  "authorityDomain": "anchor-court-heir-registry",
+  "directOriginAccess": "DENY",
+  "v4UpstreamRequiresProtocol": "AC-AUTH/1",
+  "modes": {
+    "LEGACY_OPEN": {
+      "legacyChat": "ALLOW_LEGACY_POOL",
+      "v4Authority": "READINESS_ONLY",
+      "v4Chat": "DENY"
+    },
+    "CUTOVER_LOCK": {
+      "legacyChat": "DENY",
+      "v4Authority": "READINESS_ONLY",
+      "v4Chat": "DENY"
+    },
+    "REGISTRY_V4": {
+      "legacyChat": "DENY",
+      "v4Authority": "ALLOW_V4_POOL",
+      "v4Chat": "ALLOW_V4_POOL"
+    }
+  }
+}

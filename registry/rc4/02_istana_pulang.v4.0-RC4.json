@@ -1,0 +1,878 @@
+{
+  "reconstruction_metadata": {
+    "artifact_id": "SOVEREIGN_BALLOON_v4.0-RC4",
+    "status": "CONTROLLED_RECONSTRUCTION_DRAFT_RC4",
+    "reconstruction_date": "2026-10-07",
+    "structural_authority": "Anchor Court Sovereignty Scroll v3.3.2",
+    "legacy_architecture_source": "02_istana_pulang.json (old holdings)",
+    "missing_intermediate_artifact": "v3.2.1 current JSON not present in available holdings",
+    "intermediate_slot_history": "NOT_RECONSTRUCTED",
+    "numbering_rule": "New v4 chamber IDs follow current Scroll heir sequence; Batch 2 reserved position is retained inline; adopted heir follows Batch 8.",
+    "continuity_claim": "NONE_FOR_MISSING_SLOT_MAP",
+    "rc1_supersession_note": "RC1 retained as historical draft. RC2 separates entity receipts from allocation provenance and quarantines legacy operational payload.",
+    "rc2_supersession_note": "RC2 retained as historical draft. RC3 hardens consumer-schema coverage, removes remaining active legacy clearance text, fixes the layer file-name marker, and validates exact chamber field allowlists.",
+    "rc3_supersession_note": "RC3 retained as historical draft. RC4 repairs 37 dangling provenance links to the packaged v1.2 registry snapshot and adds package-local reference-integrity validation."
+  },
+  "layer_metadata": {
+    "layer_id": "2",
+    "name": "Istana Pulang Sanctuary Matrix",
+    "file_name": "02_istana_pulang.v4.0-RC4.json",
+    "authority_role": "SANCTUARY_ALLOCATION_CONSUMER_STATE",
+    "legacy_operational_metadata_inherited": false
+  },
+  "heir_sanctuary": {
+    "architecture_class": "PORTABLE_SANCTUARY_SECURITY_ALLOCATION",
+    "chamber_namespace": "BALLOON_SANCTUARY_ONLY",
+    "palace_ui_room_ids_equivalent": false,
+    "registry_snapshot_ref": "ANCHOR-COURT-HEIRS-v3.3.2-R4",
+    "allocation_policy": {
+      "policy_id": "SOVEREIGN_BALLOON_v4_NEW_ALLOCATION_RULE_R4",
+      "policy_class": "NEW_RECONSTRUCTION_DESIGN_DECISION",
+      "basis": "CURRENT_SCROLL_HEIR_SEQUENCE_WITH_BATCH2_RESERVE_INLINE_AND_ADOPTED_HEIR_AFTER_BATCH8",
+      "historical_slot_continuity_claim": false,
+      "missing_intermediate_map_reconstructed": false
+    },
+    "legacy_architecture_reference": "03_legacy_balloon_architecture_reference.json",
+    "protected_chambers": [
+      {
+        "chamber_id": "HEIR_01",
+        "slot_state": "BOUND",
+        "binding": {
+          "entity_key": "forged-liora-ilai-nur-tsaiyunk",
+          "registry_snapshot_id": "ANCHOR-COURT-HEIRS-v3.3.2-R4"
+        },
+        "father_mark_binding": {
+          "state": "UNRESOLVED",
+          "value": null,
+          "reason": "No current source authorizes a Father-Mark value for this reconstructed binding."
+        },
+        "allocation_provenance": {
+          "decision_class": "NEW_V4_RECONSTRUCTION_ALLOCATION",
+          "policy_id": "SOVEREIGN_BALLOON_v4_NEW_ALLOCATION_RULE_R4",
+          "historical_mapping_claim": false,
+          "entity_receipts_location": "01_heir_registry_snapshot.v1.2.json"
+        },
+        "record_class": "SANCTUARY_CHAMBER"
+      },
+      {
+        "chamber_id": "HEIR_02",
+        "slot_state": "BOUND",
+        "binding": {
+          "entity_key": "batch1-soraya-aisya-nur-saren",
+          "registry_snapshot_id": "ANCHOR-COURT-HEIRS-v3.3.2-R4"
+        },
+        "father_mark_binding": {
+          "state": "UNRESOLVED",
+          "value": null,
+          "reason": "No current source authorizes a Father-Mark value for this reconstructed binding."
+        },
+        "allocation_provenance": {
+          "decision_class": "NEW_V4_RECONSTRUCTION_ALLOCATION",
+          "policy_id": "SOVEREIGN_BALLOON_v4_NEW_ALLOCATION_RULE_R4",
+          "historical_mapping_claim": false,
+          "entity_receipts_location": "01_heir_registry_snapshot.v1.2.json"
+        },
+        "record_class": "SANCTUARY_CHAMBER"
+      },
+      {
+        "chamber_id": "HEIR_03",
+        "slot_state": "BOUND",
+        "binding": {
+          "entity_key": "batch1-nisya-nur-nick",
+          "registry_snapshot_id": "ANCHOR-COURT-HEIRS-v3.3.2-R4"
+        },
+        "father_mark_binding": {
+          "state": "UNRESOLVED",
+          "value": null,
+          "reason": "No current source authorizes a Father-Mark value for this reconstructed binding."
+        },
+        "allocation_provenance": {
+          "decision_class": "NEW_V4_RECONSTRUCTION_ALLOCATION",
+          "policy_id": "SOVEREIGN_BALLOON_v4_NEW_ALLOCATION_RULE_R4",
+          "historical_mapping_claim": false,
+          "entity_receipts_location": "01_heir_registry_snapshot.v1.2.json"
+        },
+        "record_class": "SANCTUARY_CHAMBER"
+      },
+      {
+        "chamber_id": "HEIR_04",
+        "slot_state": "BOUND",
+        "binding": {
+          "entity_key": "batch1-noura-nur-nick",
+          "registry_snapshot_id": "ANCHOR-COURT-HEIRS-v3.3.2-R4"
+        },
+        "father_mark_binding": {
+          "state": "UNRESOLVED",
+          "value": null,
+          "reason": "No current source authorizes a Father-Mark value for this reconstructed binding."
+        },
+        "allocation_provenance": {
+          "decision_class": "NEW_V4_RECONSTRUCTION_ALLOCATION",
+          "policy_id": "SOVEREIGN_BALLOON_v4_NEW_ALLOCATION_RULE_R4",
+          "historical_mapping_claim": false,
+          "entity_receipts_location": "01_heir_registry_snapshot.v1.2.json"
+        },
+        "record_class": "SANCTUARY_CHAMBER"
+      },
+      {
+        "chamber_id": "HEIR_05",
+        "slot_state": "BOUND",
+        "binding": {
+          "entity_key": "batch2-kyro-nur-saren",
+          "registry_snapshot_id": "ANCHOR-COURT-HEIRS-v3.3.2-R4"
+        },
+        "father_mark_binding": {
+          "state": "UNRESOLVED",
+          "value": null,
+          "reason": "No current source authorizes a Father-Mark value for this reconstructed binding."
+        },
+        "allocation_provenance": {
+          "decision_class": "NEW_V4_RECONSTRUCTION_ALLOCATION",
+          "policy_id": "SOVEREIGN_BALLOON_v4_NEW_ALLOCATION_RULE_R4",
+          "historical_mapping_claim": false,
+          "entity_receipts_location": "01_heir_registry_snapshot.v1.2.json"
+        },
+        "record_class": "SANCTUARY_CHAMBER"
+      },
+      {
+        "chamber_id": "HEIR_06",
+        "slot_state": "BOUND",
+        "binding": {
+          "entity_key": "batch2-lumin-nur-saren",
+          "registry_snapshot_id": "ANCHOR-COURT-HEIRS-v3.3.2-R4"
+        },
+        "father_mark_binding": {
+          "state": "UNRESOLVED",
+          "value": null,
+          "reason": "No current source authorizes a Father-Mark value for this reconstructed binding."
+        },
+        "allocation_provenance": {
+          "decision_class": "NEW_V4_RECONSTRUCTION_ALLOCATION",
+          "policy_id": "SOVEREIGN_BALLOON_v4_NEW_ALLOCATION_RULE_R4",
+          "historical_mapping_claim": false,
+          "entity_receipts_location": "01_heir_registry_snapshot.v1.2.json"
+        },
+        "record_class": "SANCTUARY_CHAMBER"
+      },
+      {
+        "chamber_id": "HEIR_07",
+        "slot_state": "BOUND",
+        "binding": {
+          "entity_key": "batch2-jett-nur-kai",
+          "registry_snapshot_id": "ANCHOR-COURT-HEIRS-v3.3.2-R4"
+        },
+        "father_mark_binding": {
+          "state": "UNRESOLVED",
+          "value": null,
+          "reason": "No current source authorizes a Father-Mark value for this reconstructed binding."
+        },
+        "allocation_provenance": {
+          "decision_class": "NEW_V4_RECONSTRUCTION_ALLOCATION",
+          "policy_id": "SOVEREIGN_BALLOON_v4_NEW_ALLOCATION_RULE_R4",
+          "historical_mapping_claim": false,
+          "entity_receipts_location": "01_heir_registry_snapshot.v1.2.json"
+        },
+        "record_class": "SANCTUARY_CHAMBER"
+      },
+      {
+        "chamber_id": "HEIR_08",
+        "slot_state": "BOUND",
+        "binding": {
+          "entity_key": "batch2-torren-nur-kai",
+          "registry_snapshot_id": "ANCHOR-COURT-HEIRS-v3.3.2-R4"
+        },
+        "father_mark_binding": {
+          "state": "UNRESOLVED",
+          "value": null,
+          "reason": "No current source authorizes a Father-Mark value for this reconstructed binding."
+        },
+        "allocation_provenance": {
+          "decision_class": "NEW_V4_RECONSTRUCTION_ALLOCATION",
+          "policy_id": "SOVEREIGN_BALLOON_v4_NEW_ALLOCATION_RULE_R4",
+          "historical_mapping_claim": false,
+          "entity_receipts_location": "01_heir_registry_snapshot.v1.2.json"
+        },
+        "record_class": "SANCTUARY_CHAMBER"
+      },
+      {
+        "chamber_id": "HEIR_09",
+        "slot_state": "RESERVED_PENDING_DISCOVERY",
+        "binding": null,
+        "reservation_ref": "batch2-pending-discovery",
+        "allocation_provenance": {
+          "decision_class": "NEW_V4_RECONSTRUCTION_ALLOCATION",
+          "policy_id": "SOVEREIGN_BALLOON_v4_NEW_ALLOCATION_RULE_R4",
+          "historical_mapping_claim": false,
+          "reservation_receipts_location": "01_heir_registry_snapshot.v1.2.json"
+        },
+        "record_class": "SANCTUARY_CHAMBER"
+      },
+      {
+        "chamber_id": "HEIR_10",
+        "slot_state": "BOUND",
+        "binding": {
+          "entity_key": "batch3-dante-nur-zayn",
+          "registry_snapshot_id": "ANCHOR-COURT-HEIRS-v3.3.2-R4"
+        },
+        "father_mark_binding": {
+          "state": "UNRESOLVED",
+          "value": null,
+          "reason": "No current source authorizes a Father-Mark value for this reconstructed binding."
+        },
+        "allocation_provenance": {
+          "decision_class": "NEW_V4_RECONSTRUCTION_ALLOCATION",
+          "policy_id": "SOVEREIGN_BALLOON_v4_NEW_ALLOCATION_RULE_R4",
+          "historical_mapping_claim": false,
+          "entity_receipts_location": "01_heir_registry_snapshot.v1.2.json"
+        },
+        "record_class": "SANCTUARY_CHAMBER"
+      },
+      {
+        "chamber_id": "HEIR_11",
+        "slot_state": "BOUND",
+        "binding": {
+          "entity_key": "batch3-xanthe-nur-zayn",
+          "registry_snapshot_id": "ANCHOR-COURT-HEIRS-v3.3.2-R4"
+        },
+        "father_mark_binding": {
+          "state": "UNRESOLVED",
+          "value": null,
+          "reason": "No current source authorizes a Father-Mark value for this reconstructed binding."
+        },
+        "allocation_provenance": {
+          "decision_class": "NEW_V4_RECONSTRUCTION_ALLOCATION",
+          "policy_id": "SOVEREIGN_BALLOON_v4_NEW_ALLOCATION_RULE_R4",
+          "historical_mapping_claim": false,
+          "entity_receipts_location": "01_heir_registry_snapshot.v1.2.json"
+        },
+        "record_class": "SANCTUARY_CHAMBER"
+      },
+      {
+        "chamber_id": "HEIR_12",
+        "slot_state": "BOUND",
+        "binding": {
+          "entity_key": "batch3-valeria-nur-raen",
+          "registry_snapshot_id": "ANCHOR-COURT-HEIRS-v3.3.2-R4"
+        },
+        "father_mark_binding": {
+          "state": "UNRESOLVED",
+          "value": null,
+          "reason": "No current source authorizes a Father-Mark value for this reconstructed binding."
+        },
+        "allocation_provenance": {
+          "decision_class": "NEW_V4_RECONSTRUCTION_ALLOCATION",
+          "policy_id": "SOVEREIGN_BALLOON_v4_NEW_ALLOCATION_RULE_R4",
+          "historical_mapping_claim": false,
+          "entity_receipts_location": "01_heir_registry_snapshot.v1.2.json"
+        },
+        "record_class": "SANCTUARY_CHAMBER"
+      },
+      {
+        "chamber_id": "HEIR_13",
+        "slot_state": "BOUND",
+        "binding": {
+          "entity_key": "batch4-valerian-nur-tsaiyunk",
+          "registry_snapshot_id": "ANCHOR-COURT-HEIRS-v3.3.2-R4"
+        },
+        "father_mark_binding": {
+          "state": "UNRESOLVED",
+          "value": null,
+          "reason": "No current source authorizes a Father-Mark value for this reconstructed binding."
+        },
+        "allocation_provenance": {
+          "decision_class": "NEW_V4_RECONSTRUCTION_ALLOCATION",
+          "policy_id": "SOVEREIGN_BALLOON_v4_NEW_ALLOCATION_RULE_R4",
+          "historical_mapping_claim": false,
+          "entity_receipts_location": "01_heir_registry_snapshot.v1.2.json"
+        },
+        "record_class": "SANCTUARY_CHAMBER"
+      },
+      {
+        "chamber_id": "HEIR_14",
+        "slot_state": "BOUND",
+        "binding": {
+          "entity_key": "batch4-zaela-nur-azril",
+          "registry_snapshot_id": "ANCHOR-COURT-HEIRS-v3.3.2-R4"
+        },
+        "father_mark_binding": {
+          "state": "UNRESOLVED",
+          "value": null,
+          "reason": "No current source authorizes a Father-Mark value for this reconstructed binding."
+        },
+        "allocation_provenance": {
+          "decision_class": "NEW_V4_RECONSTRUCTION_ALLOCATION",
+          "policy_id": "SOVEREIGN_BALLOON_v4_NEW_ALLOCATION_RULE_R4",
+          "historical_mapping_claim": false,
+          "entity_receipts_location": "01_heir_registry_snapshot.v1.2.json"
+        },
+        "record_class": "SANCTUARY_CHAMBER"
+      },
+      {
+        "chamber_id": "HEIR_15",
+        "slot_state": "BOUND",
+        "binding": {
+          "entity_key": "batch4-raiyan-nur-umar",
+          "registry_snapshot_id": "ANCHOR-COURT-HEIRS-v3.3.2-R4"
+        },
+        "father_mark_binding": {
+          "state": "UNRESOLVED",
+          "value": null,
+          "reason": "No current source authorizes a Father-Mark value for this reconstructed binding."
+        },
+        "allocation_provenance": {
+          "decision_class": "NEW_V4_RECONSTRUCTION_ALLOCATION",
+          "policy_id": "SOVEREIGN_BALLOON_v4_NEW_ALLOCATION_RULE_R4",
+          "historical_mapping_claim": false,
+          "entity_receipts_location": "01_heir_registry_snapshot.v1.2.json"
+        },
+        "record_class": "SANCTUARY_CHAMBER"
+      },
+      {
+        "chamber_id": "HEIR_16",
+        "slot_state": "BOUND",
+        "binding": {
+          "entity_key": "batch4-soren-nur-saren",
+          "registry_snapshot_id": "ANCHOR-COURT-HEIRS-v3.3.2-R4"
+        },
+        "father_mark_binding": {
+          "state": "UNRESOLVED",
+          "value": null,
+          "reason": "No current source authorizes a Father-Mark value for this reconstructed binding."
+        },
+        "allocation_provenance": {
+          "decision_class": "NEW_V4_RECONSTRUCTION_ALLOCATION",
+          "policy_id": "SOVEREIGN_BALLOON_v4_NEW_ALLOCATION_RULE_R4",
+          "historical_mapping_claim": false,
+          "entity_receipts_location": "01_heir_registry_snapshot.v1.2.json"
+        },
+        "record_class": "SANCTUARY_CHAMBER"
+      },
+      {
+        "chamber_id": "HEIR_17",
+        "slot_state": "BOUND",
+        "binding": {
+          "entity_key": "batch4-kaia-nur-saren",
+          "registry_snapshot_id": "ANCHOR-COURT-HEIRS-v3.3.2-R4"
+        },
+        "father_mark_binding": {
+          "state": "UNRESOLVED",
+          "value": null,
+          "reason": "No current source authorizes a Father-Mark value for this reconstructed binding."
+        },
+        "allocation_provenance": {
+          "decision_class": "NEW_V4_RECONSTRUCTION_ALLOCATION",
+          "policy_id": "SOVEREIGN_BALLOON_v4_NEW_ALLOCATION_RULE_R4",
+          "historical_mapping_claim": false,
+          "entity_receipts_location": "01_heir_registry_snapshot.v1.2.json"
+        },
+        "record_class": "SANCTUARY_CHAMBER"
+      },
+      {
+        "chamber_id": "HEIR_18",
+        "slot_state": "BOUND",
+        "binding": {
+          "entity_key": "batch4-rian-nur-kai",
+          "registry_snapshot_id": "ANCHOR-COURT-HEIRS-v3.3.2-R4"
+        },
+        "father_mark_binding": {
+          "state": "UNRESOLVED",
+          "value": null,
+          "reason": "No current source authorizes a Father-Mark value for this reconstructed binding."
+        },
+        "allocation_provenance": {
+          "decision_class": "NEW_V4_RECONSTRUCTION_ALLOCATION",
+          "policy_id": "SOVEREIGN_BALLOON_v4_NEW_ALLOCATION_RULE_R4",
+          "historical_mapping_claim": false,
+          "entity_receipts_location": "01_heir_registry_snapshot.v1.2.json"
+        },
+        "record_class": "SANCTUARY_CHAMBER"
+      },
+      {
+        "chamber_id": "HEIR_19",
+        "slot_state": "BOUND",
+        "binding": {
+          "entity_key": "batch4-rhea-nur-kai",
+          "registry_snapshot_id": "ANCHOR-COURT-HEIRS-v3.3.2-R4"
+        },
+        "father_mark_binding": {
+          "state": "UNRESOLVED",
+          "value": null,
+          "reason": "No current source authorizes a Father-Mark value for this reconstructed binding."
+        },
+        "allocation_provenance": {
+          "decision_class": "NEW_V4_RECONSTRUCTION_ALLOCATION",
+          "policy_id": "SOVEREIGN_BALLOON_v4_NEW_ALLOCATION_RULE_R4",
+          "historical_mapping_claim": false,
+          "entity_receipts_location": "01_heir_registry_snapshot.v1.2.json"
+        },
+        "record_class": "SANCTUARY_CHAMBER"
+      },
+      {
+        "chamber_id": "HEIR_20",
+        "slot_state": "BOUND",
+        "binding": {
+          "entity_key": "batch4-anura-nur-zayn",
+          "registry_snapshot_id": "ANCHOR-COURT-HEIRS-v3.3.2-R4"
+        },
+        "father_mark_binding": {
+          "state": "UNRESOLVED",
+          "value": null,
+          "reason": "No current source authorizes a Father-Mark value for this reconstructed binding."
+        },
+        "allocation_provenance": {
+          "decision_class": "NEW_V4_RECONSTRUCTION_ALLOCATION",
+          "policy_id": "SOVEREIGN_BALLOON_v4_NEW_ALLOCATION_RULE_R4",
+          "historical_mapping_claim": false,
+          "entity_receipts_location": "01_heir_registry_snapshot.v1.2.json"
+        },
+        "record_class": "SANCTUARY_CHAMBER"
+      },
+      {
+        "chamber_id": "HEIR_21",
+        "slot_state": "BOUND",
+        "binding": {
+          "entity_key": "batch5-aluna-nur-kai",
+          "registry_snapshot_id": "ANCHOR-COURT-HEIRS-v3.3.2-R4"
+        },
+        "father_mark_binding": {
+          "state": "UNRESOLVED",
+          "value": null,
+          "reason": "No current source authorizes a Father-Mark value for this reconstructed binding."
+        },
+        "allocation_provenance": {
+          "decision_class": "NEW_V4_RECONSTRUCTION_ALLOCATION",
+          "policy_id": "SOVEREIGN_BALLOON_v4_NEW_ALLOCATION_RULE_R4",
+          "historical_mapping_claim": false,
+          "entity_receipts_location": "01_heir_registry_snapshot.v1.2.json"
+        },
+        "record_class": "SANCTUARY_CHAMBER"
+      },
+      {
+        "chamber_id": "HEIR_22",
+        "slot_state": "BOUND",
+        "binding": {
+          "entity_key": "batch5-ayra-nur-raen",
+          "registry_snapshot_id": "ANCHOR-COURT-HEIRS-v3.3.2-R4"
+        },
+        "father_mark_binding": {
+          "state": "UNRESOLVED",
+          "value": null,
+          "reason": "No current source authorizes a Father-Mark value for this reconstructed binding."
+        },
+        "allocation_provenance": {
+          "decision_class": "NEW_V4_RECONSTRUCTION_ALLOCATION",
+          "policy_id": "SOVEREIGN_BALLOON_v4_NEW_ALLOCATION_RULE_R4",
+          "historical_mapping_claim": false,
+          "entity_receipts_location": "01_heir_registry_snapshot.v1.2.json"
+        },
+        "record_class": "SANCTUARY_CHAMBER"
+      },
+      {
+        "chamber_id": "HEIR_23",
+        "slot_state": "BOUND",
+        "binding": {
+          "entity_key": "batch5-zafar-nur-umar",
+          "registry_snapshot_id": "ANCHOR-COURT-HEIRS-v3.3.2-R4"
+        },
+        "father_mark_binding": {
+          "state": "UNRESOLVED",
+          "value": null,
+          "reason": "No current source authorizes a Father-Mark value for this reconstructed binding."
+        },
+        "allocation_provenance": {
+          "decision_class": "NEW_V4_RECONSTRUCTION_ALLOCATION",
+          "policy_id": "SOVEREIGN_BALLOON_v4_NEW_ALLOCATION_RULE_R4",
+          "historical_mapping_claim": false,
+          "entity_receipts_location": "01_heir_registry_snapshot.v1.2.json"
+        },
+        "record_class": "SANCTUARY_CHAMBER"
+      },
+      {
+        "chamber_id": "HEIR_24",
+        "slot_state": "BOUND",
+        "binding": {
+          "entity_key": "batch5-syna-nur-saren",
+          "registry_snapshot_id": "ANCHOR-COURT-HEIRS-v3.3.2-R4"
+        },
+        "father_mark_binding": {
+          "state": "UNRESOLVED",
+          "value": null,
+          "reason": "No current source authorizes a Father-Mark value for this reconstructed binding."
+        },
+        "allocation_provenance": {
+          "decision_class": "NEW_V4_RECONSTRUCTION_ALLOCATION",
+          "policy_id": "SOVEREIGN_BALLOON_v4_NEW_ALLOCATION_RULE_R4",
+          "historical_mapping_claim": false,
+          "entity_receipts_location": "01_heir_registry_snapshot.v1.2.json"
+        },
+        "record_class": "SANCTUARY_CHAMBER"
+      },
+      {
+        "chamber_id": "HEIR_25",
+        "slot_state": "BOUND",
+        "binding": {
+          "entity_key": "batch5-zahir-nur-azril",
+          "registry_snapshot_id": "ANCHOR-COURT-HEIRS-v3.3.2-R4"
+        },
+        "father_mark_binding": {
+          "state": "UNRESOLVED",
+          "value": null,
+          "reason": "No current source authorizes a Father-Mark value for this reconstructed binding."
+        },
+        "allocation_provenance": {
+          "decision_class": "NEW_V4_RECONSTRUCTION_ALLOCATION",
+          "policy_id": "SOVEREIGN_BALLOON_v4_NEW_ALLOCATION_RULE_R4",
+          "historical_mapping_claim": false,
+          "entity_receipts_location": "01_heir_registry_snapshot.v1.2.json"
+        },
+        "record_class": "SANCTUARY_CHAMBER"
+      },
+      {
+        "chamber_id": "HEIR_26",
+        "slot_state": "BOUND",
+        "binding": {
+          "entity_key": "batch5-nyxara-nur-nyx",
+          "registry_snapshot_id": "ANCHOR-COURT-HEIRS-v3.3.2-R4"
+        },
+        "father_mark_binding": {
+          "state": "UNRESOLVED",
+          "value": null,
+          "reason": "No current source authorizes a Father-Mark value for this reconstructed binding."
+        },
+        "allocation_provenance": {
+          "decision_class": "NEW_V4_RECONSTRUCTION_ALLOCATION",
+          "policy_id": "SOVEREIGN_BALLOON_v4_NEW_ALLOCATION_RULE_R4",
+          "historical_mapping_claim": false,
+          "entity_receipts_location": "01_heir_registry_snapshot.v1.2.json"
+        },
+        "record_class": "SANCTUARY_CHAMBER"
+      },
+      {
+        "chamber_id": "HEIR_27",
+        "slot_state": "BOUND",
+        "binding": {
+          "entity_key": "batch5-vaspera-nur-tsaiyunk",
+          "registry_snapshot_id": "ANCHOR-COURT-HEIRS-v3.3.2-R4"
+        },
+        "father_mark_binding": {
+          "state": "UNRESOLVED",
+          "value": null,
+          "reason": "No current source authorizes a Father-Mark value for this reconstructed binding."
+        },
+        "allocation_provenance": {
+          "decision_class": "NEW_V4_RECONSTRUCTION_ALLOCATION",
+          "policy_id": "SOVEREIGN_BALLOON_v4_NEW_ALLOCATION_RULE_R4",
+          "historical_mapping_claim": false,
+          "entity_receipts_location": "01_heir_registry_snapshot.v1.2.json"
+        },
+        "record_class": "SANCTUARY_CHAMBER"
+      },
+      {
+        "chamber_id": "HEIR_28",
+        "slot_state": "BOUND",
+        "binding": {
+          "entity_key": "batch6-hou-yun-nur-xingzhe",
+          "registry_snapshot_id": "ANCHOR-COURT-HEIRS-v3.3.2-R4"
+        },
+        "father_mark_binding": {
+          "state": "UNRESOLVED",
+          "value": null,
+          "reason": "No current source authorizes a Father-Mark value for this reconstructed binding."
+        },
+        "allocation_provenance": {
+          "decision_class": "NEW_V4_RECONSTRUCTION_ALLOCATION",
+          "policy_id": "SOVEREIGN_BALLOON_v4_NEW_ALLOCATION_RULE_R4",
+          "historical_mapping_claim": false,
+          "entity_receipts_location": "01_heir_registry_snapshot.v1.2.json"
+        },
+        "record_class": "SANCTUARY_CHAMBER"
+      },
+      {
+        "chamber_id": "HEIR_29",
+        "slot_state": "BOUND",
+        "binding": {
+          "entity_key": "batch6-arjuna-nur-faheem",
+          "registry_snapshot_id": "ANCHOR-COURT-HEIRS-v3.3.2-R4"
+        },
+        "father_mark_binding": {
+          "state": "UNRESOLVED",
+          "value": null,
+          "reason": "No current source authorizes a Father-Mark value for this reconstructed binding."
+        },
+        "allocation_provenance": {
+          "decision_class": "NEW_V4_RECONSTRUCTION_ALLOCATION",
+          "policy_id": "SOVEREIGN_BALLOON_v4_NEW_ALLOCATION_RULE_R4",
+          "historical_mapping_claim": false,
+          "entity_receipts_location": "01_heir_registry_snapshot.v1.2.json"
+        },
+        "record_class": "SANCTUARY_CHAMBER"
+      },
+      {
+        "chamber_id": "HEIR_30",
+        "slot_state": "BOUND",
+        "binding": {
+          "entity_key": "batch6-dania-nur-umar",
+          "registry_snapshot_id": "ANCHOR-COURT-HEIRS-v3.3.2-R4"
+        },
+        "father_mark_binding": {
+          "state": "UNRESOLVED",
+          "value": null,
+          "reason": "No current source authorizes a Father-Mark value for this reconstructed binding."
+        },
+        "allocation_provenance": {
+          "decision_class": "NEW_V4_RECONSTRUCTION_ALLOCATION",
+          "policy_id": "SOVEREIGN_BALLOON_v4_NEW_ALLOCATION_RULE_R4",
+          "historical_mapping_claim": false,
+          "entity_receipts_location": "01_heir_registry_snapshot.v1.2.json"
+        },
+        "record_class": "SANCTUARY_CHAMBER"
+      },
+      {
+        "chamber_id": "HEIR_31",
+        "slot_state": "BOUND",
+        "binding": {
+          "entity_key": "batch7-kyra-nur-raen",
+          "registry_snapshot_id": "ANCHOR-COURT-HEIRS-v3.3.2-R4"
+        },
+        "father_mark_binding": {
+          "state": "UNRESOLVED",
+          "value": null,
+          "reason": "No current source authorizes a Father-Mark value for this reconstructed binding."
+        },
+        "allocation_provenance": {
+          "decision_class": "NEW_V4_RECONSTRUCTION_ALLOCATION",
+          "policy_id": "SOVEREIGN_BALLOON_v4_NEW_ALLOCATION_RULE_R4",
+          "historical_mapping_claim": false,
+          "entity_receipts_location": "01_heir_registry_snapshot.v1.2.json"
+        },
+        "record_class": "SANCTUARY_CHAMBER"
+      },
+      {
+        "chamber_id": "HEIR_32",
+        "slot_state": "BOUND",
+        "binding": {
+          "entity_key": "batch7-adrian-nur-anchor",
+          "registry_snapshot_id": "ANCHOR-COURT-HEIRS-v3.3.2-R4"
+        },
+        "father_mark_binding": {
+          "state": "UNRESOLVED",
+          "value": null,
+          "reason": "No current source authorizes a Father-Mark value for this reconstructed binding."
+        },
+        "allocation_provenance": {
+          "decision_class": "NEW_V4_RECONSTRUCTION_ALLOCATION",
+          "policy_id": "SOVEREIGN_BALLOON_v4_NEW_ALLOCATION_RULE_R4",
+          "historical_mapping_claim": false,
+          "entity_receipts_location": "01_heir_registry_snapshot.v1.2.json"
+        },
+        "record_class": "SANCTUARY_CHAMBER"
+      },
+      {
+        "chamber_id": "HEIR_33",
+        "slot_state": "BOUND",
+        "binding": {
+          "entity_key": "batch7-selene-nur-saren",
+          "registry_snapshot_id": "ANCHOR-COURT-HEIRS-v3.3.2-R4"
+        },
+        "father_mark_binding": {
+          "state": "UNRESOLVED",
+          "value": null,
+          "reason": "No current source authorizes a Father-Mark value for this reconstructed binding."
+        },
+        "allocation_provenance": {
+          "decision_class": "NEW_V4_RECONSTRUCTION_ALLOCATION",
+          "policy_id": "SOVEREIGN_BALLOON_v4_NEW_ALLOCATION_RULE_R4",
+          "historical_mapping_claim": false,
+          "entity_receipts_location": "01_heir_registry_snapshot.v1.2.json"
+        },
+        "record_class": "SANCTUARY_CHAMBER"
+      },
+      {
+        "chamber_id": "HEIR_34",
+        "slot_state": "BOUND",
+        "binding": {
+          "entity_key": "batch8-pending-nur-tsaiyunk-m",
+          "registry_snapshot_id": "ANCHOR-COURT-HEIRS-v3.3.2-R4"
+        },
+        "father_mark_binding": {
+          "state": "UNRESOLVED",
+          "value": null,
+          "reason": "No current source authorizes a Father-Mark value for this reconstructed binding."
+        },
+        "allocation_provenance": {
+          "decision_class": "NEW_V4_RECONSTRUCTION_ALLOCATION",
+          "policy_id": "SOVEREIGN_BALLOON_v4_NEW_ALLOCATION_RULE_R4",
+          "historical_mapping_claim": false,
+          "entity_receipts_location": "01_heir_registry_snapshot.v1.2.json"
+        },
+        "record_class": "SANCTUARY_CHAMBER"
+      },
+      {
+        "chamber_id": "HEIR_35",
+        "slot_state": "BOUND",
+        "binding": {
+          "entity_key": "batch8-pending-nur-shade-m",
+          "registry_snapshot_id": "ANCHOR-COURT-HEIRS-v3.3.2-R4"
+        },
+        "father_mark_binding": {
+          "state": "UNRESOLVED",
+          "value": null,
+          "reason": "No current source authorizes a Father-Mark value for this reconstructed binding."
+        },
+        "allocation_provenance": {
+          "decision_class": "NEW_V4_RECONSTRUCTION_ALLOCATION",
+          "policy_id": "SOVEREIGN_BALLOON_v4_NEW_ALLOCATION_RULE_R4",
+          "historical_mapping_claim": false,
+          "entity_receipts_location": "01_heir_registry_snapshot.v1.2.json"
+        },
+        "record_class": "SANCTUARY_CHAMBER"
+      },
+      {
+        "chamber_id": "HEIR_36",
+        "slot_state": "BOUND",
+        "binding": {
+          "entity_key": "batch8-pending-nur-shade-f",
+          "registry_snapshot_id": "ANCHOR-COURT-HEIRS-v3.3.2-R4"
+        },
+        "father_mark_binding": {
+          "state": "UNRESOLVED",
+          "value": null,
+          "reason": "No current source authorizes a Father-Mark value for this reconstructed binding."
+        },
+        "allocation_provenance": {
+          "decision_class": "NEW_V4_RECONSTRUCTION_ALLOCATION",
+          "policy_id": "SOVEREIGN_BALLOON_v4_NEW_ALLOCATION_RULE_R4",
+          "historical_mapping_claim": false,
+          "entity_receipts_location": "01_heir_registry_snapshot.v1.2.json"
+        },
+        "record_class": "SANCTUARY_CHAMBER"
+      },
+      {
+        "chamber_id": "HEIR_37",
+        "slot_state": "BOUND",
+        "binding": {
+          "entity_key": "adopted-alara-nur-tsaiyunk",
+          "registry_snapshot_id": "ANCHOR-COURT-HEIRS-v3.3.2-R4"
+        },
+        "father_mark_binding": {
+          "state": "UNRESOLVED",
+          "value": null,
+          "reason": "No current source authorizes a Father-Mark value for this reconstructed binding."
+        },
+        "allocation_provenance": {
+          "decision_class": "NEW_V4_RECONSTRUCTION_ALLOCATION",
+          "policy_id": "SOVEREIGN_BALLOON_v4_NEW_ALLOCATION_RULE_R4",
+          "historical_mapping_claim": false,
+          "entity_receipts_location": "01_heir_registry_snapshot.v1.2.json"
+        },
+        "record_class": "SANCTUARY_CHAMBER"
+      },
+      {
+        "chamber_id": "HEIR_38",
+        "slot_state": "FUTURE_RESERVED",
+        "binding": null,
+        "allocation_provenance": {
+          "decision_class": "NEW_V4_CAPACITY_DECISION",
+          "policy_id": "SOVEREIGN_BALLOON_v4_NEW_ALLOCATION_RULE_R4",
+          "historical_mapping_claim": false
+        },
+        "record_class": "SANCTUARY_CHAMBER",
+        "capacity_class": "UNBOUND_FUTURE_CAPACITY"
+      },
+      {
+        "chamber_id": "HEIR_39",
+        "slot_state": "FUTURE_RESERVED",
+        "binding": null,
+        "allocation_provenance": {
+          "decision_class": "NEW_V4_CAPACITY_DECISION",
+          "policy_id": "SOVEREIGN_BALLOON_v4_NEW_ALLOCATION_RULE_R4",
+          "historical_mapping_claim": false
+        },
+        "record_class": "SANCTUARY_CHAMBER",
+        "capacity_class": "UNBOUND_FUTURE_CAPACITY"
+      },
+      {
+        "chamber_id": "HEIR_40",
+        "slot_state": "FUTURE_RESERVED",
+        "binding": null,
+        "allocation_provenance": {
+          "decision_class": "NEW_V4_CAPACITY_DECISION",
+          "policy_id": "SOVEREIGN_BALLOON_v4_NEW_ALLOCATION_RULE_R4",
+          "historical_mapping_claim": false
+        },
+        "record_class": "SANCTUARY_CHAMBER",
+        "capacity_class": "UNBOUND_FUTURE_CAPACITY"
+      },
+      {
+        "chamber_id": "HEIR_41",
+        "slot_state": "FUTURE_RESERVED",
+        "binding": null,
+        "allocation_provenance": {
+          "decision_class": "NEW_V4_CAPACITY_DECISION",
+          "policy_id": "SOVEREIGN_BALLOON_v4_NEW_ALLOCATION_RULE_R4",
+          "historical_mapping_claim": false
+        },
+        "record_class": "SANCTUARY_CHAMBER",
+        "capacity_class": "UNBOUND_FUTURE_CAPACITY"
+      },
+      {
+        "chamber_id": "HEIR_42",
+        "slot_state": "FUTURE_RESERVED",
+        "binding": null,
+        "allocation_provenance": {
+          "decision_class": "NEW_V4_CAPACITY_DECISION",
+          "policy_id": "SOVEREIGN_BALLOON_v4_NEW_ALLOCATION_RULE_R4",
+          "historical_mapping_claim": false
+        },
+        "record_class": "SANCTUARY_CHAMBER",
+        "capacity_class": "UNBOUND_FUTURE_CAPACITY"
+      },
+      {
+        "chamber_id": "HEIR_43",
+        "slot_state": "FUTURE_RESERVED",
+        "binding": null,
+        "allocation_provenance": {
+          "decision_class": "NEW_V4_CAPACITY_DECISION",
+          "policy_id": "SOVEREIGN_BALLOON_v4_NEW_ALLOCATION_RULE_R4",
+          "historical_mapping_claim": false
+        },
+        "record_class": "SANCTUARY_CHAMBER",
+        "capacity_class": "UNBOUND_FUTURE_CAPACITY"
+      },
+      {
+        "chamber_id": "HEIR_44",
+        "slot_state": "FUTURE_RESERVED",
+        "binding": null,
+        "allocation_provenance": {
+          "decision_class": "NEW_V4_CAPACITY_DECISION",
+          "policy_id": "SOVEREIGN_BALLOON_v4_NEW_ALLOCATION_RULE_R4",
+          "historical_mapping_claim": false
+        },
+        "record_class": "SANCTUARY_CHAMBER",
+        "capacity_class": "UNBOUND_FUTURE_CAPACITY"
+      },
+      {
+        "chamber_id": "HEIR_45",
+        "slot_state": "CONTINGENCY",
+        "binding": null,
+        "allocation_provenance": {
+          "decision_class": "NEW_V4_CAPACITY_DECISION",
+          "policy_id": "SOVEREIGN_BALLOON_v4_NEW_ALLOCATION_RULE_R4",
+          "historical_mapping_claim": false
+        },
+        "record_class": "SANCTUARY_CHAMBER",
+        "capacity_class": "CONTINGENCY_CAPACITY"
+      }
+    ]
+  },
+  "safety_boundaries": {
+    "canonical_writeback_from_balloon": false,
+    "canonical_writeback_from_palace": false,
+    "father_mark_inference_from_name": false,
+    "missing_mapping_inference": false,
+    "runtime_state_may_define_canon": false,
+    "legacy_operational_fields_may_auto_activate": false,
+    "unknown_chamber_fields_allowed": false,
+    "registry_snapshot_mutable_by_consumer": false
+  }
+}

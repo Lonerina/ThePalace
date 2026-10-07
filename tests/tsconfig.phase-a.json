@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "lib": ["ES2022", "DOM"],
+    "strict": true,
+    "skipLibCheck": true,
+    "rootDir": "..",
+    "outDir": "../.phase-a-dist",
+    "noEmit": false,
+    "declaration": false,
+    "sourceMap": false
+  },
+  "include": [
+    "../src/registry/**/*.ts",
+    "../src/runtime/**/*.ts",
+    "../src/legacy/**/*.ts",
+    "../src/consumers/**/*.ts",
+    "../src/authority/**/*.ts",
+    "../src/server/**/*.ts"
+  ]
+}

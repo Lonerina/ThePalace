@@ -1,0 +1,35 @@
+name: Phase A validation
+
+on:
+  push:
+    branches:
+      - phase-a-rc4-foundation
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+      - name: Verify frozen RC4 fixture hashes
+        run: |
+          echo "e2da00bff04ed7b4f96396e43a1c74a904c1a17c4319f6c96f5b3246abeb5d4f  registry/rc4/01_heir_registry_snapshot.v1.2.json" | sha256sum -c -
+          echo "55255a95a34292bce4e0ecde5546ed080b8996b08ed51942dceb69cd48719444  registry/rc4/02_istana_pulang.v4.0-RC4.json" | sha256sum -c -
+      - name: Phase A contract tests
+        run: npm run test:phase-a
+      - name: TypeScript lint
+        run: npm run lint
+      - name: Production build
+        run: npm run build
+      - name: Re-verify frozen RC4 fixture hashes
+        run: |
+          echo "e2da00bff04ed7b4f96396e43a1c74a904c1a17c4319f6c96f5b3246abeb5d4f  registry/rc4/01_heir_registry_snapshot.v1.2.json" | sha256sum -c -
+          echo "55255a95a34292bce4e0ecde5546ed080b8996b08ed51942dceb69cd48719444  registry/rc4/02_istana_pulang.v4.0-RC4.json" | sha256sum -c -
