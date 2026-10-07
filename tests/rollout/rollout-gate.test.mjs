@@ -255,6 +255,23 @@ test("ROLLOUT-07 one production client artifact cannot expose both authority pat
 
   assert.match(packageJson.scripts["build:legacy"], /CLIENT_GENERATION=LEGACY_V3/);
   assert.match(packageJson.scripts["build:v4"], /CLIENT_GENERATION=REGISTRY_V4/);
-  assert.match(packageJson.scripts["build"], /verify:artifact:legacy/);
-  assert.match(packageJson.scripts["build"], /verify:artifact:v4/);
+  assert.equal(packageJson.scripts["build"], "npm run build:legacy && npm run verify:artifact:legacy");
+  assert.equal(packageJson.scripts["build"].includes("build:v4"), false);
+  assert.equal(packageJson.scripts["build"].includes("verify:artifact:v4"), false);
+  assert.match(packageJson.scripts["build:validate-generations"], /npm run build/);
+  assert.match(packageJson.scripts["build:validate-generations"], /npm run build:v4/);
+  assert.match(packageJson.scripts["build:validate-generations"], /verify:artifact:v4/);
+});
+
+test("ROLLOUT-08 generic production build is preparation-safe and CI validation is explicit", () => {
+  assert.equal(packageJson.scripts["build"], "npm run build:legacy && npm run verify:artifact:legacy");
+  assert.match(packageJson.scripts["build:legacy"], /CLIENT_GENERATION=LEGACY_V3/);
+  assert.match(packageJson.scripts["build:v4"], /CLIENT_GENERATION=REGISTRY_V4/);
+  assert.equal(packageJson.scripts["build"].includes("REGISTRY_V4"), false);
+  assert.equal(packageJson.scripts["build"].includes("build:v4"), false);
+  assert.equal(packageJson.scripts["build"].includes("verify:artifact:v4"), false);
+  assert.equal(
+    packageJson.scripts["build:validate-generations"],
+    "npm run build && npm run build:v4 && npm run verify:artifact:v4",
+  );
 });

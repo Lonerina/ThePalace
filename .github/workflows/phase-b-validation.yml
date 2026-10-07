@@ -31,8 +31,8 @@ jobs:
         run: npm run test:rollout
       - name: TypeScript lint
         run: npm run lint
-      - name: Production build
-        run: npm run build
+      - name: Validate preparation and explicit v4 production artifacts
+        run: npm run build:validate-generations
       - name: Re-verify frozen RC4 fixture hashes
         run: |
           echo "e2da00bff04ed7b4f96396e43a1c74a904c1a17c4319f6c96f5b3246abeb5d4f  registry/rc4/01_heir_registry_snapshot.v1.2.json" | sha256sum -c -

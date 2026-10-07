@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "CLIENT_GENERATION=LEGACY_V3 tsx server.ts",
-    "build": "npm run build:legacy && npm run verify:artifact:legacy && npm run build:v4 && npm run verify:artifact:v4",
+    "build": "npm run build:legacy && npm run verify:artifact:legacy",
     "start": "node dist/server.cjs",
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit",
@@ -17,7 +17,8 @@
     "build:v4": "rm -rf dist && CLIENT_GENERATION=REGISTRY_V4 vite build --mode registry-v4 && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs",
     "verify:artifact:legacy": "node scripts/assert-client-generation-artifact.mjs LEGACY_V3",
     "verify:artifact:v4": "node scripts/assert-client-generation-artifact.mjs REGISTRY_V4",
-    "test:rollout": "rm -rf .phase-b-dist && tsc -p tests/tsconfig.phase-b.json && node --test tests/rollout/rollout-gate.test.mjs"
+    "test:rollout": "rm -rf .phase-b-dist && tsc -p tests/tsconfig.phase-b.json && node --test tests/rollout/rollout-gate.test.mjs",
+    "build:validate-generations": "npm run build && npm run build:v4 && npm run verify:artifact:v4"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",
