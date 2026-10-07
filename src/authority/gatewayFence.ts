@@ -57,6 +57,13 @@ export function gatewayAdmit(args: {
   if (!routePermittedByMode(args.state.mode, args.routeFamily)) {
     return { allow: false, reason: "ROUTE_DENIED_BY_MODE", highestObservedCutoverEpoch: Math.max(args.highestObservedCutoverEpoch, args.state.cutoverEpoch) };
   }
+  if (args.capability && args.capability.routeFamily !== args.routeFamily) {
+    return {
+      allow: false,
+      reason: "CAPABILITY_ROUTE_FAMILY_MISMATCH",
+      highestObservedCutoverEpoch: Math.max(args.highestObservedCutoverEpoch, args.state.cutoverEpoch),
+    };
+  }
   const validated = validateExecutionCapability(args.capability, {
     verifiedByControlPlane: args.capabilityVerifiedByControlPlane,
     currentState: args.state,

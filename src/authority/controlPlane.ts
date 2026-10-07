@@ -48,6 +48,9 @@ export function validateExecutionCapability(
   if (!context.clockReliable) return { ok: false, reason: "CLOCK_UNCERTAIN", highestObservedCutoverEpoch: highest };
   if (!capability) return { ok: false, reason: "MISSING_CAPABILITY", highestObservedCutoverEpoch: highest };
   if (!context.verifiedByControlPlane) return { ok: false, reason: "UNVERIFIED_CAPABILITY", highestObservedCutoverEpoch: highest };
+  if (capability.authorityDomain !== context.currentState.authorityDomain) {
+    return { ok: false, reason: "CAPABILITY_AUTHORITY_DOMAIN_MISMATCH", highestObservedCutoverEpoch: highest };
+  }
   if (context.currentState.cutoverEpoch < context.highestObservedCutoverEpoch) {
     return { ok: false, reason: "CONTROL_PLANE_EPOCH_REGRESSION", highestObservedCutoverEpoch: context.highestObservedCutoverEpoch };
   }
@@ -66,6 +69,7 @@ export function canActivateRegistryV4(args: {
   now: number;
   clockReliable: boolean;
 }): boolean {
+  if (!args.clockReliable) return false;
   if (args.state.mode !== "CUTOVER_LOCK") return false;
   return args.legacyCapabilities.every((capability) => capability.routeFamily !== "LEGACY_CHAT" || capability.expiresAt <= args.now);
 }

@@ -15,7 +15,7 @@ import { classifyLegacyCharacters } from "../../.phase-a-dist/src/legacy/quarant
 import { MemoryStorage, STORAGE_KEYS } from "../../.phase-a-dist/src/runtime/storage.js";
 import { migrateV3ToV4, readCommittedMigration } from "../../.phase-a-dist/src/runtime/migration.js";
 import { AUTHORITY_DOMAIN, AUTHORITY_PROTOCOL, validateRequestContext, handshakeMatchesCurrent, decideV4ClientRouting, V4_ENDPOINTS } from "../../.phase-a-dist/src/authority/protocol.js";
-import { nextCutoverState, routePermittedByMode, canActivateRegistryV4 } from "../../.phase-a-dist/src/authority/controlPlane.js";
+import { nextCutoverState, routePermittedByMode, validateExecutionCapability, canActivateRegistryV4 } from "../../.phase-a-dist/src/authority/controlPlane.js";
 import { validateGatewayPolicy, validateV4UpstreamPool, gatewayAdmit } from "../../.phase-a-dist/src/authority/gatewayFence.js";
 import { validateServerAuthorityBoundary, buildServerRegistryContext } from "../../.phase-a-dist/src/server/registryBoundary.js";
 import { authorityHandshakeRoute, v4ChatAdmissionRoute, legacyChatAdmissionRoute } from "../../.phase-a-dist/src/server/v4AuthorityRoutes.js";
@@ -830,6 +830,45 @@ test('CUT-GLOBAL-12 uncertain lease expiry/clock is treated non-executable', () 
   const result = gatewayAdmit({ routeFamily: 'V4_CHAT', state, capability: capability(14,'REGISTRY_V4','V4_CHAT'), capabilityVerifiedByControlPlane: true, highestObservedCutoverEpoch: 14, now: 100, controlPlaneReachable: true, clockReliable: false });
   assert.equal(result.allow, false);
   assert.equal(result.reason, 'CLOCK_UNCERTAIN');
+});
+
+test('GATE-A-A exact capability route binding rejects V4_AUTHORITY capability on V4_CHAT', () => {
+  const state = { authorityDomain: AUTHORITY_DOMAIN, cutoverEpoch: 14, mode: 'REGISTRY_V4' };
+  const result = gatewayAdmit({
+    routeFamily: 'V4_CHAT',
+    state,
+    capability: capability(14, 'REGISTRY_V4', 'V4_AUTHORITY'),
+    capabilityVerifiedByControlPlane: true,
+    highestObservedCutoverEpoch: 14,
+    now: 100,
+    controlPlaneReachable: true,
+  });
+  assert.equal(result.allow, false);
+  assert.equal(result.reason, 'CAPABILITY_ROUTE_FAMILY_MISMATCH');
+});
+
+test('GATE-A-B runtime authority-domain mismatch is rejected explicitly', () => {
+  const state = { authorityDomain: AUTHORITY_DOMAIN, cutoverEpoch: 14, mode: 'REGISTRY_V4' };
+  const wrongDomainCapability = { ...capability(14, 'REGISTRY_V4', 'V4_CHAT'), authorityDomain: 'forged-authority-domain' };
+  const result = validateExecutionCapability(wrongDomainCapability, {
+    verifiedByControlPlane: true,
+    currentState: state,
+    highestObservedCutoverEpoch: 14,
+    now: 100,
+    clockReliable: true,
+  });
+  assert.equal(result.ok, false);
+  assert.equal(result.reason, 'CAPABILITY_AUTHORITY_DOMAIN_MISMATCH');
+});
+
+test('GATE-A-C registry-v4 activation fails closed when clock reliability is false', () => {
+  const lock = { authorityDomain: AUTHORITY_DOMAIN, cutoverEpoch: 13, mode: 'CUTOVER_LOCK' };
+  assert.equal(canActivateRegistryV4({
+    state: lock,
+    legacyCapabilities: [capability(12, 'LEGACY_OPEN', 'LEGACY_CHAT', { expiresAt: 99 })],
+    now: 100,
+    clockReliable: false,
+  }), false);
 });
 
 // Final raw-byte guard repeats after all state-transition tests.
