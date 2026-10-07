@@ -20,7 +20,7 @@
         "./*"
       ],
       "virtual:client-generation": [
-        "./src/client/registryV4Generation.ts"
+        "./src/client/activeGenerationTyping.ts"
       ]
     },
     "allowImportingTsExtensions": true,
