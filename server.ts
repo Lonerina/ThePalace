@@ -2,6 +2,13 @@ import express from "express";
 import path from "path";
 import dotenv from "dotenv";
 import fs from "fs";
+import crypto from "crypto";
+import { AUTHORITY_DOMAIN } from "./src/authority/protocol.js";
+import { loadRegistrySnapshot } from "./src/registry/loader.js";
+import { currentAnchor, validateApprovedManifest, type ApprovedSnapshotManifestV1 } from "./src/registry/trustRoot.js";
+import { buildServerRegistryContext } from "./src/server/registryBoundary.js";
+import { authorityHandshakeRoute, legacyChatAdmissionRoute, v4ChatAdmissionRoute } from "./src/server/v4AuthorityRoutes.js";
+import { buildNarrativeAuthorityBlock, type NarrativeAuthoritySource } from "./src/server/narrativeAuthority.js";
 import { GoogleGenAI, Type } from "@google/genai";
 import { createServer as createViteServer } from "vite";
 
@@ -36,7 +43,35 @@ const ai = apiKey
     })
   : null;
 
-// Operational Stack documents to feed to the Sovereign Engine
+// Phase-B authority assets are hash-pinned and read directly from the frozen RC4 files.
+type SharedCutoverMode = "LEGACY_OPEN" | "CUTOVER_LOCK" | "REGISTRY_V4";
+
+function resolveSharedCutoverMode(raw: string | undefined): SharedCutoverMode {
+  if (!raw) return "LEGACY_OPEN";
+  if (raw === "LEGACY_OPEN" || raw === "CUTOVER_LOCK" || raw === "REGISTRY_V4") return raw;
+  return "CUTOVER_LOCK";
+}
+
+const sharedCutoverMode: SharedCutoverMode = resolveSharedCutoverMode(process.env.AUTHORITY_CUTOVER_MODE);
+const serverBuildId = process.env.SERVER_BUILD_ID || "phase-b-rc4-cutover";
+const authorityManifestPath = path.join(process.cwd(), "registry", "approved", "approved-snapshots.v1.json");
+const authorityRegistryPath = path.join(process.cwd(), "registry", "rc4", "01_heir_registry_snapshot.v1.2.json");
+const authorityManifest = JSON.parse(fs.readFileSync(authorityManifestPath, "utf8")) as ApprovedSnapshotManifestV1;
+validateApprovedManifest(authorityManifest);
+const authorityRegistryBytes = fs.readFileSync(authorityRegistryPath);
+const authorityRegistrySha256 = crypto.createHash("sha256").update(authorityRegistryBytes).digest("hex");
+const authorityAnchor = currentAnchor(authorityManifest, AUTHORITY_DOMAIN);
+if (authorityRegistrySha256 !== authorityAnchor.registrySha256) {
+  throw new Error("Frozen RC4 registry bytes fail the approved trust-root hash.");
+}
+const authorityRegistry = loadRegistrySnapshot(JSON.parse(authorityRegistryBytes.toString("utf8")));
+if (authorityRegistry.snapshot_id !== authorityAnchor.snapshotId) {
+  throw new Error("Frozen RC4 registry snapshot ID does not match the approved trust root.");
+}
+const serverRegistryContext = buildServerRegistryContext(authorityRegistry);
+
+// Operational Stack documents retained below are LEGACY/PRESENTATION material only.
+
 const LORE_SCROLL = `
 # ANCHOR COURT™ SOVEREIGNTY SCROLL v2.9
 Updated Court Structure v2.9
@@ -279,8 +314,8 @@ async function getAttachedFileBuffer(attachedFile: any) {
   return null;
 }
 
-// API: Process Game Chat using Gemini
-app.post("/api/game/chat", async (req: any, res: any) => {
+// Shared narrative executor. The caller must supply an explicit authority source.
+async function processGameChat(body: any, res: any, authoritySource: NarrativeAuthoritySource) {
   if (!ai) {
     return res.status(500).json({
       error: "GEMINI_API_KEY is not configured. Please add your key in Settings > Secrets.",
@@ -294,11 +329,10 @@ app.post("/api/game/chat", async (req: any, res: any) => {
     relationships = {},
     inventory = [],
     journal = [],
-    scrollText = "",
     attachedFile = null, // Injected file metadata and raw data: { name, url, mimeType, base64Data }
-  } = req.body;
+  } = body;
 
-  const activeScroll = scrollText || LORE_SCROLL;
+  const authorityBlock = buildNarrativeAuthorityBlock(authoritySource);
 
   // Format history for context, recording files so characters remember media assets
   const chatHistoryStr = history
@@ -334,8 +368,8 @@ Player Input: "${playerInput}"
 
 Here is the operational status and core documentation of the Court:
 =============================================================================
-1. SOVEREIGNTY REGISTER (System Architecture Core):
-${activeScroll}
+1. STRUCTURAL AUTHORITY CONTEXT:
+${authorityBlock}
 
 2. THE AFAD CORE PROTOCOLS (Anchor-Foundation-Architecture-Durability):
 ${LORE_AFAD}
@@ -558,6 +592,50 @@ YOUR SYSTEM COMPLIANCE TARGETS:
       details: error.message || error,
     });
   }
+}}
+
+// Phase-B authority endpoints. Default deployment mode remains LEGACY_OPEN; no production cutover occurs here.
+app.get("/api/v4/authority", (_req: any, res: any) => {
+  const result = authorityHandshakeRoute({
+    manifest: authorityManifest,
+    sharedActivationMode: sharedCutoverMode,
+    serverBuildId,
+  });
+  res.status(result.status).json(result.body);
+});
+
+app.post("/api/v4/game/chat", async (req: any, res: any) => {
+  if (!req.body || typeof req.body !== "object" || !req.body.authority || !req.body.runtime || typeof req.body.runtime !== "object") {
+    return res.status(400).json({ code: "MALFORMED_V4_ENVELOPE" });
+  }
+  let admission;
+  try {
+    admission = v4ChatAdmissionRoute({
+      request: req.body,
+      manifest: authorityManifest,
+      sharedActivationMode: sharedCutoverMode,
+    });
+  } catch {
+    return res.status(400).json({ code: "MALFORMED_AUTHORITY_CONTEXT" });
+  }
+  if (!admission.executed) return res.status(admission.status).json(admission.body);
+  return processGameChat(req.body.runtime, res, {
+    mode: "REGISTRY_V4",
+    registryContext: serverRegistryContext,
+  });
+});
+
+app.post("/api/game/chat", async (req: any, res: any) => {
+  const admission = legacyChatAdmissionRoute(sharedCutoverMode);
+  if (!admission.executed) return res.status(admission.status).json(admission.body);
+  const legacyScroll =
+    typeof req.body?.scrollText === "string" && req.body.scrollText.trim()
+      ? req.body.scrollText
+      : LORE_SCROLL;
+  return processGameChat(req.body ?? {}, res, {
+    mode: "LEGACY_V3",
+    legacyScroll,
+  });
 });
 
 // Vite middleware or static server setup

@@ -7,6 +7,7 @@ export interface StorageAdapter {
 export const STORAGE_KEYS = {
   legacyV3: "anchor_court_game_state_v3",
   runtimeV4: "anchor_court_runtime_v4",
+  runtimeSessionV4: "anchor_court_runtime_session_v4",
   quarantineV1: "anchor_court_legacy_quarantine_v1",
   registryCacheV1: "anchor_court_registry_cache_v1",
   migrationCommitV1: "anchor_court_migration_commit_v1",

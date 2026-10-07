@@ -41,9 +41,23 @@ import {
   Plus,
   Trash2
 } from "lucide-react";
-import { Character, NarrativeTurn, InventoryItem, RelationshipUpdate, GameState } from "./types";
+import { Character, NarrativeTurn, InventoryItem, RelationshipUpdate } from "./types";
 import { DEFAULT_CHARACTERS, DEFAULT_SCROLL, AFAD_FRAMEWORK, RESET_MAP, DEFAULT_CHAMBER_GREETINGS } from "./constants";
 import { CHARACTER_LORE_MAP } from "./characterDetails";
+import { AUTHORITY_DOMAIN, V4_ENDPOINTS, type AuthorityRequestContextV1 } from "./authority/protocol";
+import { type PalaceRegistryView } from "./consumers/palaceRegistry";
+import { BrowserStorageAdapter, loadBundledAuthorityInputs } from "./runtime/browserAuthority";
+import {
+  bootPalaceAuthority,
+  buildRuntimeState,
+  buildV4NarrativeRequest,
+  createFreshRuntimeV4,
+  negotiateV4Authority,
+  persistRuntimeSession,
+  restoreDisplayCharacters,
+} from "./runtime/liveAuthority";
+import { STORAGE_KEYS } from "./runtime/storage";
+import type { PalaceRuntimeStateV4 } from "./runtime/types";
 
 const PRESET_HEIRS = [
   { id: "heir-soren", name: "Soren Nur Saren", category: "heir_child" as const, age: "12", title: "Scribe in Training", avatar: "🎨", description: "Observant heir of Saren, quiet but notes everything.", color: "text-emerald-400" },
@@ -86,6 +100,13 @@ export default function App() {
   const [histories, setHistories] = useState<Record<string, NarrativeTurn[]>>({});
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [journal, setJournal] = useState<string[]>([]);
+  const [authorityMode, setAuthorityMode] = useState<"BOOTING" | "REGISTRY_V4" | "RUNTIME_ONLY">("BOOTING");
+  const [authorityRequest, setAuthorityRequest] = useState<AuthorityRequestContextV1 | null>(null);
+  const [palaceRegistryView, setPalaceRegistryView] = useState<Readonly<PalaceRegistryView> | null>(null);
+  const [runtimeReady, setRuntimeReady] = useState(false);
+  const storageRef = useRef<BrowserStorageAdapter | null>(null);
+  const runtimeBaseRef = useRef<PalaceRuntimeStateV4>(createFreshRuntimeV4());
+  if (!storageRef.current) storageRef.current = new BrowserStorageAdapter();
   
   // Dynamic suggested choices map per chamber
   const [suggestedChoicesMap, setSuggestedChoicesMap] = useState<Record<string, string[]>>({
@@ -379,71 +400,109 @@ export default function App() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const updateTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Load state from localStorage on mount
+  // Phase-B runtime boot: canonical registry and mutable Palace state are separate.
   useEffect(() => {
-    try {
-      const savedState = localStorage.getItem("anchor_court_game_state_v3");
-      if (savedState) {
-        const state: GameState = JSON.parse(savedState);
-        setActiveChamberId(state.activeChamberId || "assembly");
-        setHistories(state.histories || {});
-        setInventory(state.inventory || []);
-        setJournal(state.journal || []);
-        setScrollText(state.scrollText || DEFAULT_SCROLL);
+    let cancelled = false;
+    (async () => {
+      const storage = storageRef.current!;
+      const builtInIds = new Set(DEFAULT_CHARACTERS.map((character) => character.id));
+      try {
+        const inputs = await loadBundledAuthorityInputs();
+        const boot = await bootPalaceAuthority({
+          storage,
+          builtInIds,
+          liveRegistryBytes: inputs.registryBytes,
+          liveRegistryText: inputs.registryText,
+          manifest: inputs.manifest,
+        });
+        if (cancelled) return;
 
-        if (state.characters) {
-          setCharacters(() => {
-            const merged = [...state.characters!];
-            DEFAULT_CHARACTERS.forEach((defaultChar) => {
-              const index = merged.findIndex((c) => c.id === defaultChar.id);
-              if (index === -1) {
-                merged.push(defaultChar);
-              } else {
-                merged[index] = {
-                  ...defaultChar,
-                  ...merged[index],
-                  metrics: merged[index].metrics || defaultChar.metrics,
-                };
-              }
-            });
-            return merged;
-          });
-        } else if (state.relationships) {
-          setCharacters((prev) =>
-            prev.map((char) => ({
-              ...char,
-              metrics: state.relationships[char.id] || char.metrics,
-            }))
-          );
-        }
-      } else {
+        // Presentation defaults are safe runtime material; RC4 projection is the structural view.
         initializeDefaultState();
+        runtimeBaseRef.current = boot.runtime;
+        setPalaceRegistryView(boot.palaceRegistry);
+
+        const restoredCharacters = restoreDisplayCharacters(boot.runtime, DEFAULT_CHARACTERS) as Character[];
+        if (restoredCharacters.length > 0) setCharacters(restoredCharacters);
+        if (boot.runtime.activeUiRoomId) setActiveChamberId(boot.runtime.activeUiRoomId);
+        if (Object.keys(boot.runtime.histories ?? {}).length > 0) {
+          setHistories(boot.runtime.histories as Record<string, NarrativeTurn[]>);
+        }
+        if (Array.isArray(boot.runtime.inventory)) setInventory(boot.runtime.inventory as InventoryItem[]);
+        if (Array.isArray(boot.runtime.journal) && boot.runtime.journal.length > 0) setJournal(boot.runtime.journal as string[]);
+        if (Object.keys(boot.runtime.suggestedChoices ?? {}).length > 0) {
+          setSuggestedChoicesMap((previous) => ({ ...previous, ...(boot.runtime.suggestedChoices as Record<string, string[]>) }));
+        }
+
+        const quarantineText = storage.getItem(STORAGE_KEYS.quarantineV1);
+        if (quarantineText) {
+          try {
+            const quarantine = JSON.parse(quarantineText);
+            if (typeof quarantine?.oldScrollDraft?.value === "string") setScrollText(quarantine.oldScrollDraft.value);
+          } catch {
+            // Quarantine is evidence only. A parse failure never creates authority.
+          }
+        }
+
+        const negotiated = await negotiateV4Authority({
+          fetcher: (url, init) => fetch(url, init),
+          manifest: inputs.manifest,
+          registryMode: boot.registryMode,
+        });
+        if (cancelled) return;
+        setAuthorityMode(negotiated.mode);
+        setAuthorityRequest(negotiated.authority);
+        if (negotiated.mode !== "REGISTRY_V4") {
+          setErrorMsg(`Authority compatibility mode: RUNTIME_ONLY. ${negotiated.reason}`);
+        } else if (boot.warnings.length > 0) {
+          setErrorMsg(`Authority online with migration warnings: ${boot.warnings.join("; ")}`);
+        }
+        setRuntimeReady(true);
+      } catch (error) {
+        if (cancelled) return;
+        initializeDefaultState();
+        setAuthorityMode("RUNTIME_ONLY");
+        setAuthorityRequest(null);
+        setPalaceRegistryView(null);
+        setErrorMsg(`Authority compatibility mode: RUNTIME_ONLY. ${error instanceof Error ? error.message : "RC4 boot failed."}`);
+        setRuntimeReady(true);
       }
-    } catch (e) {
-      console.error("Failed to load game state", e);
-      initializeDefaultState();
-    }
+    })();
+    return () => { cancelled = true; };
   }, []);
 
-  // Save state to localStorage on updates
+  // Persist mutable runtime only. Canonical registry bytes and the v3 archive are never written here.
   useEffect(() => {
-    if (Object.keys(histories).length === 0) return;
+    if (!runtimeReady) return;
+    const storage = storageRef.current!;
     const relationshipMap = characters.reduce((acc, char) => {
       acc[char.id] = char.metrics;
       return acc;
     }, {} as Record<string, any>);
-
-    const stateToSave: GameState = {
-      activeChamberId,
-      histories,
-      relationships: relationshipMap,
-      characters,
-      inventory,
-      journal,
-      scrollText,
-    };
-    localStorage.setItem("anchor_court_game_state_v3", JSON.stringify(stateToSave));
-  }, [activeChamberId, histories, characters, inventory, journal, scrollText]);
+    const canonicalNames = new Set(
+      (palaceRegistryView?.entities ?? [])
+        .map((entity) => entity.canonicalName)
+        .filter((name): name is string => typeof name === "string"),
+    );
+    try {
+      const nextRuntime = buildRuntimeState({
+        previous: runtimeBaseRef.current,
+        activeUiRoomId: activeChamberId,
+        histories,
+        relationships: relationshipMap,
+        inventory,
+        journal,
+        suggestedChoices: suggestedChoicesMap,
+        displayCharacters: characters,
+        builtInIds: new Set(DEFAULT_CHARACTERS.map((character) => character.id)),
+        canonicalNames,
+      });
+      persistRuntimeSession(storage, nextRuntime);
+      runtimeBaseRef.current = nextRuntime;
+    } catch (error) {
+      console.error("Failed to persist Palace runtime-v4 state", error);
+    }
+  }, [runtimeReady, activeChamberId, histories, characters, inventory, journal, suggestedChoicesMap, palaceRegistryView]);
 
   // Auto scroll to latest chat
   useEffect(() => {
@@ -687,6 +746,10 @@ export default function App() {
 
     if (!userMsg && !file) return;
     if (loading) return;
+    if (authorityMode !== "REGISTRY_V4" || !authorityRequest) {
+      setErrorMsg("Authority compatibility mode: RUNTIME_ONLY. Narrative execution is disabled; no legacy chat fallback is permitted.");
+      return;
+    }
 
     setPlayerInput("");
     setAttachedFile(null); // Reset attached file on send
@@ -715,24 +778,27 @@ export default function App() {
     }, {} as Record<string, any>);
 
     try {
-      const response = await fetch("/api/game/chat", {
+      const response = await fetch(V4_ENDPOINTS.chat, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
+        body: JSON.stringify(buildV4NarrativeRequest(authorityRequest, {
           chamberId: activeChamberId,
           history: updatedHistory,
           playerInput: userMsg,
           relationships: relationshipMap,
           inventory,
           journal,
-          scrollText,
-          attachedFile: file, // Send file attachment metadata and base64 directly to server
-        }),
+          attachedFile: file,
+        })),
       });
 
       if (!response.ok) {
         const errObj = await response.json();
-        throw new Error(errObj.error || "The Sovereign engine is calibrating. Please wait.");
+        if ([409, 425, 426].includes(response.status)) {
+          setAuthorityMode("RUNTIME_ONLY");
+          setAuthorityRequest(null);
+        }
+        throw new Error(errObj.error || errObj.code || "The Sovereign engine is calibrating. Please wait.");
       }
 
       const data = await response.json();
@@ -825,18 +891,18 @@ export default function App() {
     }
   };
 
-  // Full reset
+  // Full runtime reset. Migration/quarantine/cache evidence is intentionally preserved.
   const handleReset = () => {
-    if (window.confirm("Reforge the Anchor Court structure? All current memories and journal lines will burn.")) {
-      localStorage.removeItem("anchor_court_game_state_v3");
+    if (window.confirm("Reset Palace runtime memories and journal lines? Canonical registry authority will not be changed.")) {
+      storageRef.current?.removeItem(STORAGE_KEYS.runtimeSessionV4);
+      runtimeBaseRef.current = createFreshRuntimeV4();
       initializeDefaultState();
     }
   };
 
-  // Custom scroll save
+  // Legacy scroll is preserved as reference only and has no canonical write path.
   const handleScrollReforge = () => {
-    alert("Sovereignty Register reinforced. System rules successfully updated under Sovereign seal.");
-    handleAction("*I update the Sovereignty Register core parameters, demanding compliance across all neural partitions.*");
+    alert("Legacy scroll reference saved in the editor only. It cannot alter the approved RC4 Registry Snapshot.");
   };
 
   // Interactive Block Protocol Invocation
@@ -2734,35 +2800,63 @@ export default function App() {
             </div>
           )}
 
-          {/* TAB 2: SOVEREIGN SCROLL (LORE EDITOR) */}
+          {/* TAB 2: APPROVED REGISTRY + LEGACY REFERENCE */}
           {activeTab === "scroll" && (
             <div className="flex-1 flex flex-col p-6 overflow-hidden max-w-4xl mx-auto w-full">
               <div className="flex items-center justify-between border-b border-white/5 pb-3 mb-4 shrink-0">
                 <div className="flex items-center gap-2.5">
                   <ScrollIcon className="w-5 h-5 text-cyan-400" />
-                  <h2 className="font-sans font-semibold text-base tracking-wider text-cyan-100">Sovereignty Register v2.9</h2>
+                  <h2 className="font-sans font-semibold text-base tracking-wider text-cyan-100">Approved Registry Snapshot</h2>
                 </div>
-                <span className="text-[9px] font-mono text-gray-500 uppercase bg-white/5 px-2 py-0.5 rounded border border-white/5">Cognitive Foundation</span>
+                <span className="text-[9px] font-mono text-gray-500 uppercase bg-white/5 px-2 py-0.5 rounded border border-white/5">
+                  {authorityMode === "REGISTRY_V4" ? "AC-AUTH/1 CURRENT" : "RUNTIME_ONLY"}
+                </span>
               </div>
 
-              <div className="flex-1 flex flex-col gap-4 overflow-hidden">
-                <textarea
-                  value={scrollText}
-                  onChange={(e) => setScrollText(e.target.value)}
-                  className="flex-1 w-full p-4 bg-black/60 border border-white/5 rounded-xl font-mono text-xs leading-relaxed text-gray-300 focus:outline-none focus:border-cyan-500/40 resize-none overflow-y-auto"
-                  placeholder="Paste v2.9 Sovereignty Scroll markdown here..."
-                />
+              <div className="flex-1 flex flex-col gap-4 overflow-y-auto">
+                <div className="p-4 bg-black/60 border border-cyan-500/15 rounded-xl font-mono text-xs text-gray-300">
+                  {palaceRegistryView ? (
+                    <>
+                      <div className="text-cyan-300 font-bold mb-2">{palaceRegistryView.snapshot.snapshotId}</div>
+                      <div className="text-[10px] text-gray-500 mb-3 break-all">
+                        SHA-256: {palaceRegistryView.snapshot.registrySha256} · Epoch {palaceRegistryView.snapshot.approvalEpoch}
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                        {palaceRegistryView.entities.map((entity) => (
+                          <div key={entity.entityKey} className="p-2 rounded border border-white/5 bg-white/[0.02]">
+                            <div className="text-gray-100">{entity.canonicalName ?? "[PENDING NAME]"}</div>
+                            <div className="text-[9px] text-gray-500">{entity.entityKey} · {entity.birthBatch ?? "UNRESOLVED"} · {entity.currentTier}</div>
+                          </div>
+                        ))}
+                      </div>
+                    </>
+                  ) : (
+                    <div className="text-amber-300">No approved registry snapshot is currently admitted. Palace remains runtime-only.</div>
+                  )}
+                </div>
 
-                <div className="flex items-center justify-between shrink-0">
-                  <p className="text-[10px] text-gray-500 leading-normal max-w-md font-mono">
-                    Modifying this Register alters the background truth of the court. Save to enforce changes across active dialogue models.
-                  </p>
-                  <button
-                    onClick={handleScrollReforge}
-                    className="px-5 py-2.5 bg-gradient-to-r from-cyan-800 to-blue-900 hover:from-cyan-700 hover:to-blue-800 text-white font-mono font-bold rounded-lg shadow-lg border border-cyan-600/30 text-xs tracking-wider transition-all cursor-pointer"
-                  >
-                    REWRITE MASTER SOVEREIGNTY REGISTER
-                  </button>
+                <div className="border-t border-white/5 pt-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[10px] font-mono text-gray-400 uppercase">Legacy v2.9 reference</span>
+                    <span className="text-[9px] font-mono text-amber-500/80">AUTHORITY: NONE</span>
+                  </div>
+                  <textarea
+                    value={scrollText}
+                    onChange={(e) => setScrollText(e.target.value)}
+                    className="w-full min-h-48 p-4 bg-black/60 border border-white/5 rounded-xl font-mono text-xs leading-relaxed text-gray-400 focus:outline-none focus:border-amber-500/20 resize-y"
+                    placeholder="Legacy reference only."
+                  />
+                  <div className="flex items-center justify-between mt-3">
+                    <p className="text-[10px] text-gray-500 leading-normal max-w-lg font-mono">
+                      This text is preserved for reference/quarantine only. Editing it cannot change canonical structure or server v4 authority.
+                    </p>
+                    <button
+                      onClick={handleScrollReforge}
+                      className="px-4 py-2 bg-white/5 hover:bg-white/10 text-gray-300 font-mono rounded-lg border border-white/10 text-xs cursor-pointer"
+                    >
+                      CONFIRM NON-AUTHORITATIVE EDIT
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>

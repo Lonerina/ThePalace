@@ -9,7 +9,8 @@
     "start": "node dist/server.cjs",
     "clean": "rm -rf dist server.js",
     "lint": "tsc --noEmit",
-    "test:phase-a": "rm -rf .phase-a-dist && tsc -p tests/tsconfig.phase-a.json && node --test tests/phase-a/phase-a.contract.test.mjs"
+    "test:phase-a": "rm -rf .phase-a-dist && tsc -p tests/tsconfig.phase-a.json && node --test tests/phase-a/phase-a.contract.test.mjs",
+    "test:phase-b": "rm -rf .phase-b-dist && tsc -p tests/tsconfig.phase-b.json && node --test tests/phase-b/phase-b.integration.test.mjs"
   },
   "dependencies": {
     "@google/genai": "^2.4.0",

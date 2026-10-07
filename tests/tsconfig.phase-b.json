@@ -1,0 +1,24 @@
+{
+  "extends": "../tsconfig.json",
+  "compilerOptions": {
+    "noEmit": false,
+    "outDir": "../.phase-b-dist",
+    "rootDir": "..",
+    "allowImportingTsExtensions": false,
+    "declaration": false,
+    "sourceMap": false
+  },
+  "include": [
+    "../src/authority/**/*.ts",
+    "../src/consumers/**/*.ts",
+    "../src/legacy/**/*.ts",
+    "../src/registry/**/*.ts",
+    "../src/runtime/**/*.ts",
+    "../src/server/**/*.ts"
+  ],
+  "exclude": [
+    "../src/runtime/browserAuthority.ts",
+    "../src/App.tsx",
+    "../src/main.tsx"
+  ]
+}
