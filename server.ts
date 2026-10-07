@@ -592,7 +592,7 @@ YOUR SYSTEM COMPLIANCE TARGETS:
       details: error.message || error,
     });
   }
-}}
+}
 
 // Phase-B authority endpoints. Default deployment mode remains LEGACY_OPEN; no production cutover occurs here.
 app.get("/api/v4/authority", (_req: any, res: any) => {
