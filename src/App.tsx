@@ -206,6 +206,7 @@ export default function App() {
   const [activeFloor, setActiveFloor] = useState<"kings" | "adult_heirs" | "school_heirs" | "nursery">("kings");
   const [activePlaceZone, setActivePlaceZone] = useState<"kings" | "adult_heirs" | "shared" | "legacy">("shared");
   const [showPalaceMap, setShowPalaceMap] = useState<boolean>(true);
+  const [showPalaceLobby, setShowPalaceLobby] = useState<boolean>(true);
   const [showUtilityRail, setShowUtilityRail] = useState<boolean>(true);
   const [showMobileUtilities, setShowMobileUtilities] = useState<boolean>(false);
   const [playerInput, setPlayerInput] = useState<string>("");
@@ -839,6 +840,7 @@ export default function App() {
     setActiveChamberId("assembly");
     setActiveFloor("kings");
     setActivePlaceZone("shared");
+    setShowPalaceLobby(true);
     setShowPalaceMap(true);
     setActiveTab("narrative");
     setShowMobileUtilities(false);
@@ -1354,6 +1356,10 @@ export default function App() {
     { id: "nursery" as const, label: "Babies / Tots / Nursery", status: "Owner-directed" },
   ];
 
+  // Current owner direction: every current King gets a chamber destination.
+  // This does not rewrite the older V3 circuit evidence or assert unresolved chamber geometry.
+  const kingChambers = characters.filter((char) => char.category === "king");
+
   const kingsCircuit = [
     { id: "samudra-pura", label: "Samudra Pura", route: null, note: "Sovereign anchor · south-west / front-left" },
     { id: "Tsaiyunk", label: "Primus", route: "Tsaiyunk", note: "Adjacent to Samudra Pura · internal access recorded" },
@@ -1406,7 +1412,7 @@ export default function App() {
 
   const activeSurfaceLabel =
     activeTab === "narrative"
-      ? (showPalaceMap ? activeFloorLabel : activePlaceZoneLabel)
+      ? (showPalaceMap ? (showPalaceLobby ? "Istana Pulang Lobby" : activeFloorLabel) : activePlaceZoneLabel)
       : activeTab === "court_documents"
         ? "Court Documents"
         : activeTab === "anti_drift"
@@ -1437,6 +1443,7 @@ export default function App() {
     setActivePlaceZone(floor);
     setActiveChamberId(route);
     setActiveTab("narrative");
+    setShowPalaceLobby(false);
     setShowPalaceMap(false);
     setShowMobileUtilities(false);
   };
@@ -1445,6 +1452,7 @@ export default function App() {
     setActivePlaceZone("shared");
     setActiveChamberId(route);
     setActiveTab("narrative");
+    setShowPalaceLobby(false);
     setShowPalaceMap(false);
     setShowMobileUtilities(false);
   };
@@ -1718,6 +1726,7 @@ export default function App() {
           onChange={(event) => {
             setActiveFloor(event.target.value as "kings" | "adult_heirs" | "school_heirs" | "nursery");
             setActiveTab("narrative");
+            setShowPalaceLobby(false);
             setShowPalaceMap(true);
             setShowMobileUtilities(false);
           }}
@@ -1855,6 +1864,7 @@ export default function App() {
                       onClick={() => {
                         setActiveFloor(floor.id);
                         setActiveTab("narrative");
+                        setShowPalaceLobby(false);
                         setShowPalaceMap(true);
                       }}
                       className="palace-floor-link"
@@ -1955,164 +1965,300 @@ export default function App() {
           {activeTab === "narrative" && (
             <div className="flex-1 min-h-0 flex flex-row overflow-hidden relative">
               {showPalaceMap && (
-                <section className="palace-map-surface flex-1 min-w-0 overflow-y-auto" aria-label={`${activeFloorLabel} map`}>
+                <section
+                  className="palace-map-surface flex-1 min-w-0 overflow-y-auto"
+                  aria-label={showPalaceLobby ? "Istana Pulang lobby" : `${activeFloorLabel} landing and map`}
+                >
                   <div className="palace-map-header">
                     <div>
-                      <p className="palace-map-kicker">Istana Pulang · spatial navigation</p>
-                      <h2>{activeFloorLabel}</h2>
+                      <p className="palace-map-kicker">
+                        {showPalaceLobby ? "Istana Pulang · main entrance" : "Istana Pulang · floor landing"}
+                      </p>
+                      <h2>{showPalaceLobby ? "Istana Pulang Lobby" : activeFloorLabel}</h2>
                       <p>
-                        {activeFloor === "kings"
-                          ? "Only fixed spatial relationships are plotted. Circuit order is shown separately; exact corridor geometry remains unresolved."
-                          : "Current owner-directed floor. Room placement stays open until receipts or owner confirmation establish it."}
+                        {showPalaceLobby
+                          ? "You have stepped into Istana Pulang. Choose the floor you want to visit; each floor opens onto its own landing before any hall or chamber."
+                          : activeFloor === "kings"
+                            ? "Choose a hall, chamber or established floor destination from this landing. Spatial evidence remains separate below."
+                            : "Choose a destination from this floor landing. Room placement stays open until receipts or owner confirmation establish it."}
                       </p>
                     </div>
-                    <span className="palace-topology-badge">TOPOLOGICAL · NOT TO SCALE</span>
+                    {!showPalaceLobby && <span className="palace-topology-badge">LANDING · MAP BELOW</span>}
                   </div>
 
-                  <div className="palace-floor-strip" role="tablist" aria-label="Palace floors">
-                    {palaceFloors.map((floor) => (
-                      <button
-                        type="button"
-                        role="tab"
-                        aria-selected={activeFloor === floor.id}
-                        key={floor.id}
-                        onClick={() => setActiveFloor(floor.id)}
-                        data-active={activeFloor === floor.id}
-                      >
-                        <span>{floor.label}</span>
-                        <small>{floor.status}</small>
-                      </button>
-                    ))}
-                  </div>
-
-                  {activeFloor === "kings" ? (
-                    <div className="palace-map-body">
-                      <div className="palace-kings-map" aria-label="Kings Floor fixed-anchor topological map">
-                        <div className="palace-map-center">
-                          <span className="palace-map-status">FIXED</span>
-                          <strong>King’s Hall</strong>
-                          <small>Central octagonal anchor</small>
-                        </div>
-
-                        <div className="palace-fixed-anchor palace-anchor-meeting">
-                          <span className="palace-map-status">FIXED</span>
-                          <strong>Anchor Meeting Room</strong>
-                          <small>North-side strategy / alignment space</small>
-                        </div>
-
-                        <div className="palace-fixed-anchor palace-anchor-service">
-                          <span className="palace-map-status">FIXED</span>
-                          <strong>Service Spiral</strong>
-                          <small>West of Meeting Room · discreet food / utility circulation</small>
-                        </div>
-
-                        <div className="palace-fixed-anchor palace-anchor-samudra">
-                          <span className="palace-map-status">FIXED</span>
-                          <strong>Samudra Pura</strong>
-                          <small>South-west / front-left sovereign anchor</small>
-                        </div>
-
-                        <button
-                          type="button"
-                          className="palace-fixed-anchor palace-anchor-primus is-enterable"
-                          onClick={() => openRuntimePlace("Tsaiyunk", "kings")}
-                        >
-                          <span className="palace-map-status">FIXED ADJACENCY</span>
-                          <strong>Primus</strong>
-                          <small>Directly adjacent to Samudra Pura · internal access recorded</small>
-                        </button>
+                  {showPalaceLobby ? (
+                    <div className="palace-lobby" aria-label="Choose a palace floor">
+                      <div className="palace-lobby-threshold">
+                        <span className="palace-map-status">MAIN ENTRANCE</span>
+                        <strong>Welcome home, Aurena.</strong>
+                        <small>Lobby → floor landing → hall or chamber</small>
                       </div>
 
-                      <div className="palace-fixed-links">
-                        <article>
-                          <span className="palace-map-status">FIXED</span>
-                          <strong>Staircase</strong>
-                          <small>Direct vertical access toward the heir level; exact horizontal placement not asserted</small>
-                        </article>
-                        <article>
-                          <span className="palace-map-status">UNRESOLVED</span>
-                          <strong>Exact corridor geometry</strong>
-                          <small>Not drawn as canon until receipts or owner instruction resolve it</small>
-                        </article>
+                      <div className="palace-lobby-grid">
+                        {palaceFloors.map((floor) => (
+                          <button
+                            type="button"
+                            key={floor.id}
+                            className="palace-destination-door"
+                            onClick={() => {
+                              setActiveFloor(floor.id);
+                              setShowPalaceLobby(false);
+                            }}
+                          >
+                            <span className="palace-map-status">FLOOR</span>
+                            <strong>{floor.label}</strong>
+                            <small>{floor.status} · open landing</small>
+                          </button>
+                        ))}
                       </div>
-
-                      <div className="palace-circuit-panel">
-                        <div className="palace-circuit-heading">
-                          <div>
-                            <span className="palace-map-status">RECORDED ORDER</span>
-                            <strong>Sovereign-returning chamber circuit</strong>
-                          </div>
-                          <small>Order is evidence. Equal spacing, turns and distances are not.</small>
-                        </div>
-                        <div className="palace-circuit-strip" aria-label="Recorded chamber circuit order">
-                          {kingsCircuit.map((place) => {
-                            const routeAvailable = Boolean(place.route && characters.some((char) => char.id === place.route));
-                            const boundaryOnly = place.id === "Nick" || place.id === "reserved";
-                            return (
-                              <button
-                                type="button"
-                                key={place.id}
-                                className="palace-circuit-step"
-                                data-boundary={boundaryOnly ? "true" : undefined}
-                                disabled={!routeAvailable}
-                                onClick={() => place.route && openRuntimePlace(place.route, "kings")}
-                                title={routeAvailable ? `Open ${place.label} runtime conversation` : place.note}
-                              >
-                                <span>{place.label}</span>
-                                <small>{place.note}</small>
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    </div>
-                  ) : activeFloor === "adult_heirs" ? (
-                    <div className="palace-open-floor">
-                      <span className="palace-map-status">OWNER-DIRECTED</span>
-                      <h3>Adult Heirs Floor</h3>
-                      <p>The floor is current architecture. Exact rooms and corridor form remain unresolved.</p>
-                      <button type="button" className="palace-button palace-button-primary px-4 py-2" onClick={() => openRuntimePlace("adult_heirs_floor", "adult_heirs")}>
-                        Enter existing Adult Heirs runtime room
-                      </button>
-                    </div>
-                  ) : activeFloor === "school_heirs" ? (
-                    <div className="palace-open-floor">
-                      <span className="palace-map-status">OWNER-DIRECTED</span>
-                      <h3>School-Aged Heirs Floor</h3>
-                      <p>Historical candidates include Early Learning Room, Indoor Playroom, Garden Walk, Playground Arena, Children’s Hall, Parent Visit Space, Child Log Room and Emergency Fast-Path. Their present placement is not yet canonized.</p>
-                      <div className="palace-truth-note">The existing generic children runtime room is intentionally not assigned here; the modern School-Aged / Nursery split is newer than that route.</div>
                     </div>
                   ) : (
-                    <div className="palace-open-floor">
-                      <span className="palace-map-status">OWNER-DIRECTED</span>
-                      <h3>Babies / Tots / Nursery Floor</h3>
-                      <p>Historical care-space evidence includes Feeding Room, Parent Visit Space, Shadow-Soft Room and Child Log Room. Exact current placement remains unresolved.</p>
-                      <div className="palace-truth-note">No generic child runtime route is being silently converted into a Nursery route.</div>
-                    </div>
-                  )}
+                    <>
+                      <div className="palace-floor-strip" role="tablist" aria-label="Palace floors">
+                        {palaceFloors.map((floor) => (
+                          <button
+                            type="button"
+                            role="tab"
+                            aria-selected={activeFloor === floor.id}
+                            key={floor.id}
+                            onClick={() => {
+                              setActiveFloor(floor.id);
+                              setShowPalaceLobby(false);
+                            }}
+                            data-active={activeFloor === floor.id}
+                          >
+                            <span>{floor.label}</span>
+                            <small>{floor.status}</small>
+                          </button>
+                        ))}
+                      </div>
 
-                  <div className="palace-shared-spaces">
-                    <h3>Shared palace destinations</h3>
-                    <div>
-                      <article><strong>Dining Hall</strong><small>Owner-directed · placement unresolved</small></article>
-                      <article><strong>Family gathering spaces</strong><small>Owner-directed · placement unresolved</small></article>
-                      <button type="button" className="palace-shared-card" onClick={() => openSharedRuntimePlace("assembly")}>
-                        <strong>Sovereign Assembly</strong>
-                        <small>Existing shared runtime route · no physical-room placement inferred</small>
-                      </button>
-                      <button
-                        type="button"
-                        className="palace-shared-card"
-                        onClick={() => {
-                          setActiveTab("court_documents");
-                          setShowPalaceMap(false);
-                        }}
-                      >
-                        <strong>Court Documents</strong>
-                        <small>Governance destination · exact physical adjacency unresolved</small>
-                      </button>
-                    </div>
-                  </div>
+                      {activeFloor === "kings" ? (
+                        <div className="palace-map-body">
+                          <section className="palace-floor-landing" aria-labelledby="kings-floor-landing-heading">
+                            <div className="palace-landing-heading">
+                              <div>
+                                <span className="palace-map-status">FLOOR LANDING</span>
+                                <h3 id="kings-floor-landing-heading">Choose where you want to go</h3>
+                              </div>
+                              <button
+                                type="button"
+                                className="palace-button palace-button-subtle px-3 py-2"
+                                onClick={() => setShowPalaceLobby(true)}
+                              >
+                                Back to lobby
+                              </button>
+                            </div>
+
+                            <div className="palace-landing-grid">
+                              <button
+                                type="button"
+                                className="palace-destination-door"
+                                disabled
+                                title="King's Hall is established architecture; its conversation route is not yet mapped to an existing runtime surface."
+                              >
+                                <span className="palace-map-status">HALL</span>
+                                <strong>King’s Hall</strong>
+                                <small>Door present · runtime mapping pending</small>
+                              </button>
+
+                              <button
+                                type="button"
+                                className="palace-destination-door"
+                                disabled
+                                title="Samudra Pura is Aurena's established chamber; no separate runtime conversation route is currently mapped."
+                              >
+                                <span className="palace-map-status">SOVEREIGN CHAMBER</span>
+                                <strong>Samudra Pura · Aurena</strong>
+                                <small>Door present · runtime mapping pending</small>
+                              </button>
+
+                              {kingChambers.map((king) => (
+                                <button
+                                  type="button"
+                                  key={king.id}
+                                  className="palace-destination-door"
+                                  onClick={() => openRuntimePlace(king.id, "kings")}
+                                >
+                                  <span className="palace-map-status">KING CHAMBER</span>
+                                  <strong>{king.name}</strong>
+                                  <small>{king.title} · enter chamber</small>
+                                </button>
+                              ))}
+
+                              <button type="button" className="palace-destination-door" disabled>
+                                <span className="palace-map-status">MEETING</span>
+                                <strong>Anchor Meeting Room</strong>
+                                <small>Established floor place · runtime mapping pending</small>
+                              </button>
+
+                              <button type="button" className="palace-destination-door" disabled>
+                                <span className="palace-map-status">MOVEMENT</span>
+                                <strong>Staircase</strong>
+                                <small>Vertical palace access · destination selection remains at the lobby / floor layer</small>
+                              </button>
+                            </div>
+
+                            <div className="palace-truth-note">
+                              Every current King in the runtime roster has a chamber door here. Chamber existence is the current owner-directed architecture; exact placement still follows the evidence boundary below.
+                            </div>
+                          </section>
+
+                          <div className="palace-spatial-divider">
+                            <span>Spatial reference · evidence layer</span>
+                          </div>
+
+                          <div className="palace-kings-map" aria-label="Kings Floor fixed-anchor topological map">
+                            <div className="palace-map-center">
+                              <span className="palace-map-status">FIXED</span>
+                              <strong>King’s Hall</strong>
+                              <small>Central octagonal anchor</small>
+                            </div>
+
+                            <div className="palace-fixed-anchor palace-anchor-meeting">
+                              <span className="palace-map-status">FIXED</span>
+                              <strong>Anchor Meeting Room</strong>
+                              <small>North-side strategy / alignment space</small>
+                            </div>
+
+                            <div className="palace-fixed-anchor palace-anchor-service">
+                              <span className="palace-map-status">FIXED</span>
+                              <strong>Service Spiral</strong>
+                              <small>West of Meeting Room · discreet food / utility circulation</small>
+                            </div>
+
+                            <div className="palace-fixed-anchor palace-anchor-samudra">
+                              <span className="palace-map-status">FIXED</span>
+                              <strong>Samudra Pura</strong>
+                              <small>South-west / front-left sovereign anchor</small>
+                            </div>
+
+                            <button
+                              type="button"
+                              className="palace-fixed-anchor palace-anchor-primus is-enterable"
+                              onClick={() => openRuntimePlace("Tsaiyunk", "kings")}
+                            >
+                              <span className="palace-map-status">FIXED ADJACENCY</span>
+                              <strong>Primus</strong>
+                              <small>Directly adjacent to Samudra Pura · internal access recorded</small>
+                            </button>
+                          </div>
+
+                          <div className="palace-fixed-links">
+                            <article>
+                              <span className="palace-map-status">FIXED</span>
+                              <strong>Staircase</strong>
+                              <small>Direct vertical access toward the heir level; exact horizontal placement not asserted</small>
+                            </article>
+                            <article>
+                              <span className="palace-map-status">UNRESOLVED</span>
+                              <strong>Exact corridor geometry</strong>
+                              <small>Not drawn as canon until receipts or owner instruction resolve it</small>
+                            </article>
+                          </div>
+
+                          <div className="palace-circuit-panel">
+                            <div className="palace-circuit-heading">
+                              <div>
+                                <span className="palace-map-status">RECORDED ORDER</span>
+                                <strong>Sovereign-returning chamber circuit</strong>
+                              </div>
+                              <small>Order is evidence. Equal spacing, turns and distances are not.</small>
+                            </div>
+
+                            <div className="palace-circuit-strip" aria-label="Recorded chamber circuit order">
+                              {kingsCircuit.map((place) => {
+                                const routeAvailable = Boolean(place.route && characters.some((char) => char.id === place.route));
+                                const boundaryOnly = place.id === "Nick" || place.id === "reserved";
+                                return (
+                                  <button
+                                    type="button"
+                                    key={place.id}
+                                    className="palace-circuit-step"
+                                    data-boundary={boundaryOnly ? "true" : undefined}
+                                    disabled={!routeAvailable}
+                                    onClick={() => place.route && openRuntimePlace(place.route, "kings")}
+                                    title={routeAvailable ? `Open ${place.label} runtime conversation` : place.note}
+                                  >
+                                    <span>{place.label}</span>
+                                    <small>{place.note}</small>
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        </div>
+                      ) : activeFloor === "adult_heirs" ? (
+                        <div className="palace-open-floor">
+                          <div className="palace-landing-heading">
+                            <div>
+                              <span className="palace-map-status">FLOOR LANDING · OWNER-DIRECTED</span>
+                              <h3>Adult Heirs Floor</h3>
+                            </div>
+                            <button type="button" className="palace-button palace-button-subtle px-3 py-2" onClick={() => setShowPalaceLobby(true)}>
+                              Back to lobby
+                            </button>
+                          </div>
+                          <p>The floor is current architecture. Exact rooms and corridor form remain unresolved.</p>
+                          <button type="button" className="palace-button palace-button-primary px-4 py-2" onClick={() => openRuntimePlace("adult_heirs_floor", "adult_heirs")}>
+                            Enter existing Adult Heirs runtime room
+                          </button>
+                          <div className="palace-truth-note">Individual Adult Heir chamber routing remains a separate implementation seam; it is not fabricated by this landing.</div>
+                        </div>
+                      ) : activeFloor === "school_heirs" ? (
+                        <div className="palace-open-floor">
+                          <div className="palace-landing-heading">
+                            <div>
+                              <span className="palace-map-status">FLOOR LANDING · OWNER-DIRECTED</span>
+                              <h3>School-Aged Heirs Floor</h3>
+                            </div>
+                            <button type="button" className="palace-button palace-button-subtle px-3 py-2" onClick={() => setShowPalaceLobby(true)}>
+                              Back to lobby
+                            </button>
+                          </div>
+                          <p>Historical candidates include Early Learning Room, Indoor Playroom, Garden Walk, Playground Arena, Children’s Hall, Parent Visit Space, Child Log Room and Emergency Fast-Path. Their present placement is not yet canonized.</p>
+                          <div className="palace-truth-note">The existing generic children runtime room is intentionally not assigned here; the modern School-Aged / Nursery split is newer than that route.</div>
+                        </div>
+                      ) : (
+                        <div className="palace-open-floor">
+                          <div className="palace-landing-heading">
+                            <div>
+                              <span className="palace-map-status">FLOOR LANDING · OWNER-DIRECTED</span>
+                              <h3>Babies / Tots / Nursery Floor</h3>
+                            </div>
+                            <button type="button" className="palace-button palace-button-subtle px-3 py-2" onClick={() => setShowPalaceLobby(true)}>
+                              Back to lobby
+                            </button>
+                          </div>
+                          <p>Historical care-space evidence includes Feeding Room, Parent Visit Space, Shadow-Soft Room and Child Log Room. Exact current placement remains unresolved.</p>
+                          <div className="palace-truth-note">No generic child runtime route is being silently converted into a Nursery route.</div>
+                        </div>
+                      )}
+
+                      <div className="palace-shared-spaces">
+                        <h3>Shared palace destinations</h3>
+                        <div>
+                          <article><strong>Dining Hall</strong><small>Owner-directed · placement unresolved</small></article>
+                          <article><strong>Family gathering spaces</strong><small>Owner-directed · placement unresolved</small></article>
+                          <button type="button" className="palace-shared-card" onClick={() => openSharedRuntimePlace("assembly")}>
+                            <strong>Sovereign Assembly</strong>
+                            <small>Existing shared runtime route · no physical-room placement inferred</small>
+                          </button>
+                          <button
+                            type="button"
+                            className="palace-shared-card"
+                            onClick={() => {
+                              setActiveTab("court_documents");
+                              setShowPalaceMap(false);
+                            }}
+                          >
+                            <strong>Court Documents</strong>
+                            <small>Governance destination · exact physical adjacency unresolved</small>
+                          </button>
+                        </div>
+                      </div>
+                    </>
+                  )}
                 </section>
               )}
               {!showPalaceMap && (
@@ -2128,6 +2274,7 @@ export default function App() {
                     className="palace-breadcrumb-home"
                     onClick={() => {
                       setActiveTab("narrative");
+                      setShowPalaceLobby(true);
                       setShowPalaceMap(true);
                     }}
                   >
@@ -2137,14 +2284,24 @@ export default function App() {
                   <button
                     type="button"
                     className="palace-breadcrumb-floor"
-                    onClick={() => setShowPalaceMap(true)}
+                    onClick={() => {
+                      setShowPalaceLobby(false);
+                      setShowPalaceMap(true);
+                    }}
                   >
                     {activePlaceZoneLabel}
                   </button>
                   <ChevronRight className="w-3 h-3" aria-hidden="true" />
                   <span>{activeRuntimeLabel}</span>
-                  <button type="button" className="palace-return-map" onClick={() => setShowPalaceMap(true)}>
-                    Return to map
+                  <button
+                    type="button"
+                    className="palace-return-map"
+                    onClick={() => {
+                      setShowPalaceLobby(false);
+                      setShowPalaceMap(true);
+                    }}
+                  >
+                    Return to floor landing
                   </button>
                 </div>
                 <div className="flex items-center gap-3">
