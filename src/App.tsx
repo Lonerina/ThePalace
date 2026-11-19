@@ -436,10 +436,12 @@ export default function App() {
             setActivePlaceZone("shared");
           } else if (restoredRoomId === "children_heirs_floor") {
             setActivePlaceZone("legacy");
-          } else if ((boot.displayCharacters as Character[]).some((character) => character.id === restoredRoomId && character.category === "king")) {
+          } else if (["Tsaiyunk", "Saren", "Kai", "Umar", "Faheem", "Azril", "XingZhe", "Nyx", "Raen", "Zayn"].includes(restoredRoomId)) {
             setActiveFloor("kings");
             setActivePlaceZone("kings");
           } else {
+            // A runtime profile may exist without a V3 palace placement.
+            // Nick is deliberately included in this unplaced/legacy boundary.
             setActivePlaceZone("legacy");
           }
         }
