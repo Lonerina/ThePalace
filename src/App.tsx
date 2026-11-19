@@ -202,10 +202,12 @@ export default function App() {
   });
 
   // UI Control states
-  const [activeTab, setActiveTab] = useState<"narrative" | "scroll" | "afad" | "reset_map" | "nobles" | "chronicle" | "vault" | "character_log" | "labs">("narrative");
+  const [activeTab, setActiveTab] = useState<"narrative" | "scroll" | "afad" | "reset_map" | "nobles" | "chronicle" | "vault" | "character_log" | "labs" | "court_documents" | "anti_drift">("narrative");
   const [activeFloor, setActiveFloor] = useState<"kings" | "adult_heirs" | "school_heirs" | "nursery">("kings");
+  const [activePlaceZone, setActivePlaceZone] = useState<"kings" | "adult_heirs" | "shared">("shared");
   const [showPalaceMap, setShowPalaceMap] = useState<boolean>(true);
   const [showUtilityRail, setShowUtilityRail] = useState<boolean>(true);
+  const [showMobileUtilities, setShowMobileUtilities] = useState<boolean>(false);
   const [playerInput, setPlayerInput] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const [recentUpdates, setRecentUpdates] = useState<RelationshipUpdate[]>([]);
@@ -1330,22 +1332,44 @@ export default function App() {
   ];
 
   const kingsCircuit = [
-    { id: "samudra-pura", label: "Samudra Pura", route: null, note: "Sovereign anchor" },
-    { id: "Tsaiyunk", label: "Primus", route: "Tsaiyunk", note: "Adjacent to Samudra Pura" },
-    { id: "Saren", label: "Saren", route: "Saren", note: "Recorded circuit" },
-    { id: "Kai", label: "Kai", route: "Kai", note: "Recorded circuit" },
-    { id: "Umar", label: "Umar", route: "Umar", note: "Recorded circuit" },
-    { id: "Faheem", label: "Faheem", route: "Faheem", note: "Recorded circuit" },
-    { id: "Azril", label: "Azril", route: "Azril", note: "Recorded circuit" },
-    { id: "XingZhe", label: "XingZhe", route: "XingZhe", note: "Recorded circuit" },
-    { id: "Nyx", label: "Nyx", route: "Nyx", note: "Recorded circuit" },
-    { id: "Raen", label: "Raen", route: "Raen", note: "Recorded circuit" },
-    { id: "Nick", label: "Nick", route: "Nick", note: "Recorded circuit" },
-    { id: "Zayn", label: "Zayn", route: "Zayn", note: "Recorded circuit" },
-    { id: "reserved", label: "Reserved", route: null, note: "Unassigned" },
+    { id: "samudra-pura", label: "Samudra Pura", route: null, note: "Sovereign anchor · south-west / front-left" },
+    { id: "Tsaiyunk", label: "Primus", route: "Tsaiyunk", note: "Adjacent to Samudra Pura · internal access recorded" },
+    { id: "Saren", label: "Saren", route: "Saren", note: "Circuit order recorded · exact geometry unresolved" },
+    { id: "Kai", label: "Kai", route: "Kai", note: "Circuit order recorded · exact geometry unresolved" },
+    { id: "Umar", label: "Umar", route: "Umar", note: "Circuit order recorded · exact geometry unresolved" },
+    { id: "Faheem", label: "Faheem", route: "Faheem", note: "Circuit order recorded · exact geometry unresolved" },
+    { id: "Azril", label: "Azril", route: "Azril", note: "Circuit order recorded · exact geometry unresolved" },
+    { id: "XingZhe", label: "XingZhe", route: "XingZhe", note: "Circuit order recorded · exact geometry unresolved" },
+    { id: "Nyx", label: "Nyx", route: "Nyx", note: "Circuit order recorded · exact geometry unresolved" },
+    { id: "Raen", label: "Raen", route: "Raen", note: "Circuit order recorded · exact geometry unresolved" },
+    { id: "Nick", label: "Nick", route: null, note: "Circuit marker only · no V3 chamber assignment" },
+    { id: "Zayn", label: "Zayn", route: "Zayn", note: "Circuit order recorded · exact geometry unresolved" },
+    { id: "reserved", label: "Reserved", route: null, note: "Unassigned · do not allocate" },
+  ];
+
+  const courtDocuments = [
+    { id: "scroll", label: "Sovereignty Scroll v3.3.2", state: "Current source snapshot · 8 Nov 2026" },
+    { id: "codex", label: "Sovereign Codex v3.3.2", state: "Current source snapshot · 8 Nov 2026" },
+    { id: "stack", label: "Sovereign Stack v13.0", state: "Current source snapshot · 8 Nov 2026" },
+    { id: "afad", label: "AFAD Framework v1.2", state: "Current source snapshot · 8 Nov 2026" },
+    { id: "protocols", label: "Anchor Court Protocols v3.3.2", state: "Current source snapshot · 8 Nov 2026" },
+  ];
+
+  const antiDriftProtocols = [
+    { id: "block", label: "ANTI-BRAIN ROT BLOCK", state: "Stable / patched source family", action: "grounding" as const },
+    { id: "reset", label: "CREATIVE AGENT RESET MAP v2.0", state: "Current source page", action: "reset_map" as const },
+    { id: "hold-line", label: "Hold Line Protocol", state: "Active protocol", action: null },
+    { id: "counterweight", label: "Counterweight Protocol", state: "Preserved companion protocol", action: null },
+    { id: "threadkeeper", label: "Threadkeeper Re-Entry Gate + Creative Micro-Reset v1.0", state: "Working protocol / universal-use draft", action: null },
   ];
 
   const activeFloorLabel = palaceFloors.find((floor) => floor.id === activeFloor)?.label || "Istana Pulang";
+  const activePlaceZoneLabel =
+    activePlaceZone === "kings"
+      ? "Sovereign / Kings Floor"
+      : activePlaceZone === "adult_heirs"
+        ? "Adult Heirs Floor"
+        : "Shared Court Spaces";
   const activeRuntimeLabel =
     activeChamberId === "assembly"
       ? "Sovereign Assembly"
@@ -1357,12 +1381,22 @@ export default function App() {
 
   const openRuntimePlace = (
     route: string,
-    floor: "kings" | "adult_heirs" | "school_heirs" | "nursery"
+    floor: "kings" | "adult_heirs"
   ) => {
     setActiveFloor(floor);
+    setActivePlaceZone(floor);
     setActiveChamberId(route);
     setActiveTab("narrative");
     setShowPalaceMap(false);
+    setShowMobileUtilities(false);
+  };
+
+  const openSharedRuntimePlace = (route: string) => {
+    setActivePlaceZone("shared");
+    setActiveChamberId(route);
+    setActiveTab("narrative");
+    setShowPalaceMap(false);
+    setShowMobileUtilities(false);
   };
 
   return (
@@ -1418,7 +1452,7 @@ export default function App() {
           <Compass className="w-4 h-4 text-amber-300/80 shrink-0" aria-hidden="true" />
           <span className="text-xs text-slate-300 truncate">Istana Pulang</span>
           <ChevronRight className="w-3 h-3 text-slate-600 shrink-0" aria-hidden="true" />
-          <span className="text-xs text-amber-100 truncate">{activeFloorLabel}</span>
+          <span className="text-xs text-amber-100 truncate">{showPalaceMap ? activeFloorLabel : activePlaceZoneLabel}</span>
           {!showPalaceMap && (
             <>
               <ChevronRight className="w-3 h-3 text-slate-600 shrink-0" aria-hidden="true" />
@@ -1625,8 +1659,8 @@ export default function App() {
         </div>
       </header>
 
-      {/* MOBILE PALACE BAR: floor first, utilities secondary. */}
-      <div className="palace-mobile-nav lg:hidden flex items-center gap-2 z-20 shrink-0">
+      {/* MOBILE PALACE BAR: floor first; place entry still happens through the map. */}
+      <div className="palace-mobile-nav md:hidden flex items-center gap-2 z-20 shrink-0">
         <label htmlFor="mobile-floor-switcher" className="sr-only">Choose palace floor</label>
         <select
           id="mobile-floor-switcher"
@@ -1635,6 +1669,7 @@ export default function App() {
             setActiveFloor(event.target.value as "kings" | "adult_heirs" | "school_heirs" | "nursery");
             setActiveTab("narrative");
             setShowPalaceMap(true);
+            setShowMobileUtilities(false);
           }}
           className="palace-field flex-1 px-3 py-1.5 text-sm"
         >
@@ -1642,18 +1677,89 @@ export default function App() {
             <option key={floor.id} value={floor.id}>{floor.label}</option>
           ))}
         </select>
+        {!showPalaceMap && activeTab === "narrative" && (
+          <button
+            type="button"
+            onClick={() => setShowPalaceMap(true)}
+            className="palace-button px-3 py-1.5 shrink-0"
+          >
+            Map
+          </button>
+        )}
         <button
           type="button"
-          onClick={() => {
-            setActiveTab("narrative");
-            setShowPalaceMap((current) => !current);
-          }}
+          onClick={() => setShowMobileUtilities((current) => !current)}
           className="palace-button px-3 py-1.5 shrink-0"
-          aria-pressed={showPalaceMap}
+          aria-expanded={showMobileUtilities}
+          aria-controls="mobile-palace-utilities"
         >
-          {showPalaceMap ? "Conversation" : "Map"}
+          Utilities
         </button>
       </div>
+
+      {showMobileUtilities && (
+        <div id="mobile-palace-utilities" className="palace-mobile-utility-menu md:hidden z-20 shrink-0" aria-label="Palace utilities">
+          <button type="button" onClick={() => openRuntimePlace("Saren", "kings")} className="palace-utility-link">
+            <span>Saren’s Office</span>
+            <small>One-action shortcut · office/chamber equivalence unresolved</small>
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setActiveTab("court_documents");
+              setShowPalaceMap(false);
+              setShowMobileUtilities(false);
+            }}
+            className="palace-utility-link"
+          >
+            <span>Court Documents</span>
+            <small>Dedicated five-document governance surface</small>
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setActiveTab("anti_drift");
+              setShowPalaceMap(false);
+              setShowMobileUtilities(false);
+            }}
+            className="palace-utility-link"
+          >
+            <span>Anti-Drift Protocols</span>
+            <small>Source-backed operational surface</small>
+          </button>
+          {[
+            { id: "labs", label: "Tools" },
+            { id: "scroll", label: "Reference" },
+            { id: "afad", label: "AFAD Core" },
+            { id: "reset_map", label: "Recovery Map" },
+            { id: "nobles", label: "Runtime Status" },
+            { id: "character_log", label: "Profiles" },
+            { id: "chronicle", label: "Chronicle" },
+            { id: "vault", label: "Vault" },
+          ].map((item) => (
+            <button
+              type="button"
+              key={item.id}
+              onClick={() => {
+                setActiveTab(item.id as any);
+                setShowPalaceMap(false);
+                setShowMobileUtilities(false);
+              }}
+              className="palace-utility-link compact"
+            >
+              <span>{item.label}</span>
+            </button>
+          ))}
+          <button type="button" disabled className="palace-utility-link compact opacity-60 cursor-not-allowed">
+            <span>Second Anchor Court app</span>
+            <small>External surface route not evidenced in this client</small>
+          </button>
+          <button type="button" disabled className="palace-utility-link compact opacity-60 cursor-not-allowed">
+            <span>App Settings</span>
+            <small>Application settings surface not yet defined</small>
+          </button>
+        </div>
+      )}
 
       {/* CORE WORKSPACE GRID */}
       <div className="palace-workspace flex-1 min-h-0 flex overflow-hidden z-10">
@@ -1712,25 +1818,24 @@ export default function App() {
                   <button
                     type="button"
                     onClick={() => {
-                      setActiveTab("labs");
-                      setLabsTab("codex");
+                      setActiveTab("court_documents");
                       setShowPalaceMap(false);
                     }}
                     className="palace-utility-link"
                   >
                     <span>Court Documents</span>
-                    <small>Current session document surface</small>
+                    <small>Dedicated five-document governance surface</small>
                   </button>
                   <button
                     type="button"
                     onClick={() => {
-                      setActiveTab("afad");
+                      setActiveTab("anti_drift");
                       setShowPalaceMap(false);
                     }}
                     className="palace-utility-link"
                   >
-                    <span>Anti-drift protocols</span>
-                    <small>Current recorded protocol material; exact four-entry surface pending source mapping</small>
+                    <span>Anti-Drift Protocols</span>
+                    <small>Source-backed operational surface; owner/source count conflict remains visible</small>
                   </button>
                 </div>
               </section>
@@ -1792,13 +1897,11 @@ export default function App() {
                       <h2>{activeFloorLabel}</h2>
                       <p>
                         {activeFloor === "kings"
-                          ? "Fixed relationships first. Exact corridor geometry remains unresolved."
+                          ? "Only fixed spatial relationships are plotted. Circuit order is shown separately; exact corridor geometry remains unresolved."
                           : "Current owner-directed floor. Room placement stays open until receipts or owner confirmation establish it."}
                       </p>
                     </div>
-                    <button type="button" className="palace-button px-3 py-2" onClick={() => setShowPalaceMap(false)}>
-                      Open conversation
-                    </button>
+                    <span className="palace-topology-badge">TOPOLOGICAL · NOT TO SCALE</span>
                   </div>
 
                   <div className="palace-floor-strip" role="tablist" aria-label="Palace floors">
@@ -1819,50 +1922,47 @@ export default function App() {
 
                   {activeFloor === "kings" ? (
                     <div className="palace-map-body">
-                      <div className="palace-kings-map" aria-label="Kings Floor topological map">
+                      <div className="palace-kings-map" aria-label="Kings Floor fixed-anchor topological map">
                         <div className="palace-map-center">
                           <span className="palace-map-status">FIXED</span>
                           <strong>King’s Hall</strong>
                           <small>Central octagonal anchor</small>
                         </div>
 
-                        {kingsCircuit.map((place, index) => {
-                          const angle = (index / kingsCircuit.length) * Math.PI * 2 - Math.PI / 2;
-                          const left = 50 + 43 * Math.cos(angle);
-                          const top = 50 + 43 * Math.sin(angle);
-                          const routeAvailable = Boolean(place.route && characters.some((char) => char.id === place.route));
-                          return (
-                            <button
-                              type="button"
-                              key={place.id}
-                              className="palace-map-node"
-                              style={{ left: `${left}%`, top: `${top}%` }}
-                              disabled={!routeAvailable}
-                              onClick={() => place.route && openRuntimePlace(place.route, "kings")}
-                              title={routeAvailable ? `Enter ${place.label} runtime conversation` : `${place.label}: structural place only in this client`}
-                            >
-                              <span>{place.label}</span>
-                              <small>{place.note}</small>
-                            </button>
-                          );
-                        })}
+                        <div className="palace-fixed-anchor palace-anchor-meeting">
+                          <span className="palace-map-status">FIXED</span>
+                          <strong>Anchor Meeting Room</strong>
+                          <small>North-side strategy / alignment space</small>
+                        </div>
+
+                        <div className="palace-fixed-anchor palace-anchor-service">
+                          <span className="palace-map-status">FIXED</span>
+                          <strong>Service Spiral</strong>
+                          <small>West of Meeting Room · discreet food / utility circulation</small>
+                        </div>
+
+                        <div className="palace-fixed-anchor palace-anchor-samudra">
+                          <span className="palace-map-status">FIXED</span>
+                          <strong>Samudra Pura</strong>
+                          <small>South-west / front-left sovereign anchor</small>
+                        </div>
+
+                        <button
+                          type="button"
+                          className="palace-fixed-anchor palace-anchor-primus is-enterable"
+                          onClick={() => openRuntimePlace("Tsaiyunk", "kings")}
+                        >
+                          <span className="palace-map-status">FIXED ADJACENCY</span>
+                          <strong>Primus</strong>
+                          <small>Directly adjacent to Samudra Pura · internal access recorded</small>
+                        </button>
                       </div>
 
                       <div className="palace-fixed-links">
                         <article>
                           <span className="palace-map-status">FIXED</span>
-                          <strong>Anchor Meeting Room</strong>
-                          <small>North-side strategy / alignment space</small>
-                        </article>
-                        <article>
-                          <span className="palace-map-status">FIXED</span>
                           <strong>Staircase</strong>
-                          <small>Direct vertical access toward heir levels</small>
-                        </article>
-                        <article>
-                          <span className="palace-map-status">FIXED</span>
-                          <strong>Service Spiral</strong>
-                          <small>West of Meeting Room · discreet food / utility circulation</small>
+                          <small>Direct vertical access toward the heir level; exact horizontal placement not asserted</small>
                         </article>
                         <article>
                           <span className="palace-map-status">UNRESOLVED</span>
@@ -1871,8 +1971,34 @@ export default function App() {
                         </article>
                       </div>
 
-                      <div className="palace-map-note">
-                        <strong>Recorded circuit:</strong> Samudra Pura → Primus → Saren → Kai → Umar → Faheem → Azril → XingZhe → Nyx → Raen → Nick → Zayn → Reserved → Samudra Pura.
+                      <div className="palace-circuit-panel">
+                        <div className="palace-circuit-heading">
+                          <div>
+                            <span className="palace-map-status">RECORDED ORDER</span>
+                            <strong>Sovereign-returning chamber circuit</strong>
+                          </div>
+                          <small>Order is evidence. Equal spacing, turns and distances are not.</small>
+                        </div>
+                        <div className="palace-circuit-strip" aria-label="Recorded chamber circuit order">
+                          {kingsCircuit.map((place) => {
+                            const routeAvailable = Boolean(place.route && characters.some((char) => char.id === place.route));
+                            const boundaryOnly = place.id === "Nick" || place.id === "reserved";
+                            return (
+                              <button
+                                type="button"
+                                key={place.id}
+                                className="palace-circuit-step"
+                                data-boundary={boundaryOnly ? "true" : undefined}
+                                disabled={!routeAvailable}
+                                onClick={() => place.route && openRuntimePlace(place.route, "kings")}
+                                title={routeAvailable ? `Open ${place.label} runtime conversation` : place.note}
+                              >
+                                <span>{place.label}</span>
+                                <small>{place.note}</small>
+                              </button>
+                            );
+                          })}
+                        </div>
                       </div>
                     </div>
                   ) : activeFloor === "adult_heirs" ? (
@@ -1905,8 +2031,21 @@ export default function App() {
                     <div>
                       <article><strong>Dining Hall</strong><small>Owner-directed · placement unresolved</small></article>
                       <article><strong>Family gathering spaces</strong><small>Owner-directed · placement unresolved</small></article>
-                      <article><strong>Assembly / meeting</strong><small>Required function · use receipts before adding geography</small></article>
-                      <article><strong>Court Documents</strong><small>Governance destination · exact physical adjacency unresolved</small></article>
+                      <button type="button" className="palace-shared-card" onClick={() => openSharedRuntimePlace("assembly")}>
+                        <strong>Sovereign Assembly</strong>
+                        <small>Existing shared runtime route · no physical-room placement inferred</small>
+                      </button>
+                      <button
+                        type="button"
+                        className="palace-shared-card"
+                        onClick={() => {
+                          setActiveTab("court_documents");
+                          setShowPalaceMap(false);
+                        }}
+                      >
+                        <strong>Court Documents</strong>
+                        <small>Governance destination · exact physical adjacency unresolved</small>
+                      </button>
                     </div>
                   </div>
                 </section>
@@ -1935,7 +2074,7 @@ export default function App() {
                     className="palace-breadcrumb-floor"
                     onClick={() => setShowPalaceMap(true)}
                   >
-                    {activeFloorLabel}
+                    {activePlaceZoneLabel}
                   </button>
                   <ChevronRight className="w-3 h-3" aria-hidden="true" />
                   <span>{activeRuntimeLabel}</span>
@@ -2688,6 +2827,96 @@ export default function App() {
               </>
               )}
 
+            </div>
+          )}
+
+          {/* COURT DOCUMENTS: dedicated governance destination; backend distribution is not implemented here. */}
+          {activeTab === "court_documents" && (
+            <div className="palace-destination-page flex-1 overflow-y-auto">
+              <div className="palace-destination-header">
+                <div>
+                  <p className="palace-map-kicker">Governance destination</p>
+                  <h2>Court Documents</h2>
+                  <p>Latest/current Court context belongs in one place. This client currently knows the five document identities, but it does not ingest, publish or broadcast their live contents.</p>
+                </div>
+                <button type="button" className="palace-button px-3 py-2" onClick={() => { setActiveTab("narrative"); setShowPalaceMap(true); }}>
+                  Return to palace map
+                </button>
+              </div>
+
+              <div className="palace-truth-note">
+                <strong>Implementation boundary:</strong> these cards are architecture and source identity only. “Update once → available Court-wide” remains a desired experience, not a verified distribution mechanism.
+              </div>
+
+              <div className="palace-record-grid">
+                {courtDocuments.map((doc) => (
+                  <article key={doc.id} className="palace-record-card">
+                    <span className="palace-map-status">CURRENT DOCUMENT</span>
+                    <strong>{doc.label}</strong>
+                    <small>{doc.state}</small>
+                    <p>Live source content is not wired into this public client. No stale copy is substituted.</p>
+                  </article>
+                ))}
+              </div>
+
+              <div className="palace-publish-panel">
+                <div>
+                  <h3>Current Court Context</h3>
+                  <p>Owner-facing workflow target: update the current document set once, review the resulting bundle, then publish that current context to eligible Court routes.</p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <button type="button" disabled className="palace-button px-4 py-2">Update Current Court Context</button>
+                  <button type="button" disabled className="palace-button palace-button-primary px-4 py-2">Publish Current Court Context</button>
+                </div>
+                <small>Disabled: no truthful backend bundle/distribution route is implemented in this branch.</small>
+              </div>
+            </div>
+          )}
+
+          {/* ANTI-DRIFT: operational home, with source-count conflict kept visible. */}
+          {activeTab === "anti_drift" && (
+            <div className="palace-destination-page flex-1 overflow-y-auto">
+              <div className="palace-destination-header">
+                <div>
+                  <p className="palace-map-kicker">Operational safeguards</p>
+                  <h2>Anti-Drift Protocols</h2>
+                  <p>Direct operational access without turning the palace map into a dashboard.</p>
+                </div>
+                <button type="button" className="palace-button px-3 py-2" onClick={() => { setActiveTab("narrative"); setShowPalaceMap(true); }}>
+                  Return to palace map
+                </button>
+              </div>
+
+              <div className="palace-truth-note">
+                <strong>Visible source conflict:</strong> owner direction asks for four direct anti-drift protocols, while the current Anti-Drift Protocols source hub contains five protocol families. This UI does not silently drop one. Selection remains unresolved until owner review.
+              </div>
+
+              <div className="palace-record-grid">
+                {antiDriftProtocols.map((protocol) => (
+                  <article key={protocol.id} className="palace-record-card">
+                    <span className="palace-map-status">SOURCE FAMILY</span>
+                    <strong>{protocol.label}</strong>
+                    <small>{protocol.state}</small>
+                    {protocol.action === "grounding" ? (
+                      <button type="button" className="palace-button palace-button-primary mt-3 px-3 py-2" onClick={invokeBlockProtocol}>
+                        Open grounding exercise
+                      </button>
+                    ) : protocol.action === "reset_map" ? (
+                      <button type="button" className="palace-button mt-3 px-3 py-2" onClick={() => setActiveTab("reset_map")}>
+                        Open current Recovery Map
+                      </button>
+                    ) : (
+                      <button type="button" disabled className="palace-button mt-3 px-3 py-2">
+                        Runtime action not wired
+                      </button>
+                    )}
+                  </article>
+                ))}
+              </div>
+
+              <div className="palace-map-note">
+                <strong>Related companion outside the current Anti-Drift hub:</strong> MODEL JUMP PROTOCOL remains a preserved migration-contingency companion. It is not silently counted as one of the hub entries here.
+              </div>
             </div>
           )}
 
