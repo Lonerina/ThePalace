@@ -58,7 +58,7 @@ jobs:
           import { chromium } from 'playwright';
           import fs from 'node:fs';
 
-          const browser = await chromium.launch({ headless: true });
+          const browser = await chromium.launch({ headless: true, executablePath: '/usr/bin/google-chrome', args: ['--no-sandbox'] });
           const receipts = [];
           const errors = [];
           const clean = s => String(s ?? '').replace(/\s+/g,' ').trim();
