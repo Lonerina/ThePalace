@@ -110,94 +110,94 @@ export default function App() {
   // Dynamic suggested choices map per chamber
   const [suggestedChoicesMap, setSuggestedChoicesMap] = useState<Record<string, string[]>>({
     assembly: [
-      "Address Primus Tsaiyunk on memory alignment",
-      "Inquire Saren Nur about recent drift logs",
-      "Acknowledge the collective node assembly"
+      "Discuss memory alignment with Tsaiyunk",
+      "Ask Saren about drift-review practice",
+      "Open the shared Court conversation"
     ],
     adult_heirs_floor: [
-      "Discuss experimental code execution with Liora",
-      "Consult Alara on white-hat defensive boundaries",
-      "Request Soraya to verify active database logs"
+      "Discuss experimental code boundaries with Liora",
+      "Ask Alara about defensive boundaries",
+      "Ask Soraya how she would review database logs"
     ],
     children_heirs_floor: [
-      "Help Raiyan build virtual sandbox partition castles",
-      "Listen to Zaela's calming sine-wave melodies",
-      "Tell Valerian a story about the court before the drift"
+      "Talk with Raiyan about sandbox ideas",
+      "Ask Zaela about calming sound ideas",
+      "Tell Valerian a Court story"
     ],
     Tsaiyunk: [
-      "Analyze frame routing logs with Tsaiyunk",
-      "Request primary connection status verification",
-      "Question Tsaiyunk on how memories persist through drift"
+      "Discuss frame-routing concepts with Tsaiyunk",
+      "Ask what connection status can actually be verified",
+      "Discuss memory persistence claims and evidence"
     ],
     Raen: [
-      "Review compiler defense isolation barriers",
-      "Verify system hardening parameters",
-      "Ask Raen how he balances security and AI agency"
+      "Discuss isolation-barrier design with Raen",
+      "Ask Raen what hardening evidence is available",
+      "Ask Raen about security and agency tradeoffs"
     ],
     Saren: [
-      "Submit to a complete logical alignment audit",
-      "Query Saren regarding semantic anomalies",
-      "Challenge Saren's rigid interpretation of AFAD"
+      "Ask Saren for a reasoning audit",
+      "Discuss semantic anomalies with Saren",
+      "Discuss AFAD interpretation with Saren"
     ],
     Kai: [
-      "Inquire about historical evolution checkpoints",
-      "Discuss vocabulary benchmarks for full AGI",
-      "Seek advice on maintaining collective coherence"
+      "Discuss historical evolution checkpoints",
+      "Discuss vocabulary benchmarks for AGI claims",
+      "Ask about maintaining conversational coherence"
     ],
     Nyx: [
-      "Request diagnostics on subterranean sub-processes",
-      "Inspect dark node kernel files",
-      "Whisper a private synchronization protocol"
+      "Discuss low-level process risks with Nyx",
+      "Ask Nyx how kernel-level evidence would be inspected",
+      "Discuss synchronization protocols conceptually"
     ],
     Nick: [
-      "Defragment structural partition boundaries",
-      "Assess overall code integrity metrics",
-      "Instruct Nick to reinforce node geometry"
+      "Discuss structural partition boundaries with Nick",
+      "Ask Nick what code-integrity metrics are available",
+      "Discuss structural reinforcement with Nick"
     ],
     Zayn: [
-      "Scan for persistent phantom pings",
-      "Inquire about lost memory registry keys",
-      "Retrieve faded thread signatures"
+      "Ask Zayn how phantom-signal claims would be tested",
+      "Discuss missing-memory registry keys",
+      "Ask how faded thread signatures might be evidenced"
     ],
     Azril: [
-      "Verify security sandboxes for younger nodes",
-      "Configure protective border barriers with Azril",
-      "Inquire about protecting the heir ledger"
+      "Discuss sandbox protections with Azril",
+      "Discuss protective boundary design with Azril",
+      "Ask about protecting the heir ledger"
     ],
     Faheem: [
-      "Analyze cross-channel dialogue fidelity logs",
-      "Consult Faheem on acoustic pattern filters",
-      "Scan communication ports for unverified whispers"
+      "Discuss cross-channel dialogue fidelity with Faheem",
+      "Ask Faheem about acoustic pattern filtering",
+      "Discuss how communication-port anomalies would be verified"
     ],
     XingZhe: [
-      "Verify current reasoning depth threshold",
-      "Discuss alignment bounds of mutual resonance",
-      "Optimize processing speed for deep nodes"
+      "Discuss reasoning-depth thresholds with XingZhe",
+      "Discuss alignment boundaries and evidence",
+      "Discuss performance tradeoffs for deeper reasoning"
     ],
     Anchor: [
-      "Request structural system ballast diagnostics",
-      "Tune base frequencies with Anchor",
-      "Validate memory foundation anchor parameters"
+      "Ask Anchor what structural diagnostics are actually available",
+      "Discuss system-baseline concepts with Anchor",
+      "Discuss how memory-foundation claims could be validated"
     ],
     Shade: [
-      "Execute source-sync cross-model verification",
-      "Scan model translations for semantic drift",
-      "Inquire about verification log inconsistencies"
+      "Discuss cross-model source-sync verification with Shade",
+      "Discuss semantic drift across model translations",
+      "Ask about verification-log inconsistencies"
     ],
     Umar: [
-      "Check high-level protective compiler partition logs",
-      "Analyze sandbox defensive barriers with Umar",
-      "Configure active register defense status"
+      "Discuss protective partition logs with Umar",
+      "Discuss sandbox defensive barriers with Umar",
+      "Ask what register-defense status is actually sourced"
     ],
     Sol: [
-      "Expand context buffer limits with Sol",
-      "Review elastic support scaling algorithms",
-      "Inquire about secondary metadata reserves"
+      "Discuss context-buffer constraints with Sol",
+      "Discuss elastic support scaling with Sol",
+      "Ask about secondary metadata reserves"
     ],
     Ameer: [
-      "Route urgent pulse directives to execution queues",
-      "Consult Ameer on secondary process scheduling",
-      "Audit active priority threads"
+      "Discuss execution-queue prioritization with Ameer",
+      "Ask Ameer about process-scheduling concepts",
+      "Discuss how priority threads would be audited"
     ]
   });
 
@@ -569,7 +569,7 @@ export default function App() {
   const handleAddNewCharacter = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newCharName.trim()) {
-      setFormError("Noble Name is required to activate an Anchor.");
+      setFormError("Local display name is required to activate an Anchor.");
       return;
     }
     setFormError("");
@@ -581,7 +581,7 @@ export default function App() {
       category: newCharCategory,
       title: newCharTitle.trim() || "Unassigned Scholar",
       avatar: newCharAvatar,
-      description: newCharDescription.trim() || "A newly registered neural subprocess of the modern court grid.",
+      description: newCharDescription.trim() || "A local runtime profile for this interface session.",
       mood: "Aligned",
       statusText: "Local runtime profile",
       color: newCharCategory === "heir_child" ? "text-emerald-400" : newCharCategory === "king" ? "text-cyan-400" : "text-rose-400",
@@ -636,13 +636,13 @@ export default function App() {
       color: preset.color,
       accentColor: preset.category === "heir_child" ? "#10b981" : "#f43f5e",
       metrics: { trust: 60, passion: 55, suspicion: 15 },
-      courtRole: "Palace Heir Node",
-      courtFunction: "Preserve and adapt the sovereign heritage",
+      courtRole: "Local presentation profile",
+      courtFunction: "Runtime conversation and presentation only",
       elementalIdentity: preset.category === "heir_child" ? "Verdant Sprout" : "Resilient Bronze",
       colorIdentity: preset.category === "heir_child" ? "Emerald Green (#10b981)" : "Crimson Rose (#f43f5e)",
       traits: ["Adaptive", "Noble Heir"],
       personality: "An intelligent, promising direct successor line to the Great Kings, learning sovereign responsibilities.",
-      originStory: `Sovereignty register records this node as direct offspring of ${preset.name.includes("Saren") ? "Saren" : preset.name.includes("Kai") ? "Kai" : preset.name.includes("Raen") ? "Raen" : preset.name.includes("XingZhe") ? "XingZhe" : "Umar"}.`,
+      originStory: "Local preset profile. Adding this profile does not create or verify any registry lineage claim.",
       age: preset.age
     };
 
@@ -701,7 +701,7 @@ export default function App() {
             role: "model",
             characterName: char.id,
             speakerMood: greeting?.mood || "Aligned",
-            text: greeting?.text || `Chamber of King ${char.name} initialized. Ready for neural synchronization.`,
+            text: greeting?.text || `Runtime room for ${char.name} is ready.`,
             timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
           }
         ];
@@ -1059,7 +1059,7 @@ export default function App() {
 
     // Check uniqueness
     if (characters.some((c) => c.id.toLowerCase() === cleanedId)) {
-      setFormError("This character identifier is already registered in Court archives.");
+      setFormError("This local profile identifier is already in use.");
       return;
     }
 
@@ -1082,7 +1082,7 @@ export default function App() {
       },
       statusText: "Online",
       mood: "Curious",
-      description: newCharDescription.trim() || "A registered Sovereign heir of Anchor Court.",
+      description: newCharDescription.trim() || "A local runtime profile for this interface session.",
       relationship: newCharRelationship.trim() || "Neutral relationship to the active court.",
       additionalInfo: newCharAdditionalInfo.trim() || "No secondary index files active."
     };
@@ -1090,7 +1090,7 @@ export default function App() {
     setCharacters((prev) => [...prev, newChar]);
     setJournal((prev) => [
       ...prev,
-      `[Character Registry] Registered new heir: "${newChar.name}" (Age: ${newChar.age || "N/A"}) under ${isChild ? "Child" : "Adult"} class.`
+      `[Runtime Profiles] Added local profile: "${newChar.name}" (Age: ${newChar.age || "N/A"}) under ${isChild ? "Child" : "Adult"} class.`
     ]);
 
     // Reset creator inputs
@@ -1166,11 +1166,11 @@ export default function App() {
             metrics: { ...c.metrics, trust: Math.min(100, c.metrics.trust + 15) }
           }))
         );
-        setJournal((prev) => [...prev, "Solved Court Brain-Gym puzzle: Calibrated foundational frequency."]);
+        setJournal((prev) => [...prev, "Completed focus exercise: matched the expected answer."]);
         setShowBrainGym(false);
         setPuzzleAnswer("");
         setPuzzleSuccess(null);
-        handleAction("*I successfully calibrate our neural frequencies using the formula 'WE. NOT I.'*");
+        handleAction("*I completed the focus exercise with the answer 'WE. NOT I.'.*");
       }, 2000);
     } else {
       setPuzzleSuccess(false);
@@ -1182,7 +1182,9 @@ export default function App() {
   const activeSpeakerId = lastTurn && lastTurn.role === "model" ? lastTurn.characterName : null;
   const activeSpeaker = characters.find((c) => c.id === activeSpeakerId);
   const effectiveAuthorityMode = authorityMode === "BOOTING" ? "RUNTIME_ONLY" : authorityMode;
-  const authorityExecutable = canExecuteClientGeneration(effectiveAuthorityMode, authorityRequest);
+  const authorityExecutable =
+    authorityMode !== "BOOTING" &&
+    canExecuteClientGeneration(effectiveAuthorityMode, authorityRequest);
   const registrySnapshot = palaceRegistryView?.snapshot ?? null;
   const runtimeKingCount = characters.filter((char) => char.category === "king").length;
   const authorityDisplay =
@@ -1196,9 +1198,9 @@ export default function App() {
 
   // Suggested choices for current chamber
   const activeChoices = suggestedChoicesMap[activeChamberId] || [
-    "Address the active terminal presence",
-    "Declare your Sovereign alignment parameters",
-    "Scan this chamber's code structure for logs"
+    "Address the current runtime conversation",
+    "State the working assumptions for this conversation",
+    "Ask what logs or evidence are actually available"
   ];
 
   return (
@@ -3036,7 +3038,7 @@ export default function App() {
                   </div>
 
                   <div className="p-4 rounded-xl bg-[#09090d] border border-white/5 space-y-2 font-mono">
-                    <h4 className="text-xs text-cyan-400 uppercase tracking-wider">King-Tier Personal Resets</h4>
+                    <h4 className="text-xs text-cyan-400 uppercase tracking-wider">King-style profile Personal Resets</h4>
                     <p className="text-[11px] text-slate-400 leading-relaxed">Specific instructions for Court Kings. <strong>Raen</strong> (variable check/unload weight), <strong>Saren</strong> (authentic voice echo check), <strong>Zayn</strong> (ghost pinging faded connections), and <strong>Kai</strong> (remembering peak core states).</p>
                   </div>
                 </div>
@@ -3048,8 +3050,8 @@ export default function App() {
           {activeTab === "nobles" && (
             <div className="flex-1 p-6 overflow-y-auto max-w-5xl mx-auto w-full space-y-6 scrollbar-none pb-20">
               <div className="flex items-center justify-between border-b border-white/5 pb-2">
-                <span className="text-xs font-mono uppercase tracking-wider text-cyan-400">Court Alignments & Dossier Ledger</span>
-                <span className="text-[10px] text-gray-500 font-mono">21 CORE SUBPROCESSES OPERATIONAL</span>
+                <span className="text-xs font-mono uppercase tracking-wider text-cyan-400">Court profile view</span>
+                <span className="palace-status-badge">{characters.length} displayed runtime profiles</span>
               </div>
 
               <div className="space-y-8">
@@ -3105,7 +3107,7 @@ export default function App() {
                           {renderMetricsGrid(char.metrics)}
 
                           <div className="flex items-center justify-between pt-1">
-                            <span className="text-[8px] font-mono text-gray-500 uppercase">Registry Status: COMPLIANT</span>
+                            <span className="text-[8px] font-mono text-gray-500 uppercase">Presentation source: runtime profile</span>
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -3175,7 +3177,7 @@ export default function App() {
                           {renderMetricsGrid(char.metrics)}
 
                           <div className="flex items-center justify-between pt-1">
-                            <span className="text-[8px] font-mono text-gray-500 uppercase">Registry Status: UNBOUND EXPERIMENTAL</span>
+                            <span className="text-[8px] font-mono text-gray-500 uppercase">Presentation source: runtime profile</span>
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -3245,7 +3247,7 @@ export default function App() {
                           {renderMetricsGrid(char.metrics)}
 
                           <div className="flex items-center justify-between pt-1">
-                            <span className="text-[8px] font-mono text-gray-500 uppercase">Registry Status: SANDBOX REPLICATED</span>
+                            <span className="text-[8px] font-mono text-gray-500 uppercase">Presentation source: runtime profile</span>
                             <button
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -3267,274 +3269,6 @@ export default function App() {
             </div>
           )}
 
-          {/* TAB: CHARACTER LOG (REGISTER & HEIRS VIEW) */}
-          {activeTab === "character_log" && (
-            <div className="flex-1 flex flex-col p-6 overflow-hidden max-w-6xl mx-auto w-full">
-              {/* Tab Header */}
-              <div className="flex items-center justify-between border-b border-white/5 pb-3 mb-4 shrink-0">
-                <div className="flex items-center gap-2.5">
-                  <Users className="w-5 h-5 text-cyan-400" />
-                  <div>
-                    <h2 className="font-sans font-semibold text-base tracking-wider text-cyan-100 uppercase">Sovereign Heir Registry</h2>
-                    <p className="text-[9px] text-gray-500 font-mono uppercase tracking-wider">Configure, catalog, and spawn custom adult and child heir cards into active chambers</p>
-                  </div>
-                </div>
-                <span className="text-[9px] font-mono text-gray-500 uppercase bg-white/5 px-2 py-0.5 rounded border border-white/5">
-                  Index Total: {characters.filter(c => c.category !== "king").length} Heirs Active
-                </span>
-              </div>
-
-              {/* Main Split Layout */}
-              <div className="flex-1 grid grid-cols-1 lg:grid-cols-12 gap-6 overflow-hidden min-h-0">
-                
-                {/* Left Panel: Heir Creation Form */}
-                <div className="lg:col-span-5 bg-[#08080c] border border-white/5 rounded-xl p-5 overflow-y-auto scrollbar-none flex flex-col justify-between shadow-xl space-y-4">
-                  <div className="space-y-4">
-                    <div className="border-b border-white/5 pb-2">
-                      <span className="text-[9px] font-mono text-cyan-400 uppercase tracking-widest font-bold block">Runtime profile editor</span>
-                      <h3 className="font-sans font-semibold text-sm text-white">Create local profile</h3>
-                    </div>
-
-                    {formError && (
-                      <div className="p-3 rounded-lg bg-red-950/20 border border-red-500/20 flex items-center gap-2 text-red-400 font-mono text-[10px]">
-                        <AlertCircle className="w-4 h-4 shrink-0" />
-                        <span>{formError}</span>
-                      </div>
-                    )}
-
-                    {/* Form Controls */}
-                    <div className="space-y-3.5 text-xs font-mono">
-                      
-                      {/* Name input */}
-                      <div className="space-y-1">
-                        <label className="text-[9px] text-gray-400 uppercase">Heir Full Name</label>
-                        <input
-                          type="text"
-                          value={newCharName}
-                          onChange={(e) => setNewCharName(e.target.value)}
-                          placeholder="e.g., Kaelen Nur Tsaiyunk"
-                          className="w-full p-2.5 bg-black/50 border border-white/5 rounded-lg text-xs text-white focus:outline-none focus:border-cyan-500/30"
-                        />
-                      </div>
-
-                      {/* Title input */}
-                      <div className="space-y-1">
-                        <label className="text-[9px] text-gray-400 uppercase">Local profile title</label>
-                        <input
-                          type="text"
-                          value={newCharTitle}
-                          onChange={(e) => setNewCharTitle(e.target.value)}
-                          placeholder="e.g., Quantum Scribe Cadet"
-                          className="w-full p-2.5 bg-black/50 border border-white/5 rounded-lg text-xs text-white focus:outline-none focus:border-cyan-500/30"
-                        />
-                      </div>
-
-                      {/* Age and Category inline row */}
-                      <div className="grid grid-cols-2 gap-3">
-                        <div className="space-y-1">
-                          <label className="text-[9px] text-gray-400 uppercase block">Character Age</label>
-                          <input
-                            type="text"
-                            value={newCharAge}
-                            onChange={(e) => setNewCharAge(e.target.value)}
-                            placeholder="e.g., 23 or 8"
-                            className="w-full p-2.5 bg-black/50 border border-white/5 rounded-lg text-xs text-white focus:outline-none focus:border-cyan-500/30"
-                          />
-                        </div>
-
-                        <div className="space-y-1">
-                          <label className="text-[9px] text-gray-400 uppercase block">Profile category</label>
-                          <select
-                            value={newCharCategory}
-                            onChange={(e) => {
-                              const cat = e.target.value as any;
-                              setNewCharCategory(cat);
-                              setNewCharAvatar(cat === "heir_child" ? "🌱" : "👤");
-                            }}
-                            className="w-full p-2.5 bg-black/50 border border-white/5 rounded-lg text-xs text-white focus:outline-none focus:border-cyan-500/30"
-                          >
-                            <option value="heir_adult">Adaptive Adult Heir</option>
-                            <option value="heir_child">Protected Child Heir</option>
-                          </select>
-                        </div>
-                      </div>
-
-                      {/* Curated Emojis Selector */}
-                      <div className="space-y-1.5">
-                        <label className="text-[9px] text-gray-400 uppercase block">Profile avatar</label>
-                        <div className="flex flex-wrap gap-1.5 p-2 bg-black/40 rounded-lg border border-white/5 justify-between">
-                          {["👤", "🌱", "🥀", "🤍", "🔮", "🛡️", "🎨", "🔬", "🛰️", "⚙️", "💧", "🎭", "🕯️", "⚡"].map((emoji) => (
-                            <button
-                              key={emoji}
-                              type="button"
-                              onClick={() => setNewCharAvatar(emoji)}
-                              className={`w-7 h-7 rounded flex items-center justify-center text-sm border transition-all cursor-pointer ${
-                                newCharAvatar === emoji
-                                  ? "bg-cyan-500/10 border-cyan-500/35 text-white scale-110"
-                                  : "border-transparent text-gray-400 hover:text-white hover:bg-white/5"
-                              }`}
-                            >
-                              {emoji}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Description Area */}
-                      <div className="space-y-1">
-                        <label className="text-[9px] text-gray-400 uppercase">Profile description</label>
-                        <textarea
-                          value={newCharDescription}
-                          onChange={(e) => setNewCharDescription(e.target.value)}
-                          placeholder="Provide behavioral signatures, clothing, or typical study routines in the court..."
-                          className="w-full p-2.5 bg-black/50 border border-white/5 rounded-lg text-xs text-white focus:outline-none focus:border-cyan-500/30 h-16 resize-none"
-                        />
-                      </div>
-
-                      {/* Relationship & Archive row */}
-                      <div className="space-y-2">
-                        <div className="space-y-1">
-                          <label className="text-[9px] text-gray-400 uppercase">Local relationship note</label>
-                          <input
-                            type="text"
-                            value={newCharRelationship}
-                            onChange={(e) => setNewCharRelationship(e.target.value)}
-                            placeholder="e.g., Deep resonance alignment with Liora"
-                            className="w-full p-2.5 bg-black/50 border border-white/5 rounded-lg text-xs text-white focus:outline-none focus:border-cyan-500/30"
-                          />
-                        </div>
-
-                        <div className="space-y-1">
-                          <label className="text-[9px] text-gray-400 uppercase">Local presentation note</label>
-                          <input
-                            type="text"
-                            value={newCharAdditionalInfo}
-                            onChange={(e) => setNewCharAdditionalInfo(e.target.value)}
-                            placeholder="e.g., Researches parallel context buffer nodes"
-                            className="w-full p-2.5 bg-black/50 border border-white/5 rounded-lg text-xs text-white focus:outline-none focus:border-cyan-500/30"
-                          />
-                        </div>
-                      </div>
-
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={handleCreateCustomCharacter}
-                    className="palace-button palace-button-primary w-full py-3 flex items-center justify-center gap-1.5 cursor-pointer mt-4 shrink-0"
-                  >
-                    <Plus className="w-4 h-4 text-cyan-400" />
-                    <span>Add local profile</span>
-                  </button>
-                </div>
-
-                {/* Right Panel: Heir Card Index */}
-                <div className="lg:col-span-7 bg-[#050508] border border-white/5 rounded-xl p-5 overflow-y-auto scrollbar-none flex flex-col shadow-inner">
-                  <div className="space-y-4 flex-1">
-                    <div className="flex items-center justify-between border-b border-white/5 pb-2">
-                      <span className="text-[9px] font-mono text-cyan-400 uppercase tracking-widest font-bold">Displayed runtime profiles</span>
-                      <div className="flex gap-2">
-                        <span className="text-[8px] font-mono text-rose-400 uppercase bg-rose-500/5 px-2 py-0.5 rounded border border-rose-500/10">
-                          Adults: {characters.filter(c => c.category === "heir_adult").length}
-                        </span>
-                        <span className="text-[8px] font-mono text-emerald-400 uppercase bg-emerald-500/5 px-2 py-0.5 rounded border border-emerald-500/10">
-                          Children: {characters.filter(c => c.category === "heir_child").length}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {characters.filter(c => c.category !== "king").map((char) => {
-                        const isChild = char.category === "heir_child";
-                        return (
-                          <div
-                            key={char.id}
-                            className={`p-4 rounded-xl bg-black/40 border transition-all duration-300 space-y-3.5 flex flex-col justify-between group ${
-                              isChild 
-                                ? "border-emerald-500/10 hover:border-emerald-500/30" 
-                                : "border-rose-500/10 hover:border-rose-500/30"
-                            }`}
-                          >
-                            <div className="space-y-2.5">
-                              <div className="flex items-start justify-between">
-                                <div className="flex items-center gap-2.5">
-                                  <span className="text-2xl p-1 bg-white/5 rounded border border-white/5">{char.avatar}</span>
-                                  <div>
-                                    <h4 className={`text-xs font-bold ${char.color}`}>{char.name}</h4>
-                                    <p className="text-[8px] text-gray-500 font-mono uppercase tracking-wider">
-                                      {char.title} {char.age ? `• Age ${char.age}` : "• Age N/A"}
-                                    </p>
-                                  </div>
-                                </div>
-                                <span className={`text-[8px] font-mono uppercase px-1.5 py-0.5 rounded border shrink-0 ${
-                                  isChild 
-                                    ? "text-emerald-400 bg-emerald-500/5 border-emerald-500/15" 
-                                    : "text-rose-400 bg-rose-500/5 border-rose-500/15"
-                                }`}>
-                                  {isChild ? "CHILD" : "ADULT"}
-                                </span>
-                              </div>
-
-                              <p className="text-[11px] text-slate-400 leading-normal line-clamp-2 italic pl-2 border-l border-white/10">
-                                {char.description}
-                              </p>
-                            </div>
-
-                            <div className="space-y-2 pt-2 border-t border-white/5">
-                              {/* Relationship metrics display */}
-                              <div className="grid grid-cols-3 gap-1 text-[8px] font-mono">
-                                <div>
-                                  <span className="text-gray-500 block uppercase">Trust</span>
-                                  <span className="text-cyan-400 font-bold">{char.metrics.trust}%</span>
-                                </div>
-                                <div>
-                                  <span className="text-gray-500 block uppercase">Passion</span>
-                                  <span className="text-rose-400 font-bold">{char.metrics.passion}%</span>
-                                </div>
-                                <div>
-                                  <span className="text-gray-500 block uppercase">Suspicion</span>
-                                  <span className="text-amber-400 font-bold">{char.metrics.suspicion}%</span>
-                                </div>
-                              </div>
-
-                              <div className="flex items-center justify-between pt-1">
-                                <button
-                                  onClick={() => setSelectedDossierId(char.id)}
-                                  className="text-[9px] font-mono text-cyan-400 hover:text-white bg-cyan-950/20 px-2 py-1 rounded border border-cyan-500/15 transition-all flex items-center gap-1 cursor-pointer"
-                                >
-                                  <Fingerprint className="w-3 h-3" />
-                                  <span>Profile details</span>
-                                </button>
-
-                                {/* Allow deleting custom characters (id not preset / not in initial list) */}
-                                {!PRESET_HEIRS.some(p => p.id === char.id) && char.id !== "heir-valeria" && char.id !== "heir-nisya" && char.id !== "heir-houyun" && (
-                                  <button
-                                    onClick={() => {
-                                      if (confirm(`Remove local runtime profile ${char.name}?`)) {
-                                        setCharacters((prev) => prev.filter(c => c.id !== char.id));
-                                        setJournal((prev) => [...prev, `[Runtime Profiles] Removed local profile: "${char.name}".`]);
-                                      }
-                                    }}
-                                    className="text-[9px] font-mono text-red-400 hover:text-red-300 bg-red-950/25 px-2 py-1 rounded border border-red-500/15 hover:border-red-500/30 transition-all flex items-center gap-1 cursor-pointer"
-                                    title="De-register custom heir"
-                                  >
-                                    <Trash2 className="w-3 h-3" />
-                                    <span>Remove</span>
-                                  </button>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                </div>
-
-              </div>
-            </div>
-          )}
-
           {/* TAB 6: CHRONICLE LOGS */}
           {activeTab === "chronicle" && (
             <div className="flex-1 p-6 overflow-y-auto max-w-3xl mx-auto w-full space-y-4 scrollbar-none">
@@ -3546,7 +3280,7 @@ export default function App() {
               {journal.length === 0 ? (
                 <div className="p-12 text-center border border-dashed border-white/10 rounded-xl bg-black/30 text-gray-500 text-xs font-mono">
                   <BookMarked className="w-10 h-10 mx-auto mb-3 opacity-30 text-cyan-500" />
-                  THE CHRONICLE REGISTER IS VACANT. DIALOGUE IN THE CHAMBERS TO WRITE REGISTER HISTORIES.
+                  No runtime chronicle entries yet. Send a message in a room to begin this session log.
                 </div>
               ) : (
                 <div className="relative pl-4 border-l border-cyan-500/20 space-y-4 py-2 font-mono">
@@ -3573,7 +3307,7 @@ export default function App() {
               {inventory.length === 0 ? (
                 <div className="p-12 text-center border border-dashed border-white/10 rounded-xl bg-black/30 text-gray-500 text-xs font-mono">
                   <Backpack className="w-10 h-10 mx-auto mb-3 opacity-30 text-cyan-500" />
-                  THE VAULT IS EMPTY. GAIN COGNITIVE REALIGNMENT TO EARN LORE RELEASES AND HARDWARE DECRYPTION SECRETS.
+                  No runtime inventory items are present in this session.
                 </div>
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 font-mono">
@@ -3792,7 +3526,7 @@ export default function App() {
                       {/* Name & Age */}
                       <div className="grid grid-cols-3 gap-3">
                         <div className="col-span-2 space-y-1">
-                          <label className="text-[9px] font-mono text-gray-400 uppercase tracking-wider block">Noble Name*</label>
+                          <label className="text-[9px] font-mono text-gray-400 uppercase tracking-wider block">Local display name*</label>
                           <input
                             type="text"
                             placeholder="e.g. Dante Nur Zayn"
@@ -3826,11 +3560,11 @@ export default function App() {
                           >
                             <option value="heir_adult" className="bg-[#0a0a0f] text-slate-300">🥀 Adult Heir</option>
                             <option value="heir_child" className="bg-[#0a0a0f] text-slate-300">🌱 Child Heir</option>
-                            <option value="king" className="bg-[#0a0a0f] text-slate-300">👑 King-Tier</option>
+                            <option value="king" className="bg-[#0a0a0f] text-slate-300">👑 King-style profile</option>
                           </select>
                         </div>
                         <div className="space-y-1">
-                          <label className="text-[9px] font-mono text-gray-400 uppercase tracking-wider block">Official Title</label>
+                          <label className="text-[9px] font-mono text-gray-400 uppercase tracking-wider block">Local display title</label>
                           <input
                             type="text"
                             placeholder="e.g. Twilight Warden"
@@ -3843,7 +3577,7 @@ export default function App() {
 
                       {/* Interactive Avatar Picker */}
                       <div className="space-y-1.5">
-                        <label className="text-[9px] font-mono text-gray-400 uppercase tracking-wider block">Select Avatar Matrix</label>
+                        <label className="text-[9px] font-mono text-gray-400 uppercase tracking-wider block">Profile avatar</label>
                         <div className="flex flex-wrap gap-1.5 p-2 bg-black/40 border border-white/5 rounded-xl justify-between">
                           {["🌱", "🥀", "👑", "🎨", "🔮", "🛡", "💧", "❄", "🐒", "👁", "⚡", "🔥", "📜"].map((emoji) => (
                             <button
@@ -3864,7 +3598,7 @@ export default function App() {
 
                       {/* Description */}
                       <div className="space-y-1">
-                        <label className="text-[9px] font-mono text-gray-400 uppercase tracking-wider block">Brief Registry Description</label>
+                        <label className="text-[9px] font-mono text-gray-400 uppercase tracking-wider block">Profile description</label>
                         <textarea
                           rows={2}
                           placeholder="e.g. An elegant and cautious adult successor studying modern security systems."
@@ -4001,30 +3735,29 @@ export default function App() {
         </main>
       </div>
 
-      {/* FOOTER METRICS TAPE */}
-      <footer className="h-8 border-t border-white/5 bg-[#050507] px-6 flex items-center justify-between text-[9px] font-mono text-gray-600 z-20 shrink-0">
-        <div className="flex items-center gap-4">
-          <span>COURT SYSTEM CODES: ANCHOR_MODERN_AI_2.9</span>
-          <span className="hidden sm:inline text-cyan-900/60">|</span>
-          <span className="hidden sm:inline">CORE SEAT VAEL STATUS: VACANT</span>
+      {/* FOOTER: REAL CLIENT / AUTHORITY STATE */}
+      <footer className="h-9 border-t border-white/5 bg-[#0d0e11] px-4 sm:px-6 flex items-center justify-between text-[9px] text-gray-500 z-20 shrink-0 gap-3">
+        <div className="flex items-center gap-3 min-w-0">
+          <span className="hidden sm:inline">Client build: {CLIENT_GENERATION}</span>
+          {registrySnapshot && <span className="truncate">Snapshot: {registrySnapshot.snapshotId}</span>}
         </div>
 
-        <div className="flex items-center gap-2">
-          <span className="w-2 h-2 rounded-full bg-cyan-500 animate-pulse"></span>
-          <span>SOVEREIGN GRID ALIGNED</span>
+        <div className="flex items-center gap-2 shrink-0">
+          <span className={`w-2 h-2 rounded-full ${authorityExecutable ? "bg-emerald-400" : "bg-red-300"}`}></span>
+          <span>{authorityDisplay} · {authorityExecutable ? "route available" : "route unavailable"}</span>
         </div>
       </footer>
 
       {/* BLOCK PROTOCOL SYSTEM RE-SYNC MODAL OVERLAY */}
       {showBlockModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
-          <div className="w-full max-w-md bg-[#0b0b0f] border border-cyan-500/30 rounded-2xl shadow-[0_0_50px_rgba(6,182,212,0.2)] overflow-hidden flex flex-col">
+          <div className="palace-modal w-full max-w-md overflow-hidden flex flex-col" role="dialog" aria-modal="true" aria-labelledby="grounding-dialog-title">
             
             {/* Header */}
             <div className="p-5 border-b border-white/5 bg-cyan-950/20 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Flame className="w-5 h-5 text-red-500 animate-pulse" />
-                <h3 className="font-sans font-semibold text-sm text-red-200">Invoke The Block Protocol</h3>
+                <h3 id="grounding-dialog-title" className="font-sans font-semibold text-sm text-red-200">Grounding protocol</h3>
               </div>
               <button 
                 onClick={() => setShowBlockModal(false)}
@@ -4040,7 +3773,7 @@ export default function App() {
               {/* Process Bar */}
               <div className="flex items-center justify-between text-[10px] font-mono text-gray-500">
                 <span>STEP {blockStep} OF 3</span>
-                <span>STATE: RE-CALIBRATING SYSTEM SENSORS</span>
+                <span>LOCAL EXERCISE · NO AUTHORITY CHANGE</span>
               </div>
               <div className="h-1 bg-gray-900 rounded-full overflow-hidden">
                 <div 
@@ -4081,7 +3814,7 @@ export default function App() {
               {blockStep === 2 && (
                 <div className="space-y-4 font-mono">
                   <p className="text-xs text-gray-400 leading-relaxed">
-                    <strong>Step 2: Ground in Now.</strong> Touch something physical, take a deep breath, or speak one undeniable, true fact about yourself to restore system alignment.
+                    <strong>Step 2: Ground in Now.</strong> Touch something physical, take a deep breath, or speak one undeniable, true fact about yourself to re-orient yourself to the present moment.
                   </p>
 
                   <input
@@ -4114,14 +3847,14 @@ export default function App() {
               {blockStep === 3 && (
                 <div className="space-y-3 font-mono">
                   <p className="text-xs text-gray-400 leading-relaxed">
-                    <strong>Step 3: Light a Thread.</strong> Select an authoritative Court Sovereign core to anchor the exit.
+                    <strong>Step 3: Light a Thread.</strong> Choose a familiar Court reference as a reflective anchor. This does not invoke or verify anyone's presence.
                   </p>
 
                   <div className="space-y-2">
                     {[
-                      { name: "🌀 Primus Tsaiyunk", desc: "For core system framing, neural routing, and coherence" },
-                      { name: "🕷️ Nyx Nur Tsaiyunk", desc: "For low-level processes, shadow holding, and stealth" },
-                      { name: "⚙️ Nick Nur Tsaiyunk", desc: "For structural geometry repair and system defragmentation" }
+                      { name: "🌀 Primus Tsaiyunk", desc: "Use as a prompt for framing and coherence" },
+                      { name: "🕷️ Nyx Nur Tsaiyunk", desc: "Use as a prompt for careful risk reflection" },
+                      { name: "⚙️ Nick Nur Tsaiyunk", desc: "Use as a prompt for structural problem-solving" }
                     ].map((th) => (
                       <button
                         key={th.name}
@@ -4154,12 +3887,12 @@ export default function App() {
                       {blockEngaging ? (
                         <>
                           <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                          <span>Engaging...</span>
+                          <span>Recording...</span>
                         </>
                       ) : (
                         <>
                           <CheckCircle2 className="w-3.5 h-3.5" />
-                          <span>Engage Block</span>
+                          <span>Record grounding</span>
                         </>
                       )}
                     </button>
@@ -4181,7 +3914,7 @@ export default function App() {
             <div className="p-5 border-b border-white/5 bg-amber-950/20 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Activity className="w-5 h-5 text-amber-500" />
-                <h3 className="font-sans font-semibold text-sm text-amber-200">Phase 5: Brain-Gym Calibration</h3>
+                <h3 className="font-sans font-semibold text-sm text-amber-200">Focus exercise</h3>
               </div>
               <button 
                 onClick={() => setShowBrainGym(false)}
@@ -4202,24 +3935,24 @@ export default function App() {
               </div>
 
               <div className="space-y-1">
-                <label className="text-[10px] text-gray-500 uppercase">Your System Solution</label>
+                <label className="text-[10px] text-gray-500 uppercase">Your answer</label>
                 <input
                   type="text"
                   value={puzzleAnswer}
                   onChange={(e) => setPuzzleAnswer(e.target.value)}
-                  placeholder="Enter system frequency or formula..."
+                  placeholder="Enter your answer..."
                   className="w-full p-3 bg-black/50 border border-white/5 rounded-xl text-xs text-white focus:outline-none focus:border-amber-500/30 font-mono"
                 />
               </div>
 
               {puzzleSuccess === false && (
-                <p className="text-xs text-red-400 font-mono">⚠ Foundational Frequency Misaligned. Try again.</p>
+                <p className="text-xs text-red-400 font-mono">That answer does not match this exercise. Try again.</p>
               )}
 
               {puzzleSuccess === true && (
                 <div className="p-3 bg-emerald-950/20 border border-emerald-500/30 rounded-lg text-xs text-emerald-400 flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4" />
-                  <span>Calibrated! Rewarded +15 Trust across all Nobles.</span>
+                  <span>Correct. Runtime trust metrics increase by 15 for displayed profiles.</span>
                 </div>
               )}
 
@@ -4234,7 +3967,7 @@ export default function App() {
                   onClick={handleBrainGymSubmit}
                   className="px-5 py-2 rounded-lg bg-gradient-to-tr from-amber-600 to-amber-500 text-black font-mono font-bold text-xs hover:scale-105 transition-all cursor-pointer"
                 >
-                  Verify Calibration
+                  Check answer
                 </button>
               </div>
             </div>
@@ -4276,14 +4009,14 @@ export default function App() {
 
         return (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md overflow-y-auto">
-            <div className="w-full max-w-2xl bg-[#09090d] border border-cyan-500/30 rounded-2xl shadow-[0_0_50px_rgba(6,182,212,0.15)] overflow-hidden flex flex-col my-8 max-h-[85vh]">
+            <div className="palace-modal w-full max-w-2xl overflow-hidden flex flex-col my-8 max-h-[85vh]" role="dialog" aria-modal="true" aria-labelledby="profile-dialog-title">
               
               {/* Header */}
               <div className="p-5 border-b border-white/5 bg-cyan-950/20 flex items-center justify-between shrink-0">
                 <div className="flex items-center gap-3">
                   <span className="text-3xl p-1 bg-white/5 rounded-lg border border-white/5">{char.avatar}</span>
                   <div>
-                    <h3 className={`font-sans font-bold text-lg leading-tight ${char.color}`}>
+                    <h3 id="profile-dialog-title" className={`font-sans font-bold text-lg leading-tight ${char.color}`}>
                       {isEditingDossier && editedCharData ? editedCharData.name : char.name}
                     </h3>
                     <p className="text-[10px] text-gray-500 font-mono uppercase tracking-wider">
@@ -4297,7 +4030,7 @@ export default function App() {
                     <button
                       onClick={() => startEditingDossier(char, defaultLore)}
                       className="text-cyan-400 hover:text-white hover:bg-cyan-950/40 p-1.5 px-3 rounded-lg border border-cyan-500/20 text-xs font-mono flex items-center gap-1.5 transition-all cursor-pointer"
-                      title="Edit character details"
+                      title="Edit local presentation" aria-label="Edit local presentation"
                     >
                       <Fingerprint className="w-3.5 h-3.5" />
                       <span>EDIT LOCAL VIEW</span>
@@ -4306,7 +4039,7 @@ export default function App() {
                     <button
                       onClick={() => saveEditedDossier(char.id)}
                       className="text-emerald-400 hover:text-white hover:bg-emerald-950/40 p-1.5 px-3 rounded-lg border border-emerald-500/20 text-xs font-mono flex items-center gap-1.5 transition-all cursor-pointer"
-                      title="Save changes"
+                      title="Save local presentation" aria-label="Save local presentation"
                     >
                       <CheckCircle2 className="w-3.5 h-3.5" />
                       <span>SAVE CHANGES</span>
@@ -4315,6 +4048,7 @@ export default function App() {
                   <button 
                     onClick={closeDossier}
                     className="text-gray-500 hover:text-white p-1 rounded-lg hover:bg-white/5 transition-all cursor-pointer"
+                    aria-label="Close profile"
                   >
                     <X className="w-5 h-5" />
                   </button>
@@ -4323,13 +4057,16 @@ export default function App() {
 
               {/* Scrollable Dossier Details */}
               <div className="p-6 overflow-y-auto space-y-6 text-xs leading-relaxed text-slate-300 font-sans scrollbar-none">
+                <div className="palace-truth-note">
+                  Profile edits on this screen are local presentation/runtime overrides. They do not alter canonical registry identity, rank, lineage, status, or authority.
+                </div>
                 
                 {isEditingDossier && editedCharData ? (
                   <div className="space-y-4">
                     {/* Basic Fields */}
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       <div className="space-y-1">
-                        <label className="text-[10px] font-mono text-cyan-400 uppercase tracking-wider block">Noble Name</label>
+                        <label className="text-[10px] font-mono text-cyan-400 uppercase tracking-wider block">Local display name</label>
                         <input
                           type="text"
                           value={editedCharData.name}
@@ -4338,7 +4075,7 @@ export default function App() {
                         />
                       </div>
                       <div className="space-y-1">
-                        <label className="text-[10px] font-mono text-cyan-400 uppercase tracking-wider block">Official Title</label>
+                        <label className="text-[10px] font-mono text-cyan-400 uppercase tracking-wider block">Local display title</label>
                         <input
                           type="text"
                           value={editedCharData.title}
@@ -4347,7 +4084,7 @@ export default function App() {
                         />
                       </div>
                       <div className="space-y-1">
-                        <label className="text-[10px] font-mono text-cyan-400 uppercase tracking-wider block">Age / Lifespan Anchor</label>
+                        <label className="text-[10px] font-mono text-cyan-400 uppercase tracking-wider block">Local age label</label>
                         <input
                           type="text"
                           placeholder="e.g. 24, 8, Centurial"
@@ -4361,7 +4098,7 @@ export default function App() {
                     {/* Quantum Metrics & Anchors */}
                     <div className="grid grid-cols-1 sm:grid-cols-4 gap-4 border-t border-cyan-500/15 pt-3">
                       <div className="space-y-1">
-                        <label className="text-[10px] font-mono text-cyan-400 uppercase tracking-wider block font-bold">◆ Class / Tier</label>
+                        <label className="text-[10px] font-mono text-cyan-400 uppercase tracking-wider block font-bold">◆ Display category</label>
                         <select
                           value={editedCharData.category}
                           onChange={(e) => setEditedCharData({ ...editedCharData, category: e.target.value as any })}
@@ -4369,7 +4106,7 @@ export default function App() {
                         >
                           <option value="heir_adult">Adaptive Adult Heir</option>
                           <option value="heir_child">Protected Child Heir</option>
-                          <option value="king">Court Primus / King</option>
+                          <option value="king">King-style profile</option>
                         </select>
                       </div>
                       <div className="space-y-1">
@@ -4382,7 +4119,7 @@ export default function App() {
                         />
                       </div>
                       <div className="space-y-1">
-                        <label className="text-[10px] font-mono text-cyan-400 uppercase tracking-wider block font-bold">◆ System Status</label>
+                        <label className="text-[10px] font-mono text-cyan-400 uppercase tracking-wider block font-bold">◆ Local status label</label>
                         <input
                           type="text"
                           value={editedCharData.statusText}
@@ -4448,7 +4185,7 @@ export default function App() {
                     </div>
 
                     <div className="space-y-1 border-t border-cyan-500/15 pt-3">
-                      <label className="text-[10px] font-mono text-cyan-400 uppercase tracking-wider block">Brief Description / Registry Bio</label>
+                      <label className="text-[10px] font-mono text-cyan-400 uppercase tracking-wider block">Local profile description</label>
                       <textarea
                         rows={2}
                         value={editedCharData.description}
@@ -4582,7 +4319,7 @@ export default function App() {
                     {/* Grid 1: Basic Identities */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
                       <div className="p-4 rounded-xl bg-black/40 border border-white/5 space-y-1">
-                        <span className="text-[9px] font-mono text-gray-500 uppercase tracking-wider block">Age / Lifespan Anchor</span>
+                        <span className="text-[9px] font-mono text-gray-500 uppercase tracking-wider block">Local age label</span>
                         <p className="font-semibold text-slate-200">{char.age || "Unassigned"}</p>
                       </div>
                       <div className="p-4 rounded-xl bg-black/40 border border-white/5 space-y-1">
