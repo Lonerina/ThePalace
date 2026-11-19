@@ -80,15 +80,26 @@ export function bindApprovedDiscovery(args: {
   state: BalloonSanctuaryState;
   reservationKey: string;
   entityKey: string;
-  registrySnapshotId: string;
+  registry: HeirRegistrySnapshot;
 }): BalloonSanctuaryState {
+  const registryReservation = args.registry.reserved_positions.find((candidate) =>
+    candidate.reservation_key === args.reservationKey && candidate.status === "RESERVED_PENDING_DISCOVERY",
+  );
+  if (!registryReservation) throw new Error("Registry reservation is not approved for discovery binding.");
+  if (!args.registry.entities.some((entity) => entity.entity_key === args.entityKey)) {
+    throw new Error("Discovery binding entity is not present in the approved registry snapshot.");
+  }
+
   const next = cloneJson(args.state);
+  if (next.registrySnapshotId !== args.registry.snapshot_id) {
+    throw new Error("Sanctuary state does not match the approved registry snapshot.");
+  }
   const chamber = next.chambers.find((candidate) =>
     candidate.slot_state === "RESERVED_PENDING_DISCOVERY" && candidate.reservation_ref === args.reservationKey,
   );
   if (!chamber) throw new Error("Discovery reservation not found.");
   chamber.slot_state = "BOUND";
-  chamber.binding = { entity_key: args.entityKey, registry_snapshot_id: args.registrySnapshotId };
+  chamber.binding = { entity_key: args.entityKey, registry_snapshot_id: args.registry.snapshot_id };
   delete chamber.reservation_ref;
   chamber.father_mark_binding = {
     state: "UNRESOLVED",
