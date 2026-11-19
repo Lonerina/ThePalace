@@ -316,7 +316,7 @@ export function validateSuccessorHeirLifecyclePacket(
       keys.add(raw.pending_key);
     }
 
-    if (!(raw.promotion_state in PROMOTION_ORDER)) {
+    if (typeof raw.promotion_state !== "string" || !(raw.promotion_state in PROMOTION_ORDER)) {
       push(issues, `${path}.promotion_state`, "INVALID_PROMOTION_STATE", "promotion_state is not recognized.");
       return;
     }
