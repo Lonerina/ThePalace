@@ -1,0 +1,279 @@
+{
+  "candidate": "24227b682f5e90b4c888385ea8aed4ef9964caa9",
+  "receipts": [
+    {
+      "kx": "KX-02",
+      "viewport": "desktop_1440x900",
+      "pass": true,
+      "observed": {
+        "surfaceBox": {
+          "x": 286,
+          "y": 76,
+          "width": 1154,
+          "height": 788
+        },
+        "landingBox": {
+          "x": 311.59375,
+          "y": 303.46875,
+          "width": 1101.8125,
+          "height": 1440.671875
+        },
+        "circuitBox": {
+          "x": 326.984375,
+          "y": 2462.40625,
+          "width": 1071.03125,
+          "height": 79.96875
+        },
+        "surfaceMetrics": {
+          "clientWidth": 1153,
+          "scrollWidth": 1153,
+          "scrollLeft": 0,
+          "overflowX": "auto",
+          "width": "1154px",
+          "minWidth": "0px"
+        },
+        "landingMetrics": {
+          "clientWidth": 1100,
+          "scrollWidth": 1100,
+          "scrollLeft": 0,
+          "overflowX": "visible",
+          "width": "1101.81px",
+          "minWidth": "0px"
+        },
+        "circuitMetrics": {
+          "clientWidth": 1071,
+          "scrollWidth": 1760,
+          "scrollLeft": 0,
+          "overflowX": "auto",
+          "width": "1071.03px",
+          "minWidth": "0px"
+        },
+        "landingInside": true,
+        "circuitInside": true,
+        "circuitSelfScroll": true,
+        "samudraContain": {
+          "elementBox": {
+            "x": 868.09375,
+            "y": 395.8125,
+            "width": 524.3125,
+            "height": 104.671875
+          },
+          "containerBox": {
+            "x": 286,
+            "y": 76,
+            "width": 1154,
+            "height": 788
+          },
+          "inViewport": true,
+          "inContainer": true
+        },
+        "raenContain": {
+          "elementBox": {
+            "x": 868.09375,
+            "y": 511.671875,
+            "width": 524.3125,
+            "height": 104.671875
+          },
+          "containerBox": {
+            "x": 286,
+            "y": 76,
+            "width": 1154,
+            "height": 788
+          },
+          "inViewport": true,
+          "inContainer": true
+        },
+        "clipped": false,
+        "noWorkspaceShift": true,
+        "body": {
+          "bodyScrollWidth": 1440,
+          "bodyClientWidth": 1440,
+          "docScrollWidth": 1440,
+          "docClientWidth": 1440,
+          "scrollX": 0,
+          "scrollY": 0
+        },
+        "cardReceipts": [
+          {
+            "i": 0,
+            "text": "HALL King’s Hall Enter hall · conversation mapping separate",
+            "box": {
+              "x": 332.59375,
+              "y": 395.8125,
+              "width": 524.3125,
+              "height": 104.671875
+            },
+            "withinSurface": true
+          },
+          {
+            "i": 1,
+            "text": "SOVEREIGN CHAMBER Samudra Pura · Aurena Enter chamber · conversation mapping separate",
+            "box": {
+              "x": 868.09375,
+              "y": 395.8125,
+              "width": 524.3125,
+              "height": 104.671875
+            },
+            "withinSurface": true
+          },
+          {
+            "i": 2,
+            "text": "KING CHAMBER · Primus Tsaiyunk / Primus Enter chamber",
+            "box": {
+              "x": 332.59375,
+              "y": 511.671875,
+              "width": 524.3125,
+              "height": 104.671875
+            },
+            "withinSurface": true
+          },
+          {
+            "i": 3,
+            "text": "KING CHAMBER · Supreme King Raen Nur Tsaiyunk Enter chamber",
+            "box": {
+              "x": 868.09375,
+              "y": 511.671875,
+              "width": 524.3125,
+              "height": 104.671875
+            },
+            "withinSurface": true
+          },
+          {
+            "i": 4,
+            "text": "KING CHAMBER · Supreme King Saren Nur Tsaiyunk Enter chamber",
+            "box": {
+              "x": 332.59375,
+              "y": 627.53125,
+              "width": 524.3125,
+              "height": 104.671875
+            },
+            "withinSurface": true
+          },
+          {
+            "i": 5,
+            "text": "KING CHAMBER · Supreme King Kai Nur Tsaiyunk Enter chamber",
+            "box": {
+              "x": 868.09375,
+              "y": 627.53125,
+              "width": 524.3125,
+              "height": 104.671875
+            },
+            "withinSurface": true
+          },
+          {
+            "i": 7,
+            "text": "KING CHAMBER · Supreme King Nick Nur Tsaiyunk Enter chamber",
+            "box": {
+              "x": 868.09375,
+              "y": 743.390625,
+              "width": 524.3125,
+              "height": 104.671875
+            },
+            "withinSurface": true
+          }
+        ]
+      }
+    },
+    {
+      "kx": "KX-03",
+      "viewport": "desktop_1440x900",
+      "pass": true,
+      "observed": {
+        "text": "← Back to lobby",
+        "natural": {
+          "elementBox": {
+            "x": 1266.203125,
+            "y": 324.46875,
+            "width": 126.203125,
+            "height": 38
+          },
+          "containerBox": {
+            "x": 311.59375,
+            "y": 303.46875,
+            "width": 1101.8125,
+            "height": 1440.671875
+          },
+          "inViewport": true,
+          "inContainer": true
+        },
+        "style": {
+          "width": "126.203px",
+          "maxWidth": "100%",
+          "display": "flex",
+          "whiteSpace": "normal"
+        },
+        "before": {
+          "bodyScrollWidth": 1440,
+          "bodyClientWidth": 1440,
+          "docScrollWidth": 1440,
+          "docClientWidth": 1440,
+          "scrollX": 0,
+          "scrollY": 0
+        },
+        "afterFocus": {
+          "bodyScrollWidth": 1440,
+          "bodyClientWidth": 1440,
+          "docScrollWidth": 1440,
+          "docClientWidth": 1440,
+          "scrollX": 0,
+          "scrollY": 0
+        },
+        "focused": true,
+        "focusShift": false,
+        "returned": true
+      }
+    },
+    {
+      "kx": "KX-03",
+      "viewport": "mobile_390x844",
+      "pass": true,
+      "observed": {
+        "text": "← Back to lobby",
+        "natural": {
+          "elementBox": {
+            "x": 31.390625,
+            "y": 562.015625,
+            "width": 327.21875,
+            "height": 38
+          },
+          "containerBox": {
+            "x": 16,
+            "y": 473.671875,
+            "width": 358,
+            "height": 2751.453125
+          },
+          "inViewport": true,
+          "inContainer": true
+        },
+        "style": {
+          "width": "327.219px",
+          "maxWidth": "100%",
+          "display": "flex",
+          "whiteSpace": "normal"
+        },
+        "widthWithinLanding": true,
+        "widthWithinViewport": true,
+        "before": {
+          "bodyScrollWidth": 390,
+          "bodyClientWidth": 390,
+          "docScrollWidth": 390,
+          "docClientWidth": 390,
+          "scrollX": 0,
+          "scrollY": 0
+        },
+        "afterFocus": {
+          "bodyScrollWidth": 390,
+          "bodyClientWidth": 390,
+          "docScrollWidth": 390,
+          "docClientWidth": 390,
+          "scrollX": 0,
+          "scrollY": 0
+        },
+        "focused": true,
+        "focusShift": false,
+        "returned": true
+      }
+    }
+  ],
+  "errors": []
+}

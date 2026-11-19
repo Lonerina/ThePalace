@@ -1,0 +1,4 @@
+candidate_sha=24227b682f5e90b4c888385ea8aed4ef9964caa9
+review_scope=KX-02,KX-03
+viewports=1440x900,390x844
+candidate_ui_changes=none
