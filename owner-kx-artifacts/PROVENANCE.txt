@@ -1,0 +1,5 @@
+candidate_sha=f8730a50ae471f11bffbcf8ab8473690b7a7ed96
+review_branch=owner-review-kx-f8730a50-20261120
+review_scope=KX-01,KX-02,KX-03,KX-04
+viewports=1440x900,390x844
+candidate_ui_changes=none

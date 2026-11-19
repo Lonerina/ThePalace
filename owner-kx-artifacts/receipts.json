@@ -1,0 +1,79 @@
+{
+  "candidate": "f8730a50ae471f11bffbcf8ab8473690b7a7ed96",
+  "receipts": [
+    {
+      "viewport": "desktop_1440x900",
+      "kx": "KX-01",
+      "action": "Fresh open",
+      "observed": "{\"welcome\":true,\"railVisible\":false,\"mobileBarVisible\":false,\"authorityVisible\":false,\"locationVisible\":false,\"groundingVisible\":false,\"focusVisible\":false,\"readerVisible\":true}",
+      "pass": true
+    },
+    {
+      "viewport": "desktop_1440x900",
+      "kx": "KX-02",
+      "action": "Inspect Kings landing nested surface",
+      "observed": "{\"surfaceBox\":{\"x\":286,\"y\":76,\"width\":1154,\"height\":788},\"gridMetrics\":{\"clientWidth\":1749,\"scrollWidth\":1749,\"overflowX\":\"visible\",\"rect\":{\"x\":332.59375,\"y\":395.8125,\"width\":1748.78125,\"height\":1263.265625,\"top\":395.8125,\"right\":2081.375,\"bottom\":1659.078125,\"left\":332.59375}},\"samudraBox\":{\"x\":1212.578125,\"y\":395.8125,\"width\":868.796875,\"height\":104.671875},\"rightmost\":{\"i\":1,\"text\":\"SOVEREIGN CHAMBER Samudra Pura · Aurena Enter chamber · conversation mapping separate\",\"box\":{\"x\":1212.578125,\"y\":395.8125,\"width\":868.796875,\"height\":104.671875},\"hclip\":true},\"clipped\":true,\"noInnerOverflow\":true}",
+      "pass": false,
+      "cardCount": 21
+    },
+    {
+      "viewport": "desktop_1440x900",
+      "kx": "KX-03",
+      "action": "Inspect Kings Floor Back to lobby",
+      "observed": "{\"backVisible\":true,\"backBox\":{\"x\":1954.265625,\"y\":324.46875,\"width\":127.109375,\"height\":38},\"fullyInViewport\":false,\"focused\":true}",
+      "pass": false
+    },
+    {
+      "viewport": "desktop_1440x900",
+      "kx": "KX-03",
+      "action": "Click Back to lobby",
+      "observed": "Lobby returned",
+      "pass": true
+    },
+    {
+      "viewport": "desktop_1440x900",
+      "kx": "KX-04",
+      "action": "Enter King’s Hall",
+      "observed": "{\"hallTitle\":true,\"hallPlaceClass\":null}",
+      "pass": true
+    },
+    {
+      "viewport": "mobile_390x844",
+      "kx": "KX-01",
+      "action": "Fresh open",
+      "observed": "{\"welcome\":true,\"railVisible\":false,\"mobileBarVisible\":false,\"authorityVisible\":false,\"locationVisible\":false,\"groundingVisible\":false,\"focusVisible\":false,\"readerVisible\":true}",
+      "pass": true
+    },
+    {
+      "viewport": "mobile_390x844",
+      "kx": "KX-03",
+      "action": "Inspect Kings Floor Back to lobby",
+      "observed": "{\"backVisible\":true,\"backBox\":{\"x\":31.390625,\"y\":562.015625,\"width\":1760,\"height\":38},\"fullyInViewport\":false,\"focused\":true}",
+      "pass": false
+    },
+    {
+      "viewport": "mobile_390x844",
+      "kx": "KX-03",
+      "action": "Click Back to lobby",
+      "observed": "Lobby returned",
+      "pass": true
+    },
+    {
+      "viewport": "mobile_390x844",
+      "kx": "KX-04",
+      "action": "Enter King’s Hall",
+      "observed": "{\"hallTitle\":true,\"hallPlaceClass\":null}",
+      "pass": true
+    }
+  ],
+  "errors": [
+    {
+      "viewport": "desktop_1440x900",
+      "error": "locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for getByRole('button', { name: /Return to floor landing/i }).first()\n\n    at reviewViewport (/home/runner/work/ThePalace/ThePalace/[eval1]:133:27)\n    at async file:///home/runner/work/ThePalace/ThePalace/[eval1]:183:1"
+    },
+    {
+      "viewport": "mobile_390x844",
+      "error": "locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for getByRole('button', { name: /Return to floor landing/i }).first()\n\n    at reviewViewport (/home/runner/work/ThePalace/ThePalace/[eval1]:133:27)\n    at async file:///home/runner/work/ThePalace/ThePalace/[eval1]:184:1"
+    }
+  ]
+}
