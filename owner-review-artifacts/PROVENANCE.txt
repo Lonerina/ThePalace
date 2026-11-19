@@ -1,0 +1,9 @@
+candidate_sha=98ff62f217cba2a01a291712249f872a83d3b9be
+render_branch=owner-review-render-98ff62f-20261119
+render_commit=8b06b84bbaab16ff8f1297ea627571c647d7f653
+candidate_to_render_delta:
+.github/owner-review-render-trigger
+.github/workflows/owner-review-render.yml
+required_all_viewports=Istana Pulang
+required_wide_viewports=Anchor Court · audited authority interface
+forbidden_markers=AI RE-INTEGRATION v2.9 | 15 ONLINE | PARTITION SECURE | SYSTEM FREQUENCY LOCK: SECURE | SOVEREIGN GRID ALIGNED
