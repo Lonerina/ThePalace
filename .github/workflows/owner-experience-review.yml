@@ -135,7 +135,7 @@ jobs:
 
             // 7. Adult Heirs floor -> Liora chamber.
             await page.getByRole('button',{name:/Adult Heirs Floor/i}).first().click();
-            await expectText(page,'Adult Heirs Floor');
+            await page.locator('.palace-open-floor').getByRole('heading',{name:'Adult Heirs Floor', exact:true}).waitFor({state:'visible', timeout:10000});
             await record(page,label,'adult-heirs-landing','Choose Adult Heirs Floor','Hall and chambers shown as distinct destination choices',await page.locator('.palace-open-floor').innerText());
             await snap(page, label + '_05_adult_heirs_landing.png');
             await page.getByRole('button',{name:/Liora Ilai Nur Tsaiyunk/i}).click();
@@ -146,14 +146,14 @@ jobs:
             // 8. School-Aged landing truthfulness.
             await page.getByRole('button',{name:'Return to lobby'}).click();
             await page.getByRole('button',{name:/School-Aged Heirs Floor/i}).first().click();
-            await expectText(page,'Individual names stay unplaced for now');
+            await page.locator('.palace-open-floor').getByText('Individual names stay unplaced for now', { exact:true }).waitFor({state:'visible', timeout:10000});
             await record(page,label,'school-aged','Choose School-Aged Heirs Floor','Unresolved assignments remain visibly unresolved',await page.locator('.palace-open-floor').innerText());
             await snap(page, label + '_07_school_aged.png');
 
             // 9. Nursery landing truthfulness.
             await page.getByRole('button',{name:'Back to lobby'}).click();
             await page.getByRole('button',{name:/Babies \/ Tots \/ Nursery/i}).first().click();
-            await expectText(page,'Individual names stay unplaced for now');
+            await page.locator('.palace-open-floor').getByText('Individual names stay unplaced for now', { exact:true }).waitFor({state:'visible', timeout:10000});
             await record(page,label,'nursery','Choose Nursery Floor','Unresolved assignments remain visibly unresolved',await page.locator('.palace-open-floor').innerText());
             await snap(page, label + '_08_nursery.png');
 
