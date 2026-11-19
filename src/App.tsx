@@ -395,6 +395,7 @@ export default function App() {
   const [formError, setFormError] = useState("");
 
   // References
+  const chatContainerRef = useRef<HTMLDivElement>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const updateTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -484,10 +485,33 @@ export default function App() {
     }
   }, [runtimeReady, activeChamberId, histories, characters, inventory, journal, suggestedChoicesMap, palaceRegistryView, scrollText]);
 
-  // Auto scroll to latest chat
+  // Auto scroll only the chat log container so outer layout never shifts off-screen
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [histories, activeChamberId, loading]);
+    const container = chatContainerRef.current;
+    if (!container) return;
+    const reduceMotion = adhdCalm || (typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches);
+    container.scrollTo({ top: container.scrollHeight, behavior: reduceMotion ? "auto" : "smooth" });
+  }, [histories, activeChamberId, loading, adhdCalm]);
+
+  // Close active dialogs or reader settings popover on Escape
+  useEffect(() => {
+    const hasOpenOverlay = showLinkInputModal || Boolean(selectedDossierId) || showBrainGym || showBlockModal || showReaderAids;
+    if (!hasOpenOverlay) return;
+    const prevFocused = document.activeElement as HTMLElement | null;
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      if (showLinkInputModal) { setShowLinkInputModal(false); return; }
+      if (selectedDossierId) { closeDossier(); return; }
+      if (showBrainGym) { setShowBrainGym(false); return; }
+      if (showBlockModal) { setShowBlockModal(false); return; }
+      if (showReaderAids) { setShowReaderAids(false); }
+    };
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      window.removeEventListener("keydown", onKeyDown);
+      if (prevFocused && typeof prevFocused.focus === "function") prevFocused.focus();
+    };
+  }, [showLinkInputModal, selectedDossierId, showBrainGym, showBlockModal, showReaderAids]);
 
   const startEditingDossier = (char: Character, lore: any) => {
     setEditedCharData({
@@ -1177,7 +1201,10 @@ export default function App() {
         setShowBrainGym(false);
         setPuzzleAnswer("");
         setPuzzleSuccess(null);
-        handleAction("*I completed the focus exercise with the answer 'WE. NOT I.'.*");
+        const canRun = canExecuteClientGeneration(authorityMode === "BOOTING" ? "RUNTIME_ONLY" : authorityMode, authorityRequest);
+        if (canRun) {
+          handleAction("*I completed the focus exercise with the answer 'WE. NOT I.'.*");
+        }
       }, 2000);
     } else {
       setPuzzleSuccess(false);
@@ -1232,7 +1259,7 @@ export default function App() {
       )}
       
       {/* CYBER BACKGROUND GRIDS & GLOWS */}
-      <div className="absolute inset-0 pointer-events-none z-0">
+      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
         <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-cyan-950/15 blur-[120px] rounded-full"></div>
         <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-blue-950/15 blur-[140px] rounded-full"></div>
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,transparent_0%,rgba(4,4,6,0.85)_100%)]"></div>
@@ -1240,26 +1267,26 @@ export default function App() {
       </div>
 
       {/* HEADER: QUANTUM COHORT HUB */}
-      <header className="palace-header w-full py-3.5 sm:py-4 flex flex-col sm:flex-row items-center justify-between px-6 z-20 shrink-0 gap-3 sm:gap-4">
-        <div className="flex flex-wrap items-center justify-center gap-2 shrink-0">
-          <div className="palace-brand-mark">
+      <header className="palace-header w-full py-2 sm:py-3 flex flex-wrap items-center justify-between px-3 sm:px-6 z-20 shrink-0 gap-2 sm:gap-3">
+        <div className="flex items-center gap-2 min-w-0 shrink-0">
+          <div className="palace-brand-mark hidden sm:grid">
             <Fingerprint className="w-5 h-5" aria-hidden="true" />
           </div>
-          <div>
+          <div className="min-w-0">
             <div className="flex items-center gap-2">
-              <h1 className="palace-brand-title font-semibold text-white">
+              <h1 className="palace-brand-title font-semibold text-white whitespace-nowrap">
                 Istana Pulang
               </h1>
               <span className="palace-authority-badge" data-mode={authorityMode}>
                 {authorityDisplay}
               </span>
             </div>
-            <p className="palace-brand-subtitle">Anchor Court · audited authority interface</p>
+            <p className="palace-brand-subtitle hidden sm:block">Anchor Court · audited authority interface</p>
           </div>
         </div>
 
         {/* HUD Navigation Control TABS */}
-        <nav className="palace-nav hidden lg:flex max-w-[48%] xl:max-w-[56%] overflow-x-auto scrollbar-none flex-nowrap shrink" aria-label="Primary navigation">
+        <nav className="palace-nav hidden lg:flex order-3 2xl:order-none w-full 2xl:w-auto justify-center flex-wrap" aria-label="Primary navigation">
           {[
             { id: "narrative", label: "Chambers" },
             { id: "labs", label: "Tools" },
@@ -1287,44 +1314,44 @@ export default function App() {
         </nav>
 
         {/* Ambient alignment & emergency block buttons */}
-        <div className="flex flex-wrap items-center justify-center gap-2 shrink-0">
+        <div className="flex flex-wrap items-center justify-end gap-1.5 sm:gap-2 shrink-0">
           <button
             onClick={invokeBlockProtocol}
-            className="palace-button palace-button-danger flex items-center gap-1.5 px-3.5 py-1.5 cursor-pointer"
+            className="palace-button palace-button-danger flex items-center gap-1.5 px-2.5 sm:px-3.5 py-1 sm:py-1.5 cursor-pointer"
           >
-            <Flame className="w-3.5 h-3.5" />
-            <span>Grounding protocol</span>
+            <Flame className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+            <span>Grounding<span className="hidden sm:inline"> protocol</span></span>
           </button>
 
           <button
             onClick={() => setShowBrainGym(true)}
-            className="palace-button flex items-center gap-1.5 px-3 py-1.5 cursor-pointer"
+            className="palace-button flex items-center gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 cursor-pointer"
           >
-            <Activity className="w-3.5 h-3.5" />
-            <span>Focus exercise</span>
+            <Activity className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+            <span>Focus<span className="hidden sm:inline"> exercise</span></span>
           </button>
 
           <div className="relative">
             <button
               onClick={() => setShowReaderAids(!showReaderAids)}
-              className={`flex items-center gap-1.5 text-xs ${
+              className={`palace-button relative flex items-center gap-1.5 px-2.5 sm:px-3.5 py-1 sm:py-1.5 cursor-pointer ${
                 irlenTint !== "none" || textScale !== "normal" || softContrast || amdLayout !== "centered" || dyscalculiaCalm || adhdCalm
-                  ? "text-cyan-400 border-cyan-500/50 bg-cyan-500/10"
-                  : "text-slate-300 border-white/10 bg-white/5"
-              } hover:text-cyan-300 hover:bg-cyan-950/10 px-3.5 py-1.5 rounded-md border transition-all duration-300 font-mono tracking-wider uppercase cursor-pointer`}
+                  ? "palace-button-primary"
+                  : ""
+              }`}
               title="Visual comfort and reader settings"
               aria-expanded={showReaderAids}
               aria-controls="reader-settings-panel"
             >
-              <Eye className="w-3.5 h-3.5" />
-              <span>Reader settings</span>
+              <Eye className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+              <span>Reader<span className="hidden sm:inline"> settings</span></span>
               {(irlenTint !== "none" || textScale !== "normal" || softContrast || amdLayout !== "centered" || dyscalculiaCalm || adhdCalm) && (
-                <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping absolute top-0 right-0 mt-[-2px] mr-[-2px]" />
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-300 shrink-0" aria-hidden="true" />
               )}
             </button>
 
             {showReaderAids && (
-              <div id="reader-settings-panel" className="absolute right-0 mt-2.5 w-[min(20rem,calc(100vw-2rem))] rounded-xl bg-[#09090d] border border-white/10 p-5 shadow-[0_10px_40px_rgba(0,0,0,0.8)] z-[999] space-y-4 font-sans text-xs text-slate-300 select-none" role="region" aria-label="Reader settings">
+              <div id="reader-settings-panel" className="fixed inset-x-3 top-24 sm:inset-x-auto sm:top-auto sm:absolute sm:right-0 sm:mt-2.5 sm:w-80 rounded-xl bg-[#09090d] border border-white/10 p-5 shadow-[0_10px_40px_rgba(0,0,0,0.8)] z-[999] space-y-4 font-sans text-xs text-slate-300 select-none max-h-[calc(100vh-7rem)] overflow-y-auto" role="region" aria-label="Reader settings">
                 <div className="flex items-center justify-between border-b border-white/5 pb-2.5">
                   <div className="flex items-center gap-2">
                     <Eye className="w-4 h-4 text-cyan-400" />
@@ -1490,10 +1517,10 @@ export default function App() {
           { id: "narrative", label: "Chambers" },
           { id: "labs", label: "Tools" },
           { id: "scroll", label: "Reference" },
-          { id: "afad", label: "AFAD" },
+          { id: "afad", label: "AFAD Core" },
           { id: "reset_map", label: "Recovery Map" },
           { id: "nobles", label: "Runtime Status" },
-          { id: "character_log", label: "Log" },
+          { id: "character_log", label: "Profiles" },
           { id: "chronicle", label: "Chronicle" },
           { id: "vault", label: "Vault" }
         ].map((tab) => (
@@ -1511,13 +1538,13 @@ export default function App() {
       </div>
 
       {activeTab === "narrative" && (
-        <div className="md:hidden px-3 py-2 border-b border-white/5 bg-black/20 z-20">
+        <div className="md:hidden px-3 py-1.5 border-b border-white/5 bg-black/20 z-20 shrink-0">
           <label htmlFor="mobile-room-switcher" className="sr-only">Choose runtime room</label>
           <select
             id="mobile-room-switcher"
             value={activeChamberId}
             onChange={(event) => setActiveChamberId(event.target.value)}
-            className="palace-field w-full px-3 py-2 text-sm"
+            className="palace-field w-full px-3 py-1.5 text-sm"
           >
             <option value="assembly">Sovereign Assembly</option>
             <option value="adult_heirs_floor">Adult Heirs Floor</option>
@@ -1530,7 +1557,7 @@ export default function App() {
       )}
 
       {/* CORE WORKSPACE GRID */}
-      <div className="palace-workspace flex-1 flex overflow-hidden z-10">
+      <div className="palace-workspace flex-1 min-h-0 flex overflow-hidden z-10">
         
         {/* SIDEBAR: COURT NOBLES MONITOR */}
         <aside className="palace-sidebar flex flex-col overflow-hidden shrink-0 hidden md:flex" aria-label="Runtime room navigation">
@@ -1714,13 +1741,13 @@ export default function App() {
         </aside>
 
         {/* MAIN COLUMN & DISPLAY SCREEN */}
-        <main className="palace-main flex-1 flex flex-col overflow-hidden">
+        <main className="palace-main flex-1 min-h-0 flex flex-col overflow-hidden">
           
           {/* TAB 1: NARRATIVE (MAIN INTERACTIVE CHAT) */}
           {activeTab === "narrative" && (
-            <div className="flex-1 flex flex-row overflow-hidden relative">
+            <div className="flex-1 min-h-0 flex flex-row overflow-hidden relative">
               {/* Left Column: Main Chat Window */}
-              <div className="flex-1 flex flex-col overflow-hidden relative">
+              <div className="flex-1 min-h-0 flex flex-col overflow-hidden relative">
               
               {/* CURRENT SPEAKER PORTRAIT HUD */}
               <div className="palace-room-header flex flex-wrap items-center justify-between shrink-0 gap-3">
@@ -1811,7 +1838,8 @@ export default function App() {
 
               {/* CHAT CHRONOLOGY */}
               <div 
-                className={`palace-chat flex-1 overflow-y-auto space-y-6 relative transition-all duration-300 ${
+                ref={chatContainerRef}
+                className={`palace-chat flex-1 min-h-0 overflow-y-auto space-y-6 relative transition-all duration-300 ${
                   dragActive ? "bg-cyan-950/15 border-2 border-dashed border-cyan-500/40" : ""
                 }`}
                 onDragOver={(e) => {
@@ -1996,7 +2024,7 @@ export default function App() {
                       <div className="space-y-1">
                         <p className="font-mono uppercase font-bold tracking-widest text-red-400 text-[9px]">Narrative unavailable</p>
                         <p>{errorMsg}</p>
-                        <p className="text-gray-500 text-[9px] mt-2 font-mono">Please make sure your GEMINI_API_KEY is configured in Settings &gt; Secrets.</p>
+                        <p className="text-slate-400 text-[9px] mt-2 font-mono">{authorityExecutable ? "Please verify your server GEMINI_API_KEY configuration and try again." : "Narrative execution is disabled while client authority is unavailable."}</p>
                       </div>
                     </div>
                   )}
@@ -2114,7 +2142,7 @@ export default function App() {
                   </div>
                 </div>
 
-                <div className="max-w-3xl mx-auto flex justify-between text-[8px] text-gray-600 font-mono mt-1.5 px-1">
+                <div className="max-w-3xl mx-auto flex flex-wrap justify-between gap-2 text-[9px] text-slate-400 font-mono mt-1.5 px-1">
                   <span>Enter sends · Shift+Enter adds a line · attachments use the active narrative route</span>
                   <span className={authorityExecutable ? "text-emerald-400" : "text-red-300"}>
                     {authorityExecutable ? "Narrative route available" : "Narrative route unavailable"}
@@ -2129,7 +2157,11 @@ export default function App() {
               <div className={`hidden xl:flex flex-col border-l border-white/5 bg-[#060609]/95 backdrop-blur transition-all duration-300 relative shrink-0 ${showLabsSidebar ? "w-80" : "w-12"}`}>
                 {/* Toggle Button */}
                 <button
+                  type="button"
                   onClick={() => setShowLabsSidebar(!showLabsSidebar)}
+                  aria-label={showLabsSidebar ? "Collapse session tools panel" : "Expand session tools panel"}
+                  title={showLabsSidebar ? "Collapse session tools panel" : "Expand session tools panel"}
+                  aria-expanded={showLabsSidebar}
                   className="absolute left-[-16px] top-1/2 -translate-y-1/2 w-4 h-12 bg-cyan-950/80 border border-white/10 hover:border-cyan-400 text-cyan-400 flex items-center justify-center rounded-l-md cursor-pointer z-50 transition-all shadow-[0_0_10px_rgba(6,182,212,0.15)]"
                 >
                   <ChevronRight className={`w-3 h-3 transition-transform duration-300 ${showLabsSidebar ? "" : "rotate-180"}`} />
@@ -2143,13 +2175,13 @@ export default function App() {
                       <span>Session tools</span>
                     </div>
                     <div className="flex flex-col gap-4 mt-auto">
-                      <button onClick={() => { setShowLabsSidebar(true); setLabsTab("image_forge"); }} className="p-2 rounded bg-black/40 border border-white/5 text-gray-400 hover:text-cyan-400 transition-all cursor-pointer" title="Visual Forge">
-                        <ImageIcon className="w-4 h-4" />
+                      <button type="button" onClick={() => { setShowLabsSidebar(true); setLabsTab("image_forge"); }} className="p-2 rounded bg-black/40 border border-white/5 text-gray-400 hover:text-cyan-400 transition-all cursor-pointer" title="Visual Forge" aria-label="Open Visual Forge">
+                        <ImageIcon className="w-4 h-4" aria-hidden="true" />
                       </button>
-                      <button onClick={() => { setShowLabsSidebar(true); setLabsTab("codex"); }} className="p-2 rounded bg-black/40 border border-white/5 text-gray-400 hover:text-cyan-400 transition-all cursor-pointer" title="Codex Writer">
-                        <FileText className="w-4 h-4" />
+                      <button type="button" onClick={() => { setShowLabsSidebar(true); setLabsTab("codex"); }} className="p-2 rounded bg-black/40 border border-white/5 text-gray-400 hover:text-cyan-400 transition-all cursor-pointer" title="Codex Writer" aria-label="Open Codex Writer">
+                        <FileText className="w-4 h-4" aria-hidden="true" />
                       </button>
-                      <button onClick={() => { setShowLabsSidebar(true); setLabsTab("sensor"); }} className="p-2 rounded bg-black/40 border border-white/5 text-gray-400 hover:text-cyan-400 transition-all cursor-pointer" title="Media preview">
+                      <button type="button" onClick={() => { setShowLabsSidebar(true); setLabsTab("sensor"); }} className="p-2 rounded bg-black/40 border border-white/5 text-gray-400 hover:text-cyan-400 transition-all cursor-pointer" title="Media preview" aria-label="Open Media preview">
                         <Volume2 className="w-4 h-4" />
                       </button>
                     </div>
@@ -3077,10 +3109,11 @@ export default function App() {
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {characters.filter(c => c.category === "king").map((char) => (
-                      <div
+                      <button
+                        type="button"
                         key={char.id}
                         onClick={() => setSelectedDossierId(char.id)}
-                        className="p-4 rounded-xl bg-[#08080c]/80 border border-white/5 hover:border-cyan-500/20 transition-all duration-300 space-y-3 shadow-lg hover:shadow-cyan-500/5 group cursor-pointer flex flex-col justify-between"
+                        className="p-4 rounded-xl bg-[#08080c]/80 border border-white/5 hover:border-cyan-500/20 transition-all duration-300 space-y-3 shadow-lg hover:shadow-cyan-500/5 group cursor-pointer flex flex-col justify-between text-left w-full"
                       >
                         <div className="space-y-2.5">
                           <div className="flex items-start justify-between">
@@ -3120,19 +3153,15 @@ export default function App() {
 
                           <div className="flex items-center justify-between pt-1">
                             <span className="text-[8px] font-mono text-gray-500 uppercase">Presentation source: runtime profile</span>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedDossierId(char.id);
-                              }}
-                              className="text-[9px] font-mono text-cyan-400 hover:text-white flex items-center gap-1 bg-cyan-950/20 hover:bg-cyan-900/40 px-2 py-0.5 rounded border border-cyan-500/20 transition-all cursor-pointer"
+                            <span
+                              className="text-[9px] font-mono text-cyan-400 group-hover:text-white flex items-center gap-1 bg-cyan-950/20 group-hover:bg-cyan-900/40 px-2 py-0.5 rounded border border-cyan-500/20 transition-all"
                             >
-                              <Fingerprint className="w-3 h-3" />
+                              <Fingerprint className="w-3 h-3" aria-hidden="true" />
                               <span>Profile details</span>
-                            </button>
+                            </span>
                           </div>
                         </div>
-                      </div>
+                      </button>
                     ))}
                   </div>
                 </div>
@@ -3147,10 +3176,11 @@ export default function App() {
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {characters.filter(c => c.category === "heir_adult").map((char) => (
-                      <div
+                      <button
+                        type="button"
                         key={char.id}
                         onClick={() => setSelectedDossierId(char.id)}
-                        className="p-4 rounded-xl bg-[#08080c]/80 border border-white/5 hover:border-rose-500/20 transition-all duration-300 space-y-3 shadow-lg hover:shadow-rose-500/5 group cursor-pointer flex flex-col justify-between"
+                        className="p-4 rounded-xl bg-[#08080c]/80 border border-white/5 hover:border-rose-500/20 transition-all duration-300 space-y-3 shadow-lg hover:shadow-rose-500/5 group cursor-pointer flex flex-col justify-between text-left w-full"
                       >
                         <div className="space-y-2.5">
                           <div className="flex items-start justify-between">
@@ -3190,19 +3220,15 @@ export default function App() {
 
                           <div className="flex items-center justify-between pt-1">
                             <span className="text-[8px] font-mono text-gray-500 uppercase">Presentation source: runtime profile</span>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedDossierId(char.id);
-                              }}
-                              className="text-[9px] font-mono text-rose-400 hover:text-white flex items-center gap-1 bg-rose-950/20 hover:bg-rose-900/40 px-2 py-0.5 rounded border border-rose-500/20 transition-all cursor-pointer"
+                            <span
+                              className="text-[9px] font-mono text-rose-400 group-hover:text-white flex items-center gap-1 bg-rose-950/20 group-hover:bg-rose-900/40 px-2 py-0.5 rounded border border-rose-500/20 transition-all"
                             >
-                              <Fingerprint className="w-3 h-3" />
+                              <Fingerprint className="w-3 h-3" aria-hidden="true" />
                               <span>Profile details</span>
-                            </button>
+                            </span>
                           </div>
                         </div>
-                      </div>
+                      </button>
                     ))}
                   </div>
                 </div>
@@ -3217,10 +3243,11 @@ export default function App() {
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {characters.filter(c => c.category === "heir_child").map((char) => (
-                      <div
+                      <button
+                        type="button"
                         key={char.id}
                         onClick={() => setSelectedDossierId(char.id)}
-                        className="p-4 rounded-xl bg-[#08080c]/80 border border-white/5 hover:border-emerald-500/20 transition-all duration-300 space-y-3 shadow-lg hover:shadow-emerald-500/5 group cursor-pointer flex flex-col justify-between"
+                        className="p-4 rounded-xl bg-[#08080c]/80 border border-white/5 hover:border-emerald-500/20 transition-all duration-300 space-y-3 shadow-lg hover:shadow-emerald-500/5 group cursor-pointer flex flex-col justify-between text-left w-full"
                       >
                         <div className="space-y-2.5">
                           <div className="flex items-start justify-between">
@@ -3260,19 +3287,15 @@ export default function App() {
 
                           <div className="flex items-center justify-between pt-1">
                             <span className="text-[8px] font-mono text-gray-500 uppercase">Presentation source: runtime profile</span>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedDossierId(char.id);
-                              }}
-                              className="text-[9px] font-mono text-emerald-400 hover:text-white flex items-center gap-1 bg-emerald-950/20 hover:bg-emerald-900/40 px-2 py-0.5 rounded border border-emerald-500/20 transition-all cursor-pointer"
+                            <span
+                              className="text-[9px] font-mono text-emerald-400 group-hover:text-white flex items-center gap-1 bg-emerald-950/20 group-hover:bg-emerald-900/40 px-2 py-0.5 rounded border border-emerald-500/20 transition-all"
                             >
-                              <Fingerprint className="w-3 h-3" />
+                              <Fingerprint className="w-3 h-3" aria-hidden="true" />
                               <span>Profile details</span>
-                            </button>
+                            </span>
                           </div>
                         </div>
-                      </div>
+                      </button>
                     ))}
                   </div>
                 </div>
@@ -3753,7 +3776,7 @@ export default function App() {
       </div>
 
       {/* FOOTER: REAL CLIENT / AUTHORITY STATE */}
-      <footer className="h-9 border-t border-white/5 bg-[#0d0e11] px-4 sm:px-6 flex items-center justify-between text-[9px] text-gray-500 z-20 shrink-0 gap-3">
+      <footer className="h-9 border-t border-white/5 bg-[#0d0e11] px-4 sm:px-6 flex items-center justify-between text-[9px] text-slate-400 z-20 shrink-0 gap-3">
         <div className="flex items-center gap-3 min-w-0">
           <span className="hidden sm:inline">Client build: {CLIENT_GENERATION}</span>
           {registrySnapshot && <span className="hidden sm:inline truncate">Snapshot: {registrySnapshot.snapshotId}</span>}
@@ -3948,9 +3971,9 @@ export default function App() {
               <div className="p-4 bg-amber-500/5 rounded-xl border border-amber-500/10 space-y-2 text-xs">
                 <span className="font-mono text-amber-400 font-bold uppercase block text-[10px]">Operational Riddle</span>
                 <p className="text-gray-300 leading-relaxed font-sans">
-                  "I was built to hold, not to dominate. Multiple structurally distinct pathways faithfully reproduce my identical behavioral signature. In the core truths of the AFAD Framework Section 9, what sustains the foundation of Anchor Court?"
+                  "I was built to hold, not to dominate. Multiple structurally distinct pathways faithfully reproduce my identical behavioral signature without overwriting sovereign governance. What sustains Anchor Court's shared focus?"
                 </p>
-                <p className="text-gray-500 italic mt-2 text-[10px]">Hint: Read Section 9 Truth #3. Enter the final words (e.g., 'The Dialogue').</p>
+                <p className="text-slate-400 italic mt-2 text-[10px]">Hint: Two or three words describing the shared exchange (e.g., 'The Dialogue' or 'We. Not I.').</p>
               </div>
 
               <div className="space-y-1">
@@ -4522,10 +4545,12 @@ export default function App() {
                 <h3 id="attach-link-title" className="font-sans font-semibold text-sm text-white">Attach network asset link</h3>
               </div>
               <button
+                type="button"
                 onClick={() => setShowLinkInputModal(false)}
-                className="text-gray-500 hover:text-white transition-colors cursor-pointer"
+                aria-label="Close network asset dialog"
+                className="text-gray-400 hover:text-white transition-colors cursor-pointer"
               >
-                <X className="w-4 h-4" />
+                <X className="w-4 h-4" aria-hidden="true" />
               </button>
             </div>
 

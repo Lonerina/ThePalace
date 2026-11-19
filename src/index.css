@@ -17,7 +17,7 @@
   --palace-border-strong: rgba(236, 223, 195, 0.25);
   --palace-text: #f2eee6;
   --palace-muted: #aaa59b;
-  --palace-faint: #77736d;
+  --palace-faint: #979289;
   --palace-brass: #d5b06a;
   --palace-brass-soft: #a17f45;
   --palace-teal: #82c8c2;
@@ -131,7 +131,6 @@ select:disabled {
   width: 42px;
   height: 42px;
   border-radius: 12px;
-  display: grid;
   place-items: center;
   background: linear-gradient(145deg, rgba(213,176,106,.22), rgba(130,200,194,.08));
   border: 1px solid var(--palace-border-strong);
@@ -166,8 +165,8 @@ select:disabled {
   background: rgba(255,255,255,.025);
   color: var(--palace-muted);
   font-family: var(--font-mono);
-  font-size: .68rem;
-  line-height: 1;
+  font-size: .75rem;
+  line-height: 1.15;
   letter-spacing: .03em;
   text-transform: none;
 }
@@ -191,7 +190,6 @@ select:disabled {
 }
 
 .palace-nav {
-  display: flex;
   align-items: center;
   gap: .25rem;
   padding: .3rem;
@@ -403,8 +401,8 @@ select:disabled {
 }
 
 /* Repair prototype micro-type across the renovated surface. */
-.palace-shell [class~="text-[8px]"] { font-size: .69rem !important; }
-.palace-shell [class~="text-[9px]"] { font-size: .72rem !important; }
+.palace-shell [class~="text-[8px]"] { font-size: .75rem !important; }
+.palace-shell [class~="text-[9px]"] { font-size: .75rem !important; }
 .palace-shell [class~="text-[10px]"] { font-size: .75rem !important; }
 .palace-shell [class~="text-[11px]"] { font-size: .79rem !important; }
 .palace-shell .text-xs { font-size: .82rem !important; }
@@ -447,8 +445,8 @@ select:disabled {
 
 @media (max-width: 1023px) {
   .palace-header {
-    padding-left: .9rem !important;
-    padding-right: .9rem !important;
+    min-height: 0;
+    padding: .55rem .75rem !important;
   }
 
   .palace-mobile-nav {
