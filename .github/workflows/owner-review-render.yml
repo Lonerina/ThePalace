@@ -1,0 +1,128 @@
+name: Owner Review Render Artifact
+
+on:
+  push:
+    branches:
+      - owner-review-render-98ff62f-20261119
+    paths-ignore:
+      - 'owner-review-artifacts/**'
+
+permissions:
+  contents: write
+
+jobs:
+  render-owner-review:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout artifact branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify source seam
+        shell: bash
+        run: |
+          set -euo pipefail
+          test "$(git merge-base HEAD 98ff62f217cba2a01a291712249f872a83d3b9be)" = "98ff62f217cba2a01a291712249f872a83d3b9be"
+          git diff --name-only 98ff62f217cba2a01a291712249f872a83d3b9be..HEAD
+          test "$(git diff --name-only 98ff62f217cba2a01a291712249f872a83d3b9be..HEAD)" = ".github/workflows/owner-review-render.yml"
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: |
+          npm install --no-audit --no-fund
+          npm install --no-save playwright@1.52.0
+          npx playwright install --with-deps chromium
+
+      - name: Start exact candidate UI
+        shell: bash
+        run: |
+          DISABLE_HMR=true CLIENT_GENERATION=LEGACY_V3 npm run dev > /tmp/palace-owner-review.log 2>&1 &
+          echo $! > /tmp/palace-owner-review.pid
+          for i in {1..60}; do
+            if curl -fsS http://127.0.0.1:3000 >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/palace-owner-review.log
+          exit 1
+
+      - name: Render and assert owner-review face
+        shell: bash
+        run: |
+          mkdir -p owner-review-artifacts
+          node --input-type=module <<'EOF'
+          import { chromium } from 'playwright';
+
+          const targets = [
+            ['desktop_1440x900', 1440, 900],
+            ['tablet_768x1024', 768, 1024],
+            ['mobile_390x844', 390, 844],
+          ];
+
+          const required = [
+            'Istana Pulang',
+            'Anchor Court · audited authority interface',
+          ];
+
+          const forbidden = [
+            'AI RE-INTEGRATION v2.9',
+            '15 ONLINE',
+            'PARTITION SECURE',
+            'SYSTEM FREQUENCY LOCK: SECURE',
+            'SOVEREIGN GRID ALIGNED',
+          ];
+
+          const browser = await chromium.launch({ headless: true });
+          const receipts = [];
+
+          for (const [name, width, height] of targets) {
+            const context = await browser.newContext({ viewport: { width, height } });
+            const page = await context.newPage();
+            await page.goto('http://127.0.0.1:3000', { waitUntil: 'networkidle' });
+
+            const body = await page.locator('body').innerText();
+
+            for (const marker of required) {
+              if (!body.includes(marker)) throw new Error(`${name}: missing required marker: ${marker}`);
+            }
+            for (const marker of forbidden) {
+              if (body.includes(marker)) throw new Error(`${name}: forbidden old marker present: ${marker}`);
+            }
+
+            const path = `owner-review-artifacts/${name}.png`;
+            await page.screenshot({ path, fullPage: false });
+            receipts.push({ name, width, height, requiredPresent: true, forbiddenAbsent: true });
+            await context.close();
+          }
+
+          await browser.close();
+          console.log(JSON.stringify(receipts, null, 2));
+          EOF
+
+      - name: Write provenance receipt
+        shell: bash
+        run: |
+          {
+            echo "candidate_sha=98ff62f217cba2a01a291712249f872a83d3b9be"
+            echo "render_branch=$GITHUB_REF_NAME"
+            echo "render_commit=$GITHUB_SHA"
+            echo "candidate_to_render_delta:"
+            git diff --name-only 98ff62f217cba2a01a291712249f872a83d3b9be..HEAD
+            echo "required_markers=Istana Pulang | Anchor Court · audited authority interface"
+            echo "forbidden_markers=AI RE-INTEGRATION v2.9 | 15 ONLINE | PARTITION SECURE | SYSTEM FREQUENCY LOCK: SECURE | SOVEREIGN GRID ALIGNED"
+          } > owner-review-artifacts/PROVENANCE.txt
+
+      - name: Commit screenshots to artifact branch only
+        shell: bash
+        run: |
+          git config user.name "owner-review-render-bot"
+          git config user.email "owner-review-render-bot@users.noreply.github.com"
+          git add owner-review-artifacts
+          git commit -m "chore: capture owner-review render for 98ff62f"
+          git push origin HEAD:$GITHUB_REF_NAME
