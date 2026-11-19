@@ -1,0 +1,266 @@
+name: Kai KX Rendered Re-review
+
+on:
+  push:
+    branches:
+      - owner-review-kx-f8730a50-20261120
+    paths-ignore:
+      - 'owner-kx-artifacts/**'
+
+permissions:
+  contents: write
+
+jobs:
+  review:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify isolated review seam
+        shell: bash
+        run: |
+          set -euo pipefail
+          CANDIDATE=f8730a50ae471f11bffbcf8ab8473690b7a7ed96
+          test "$(git merge-base HEAD "$CANDIDATE")" = "$CANDIDATE"
+          git diff --name-only "$CANDIDATE"..HEAD | grep -v '^owner-kx-artifacts/' | sort > /tmp/delta.txt
+          printf '%s\n' '.github/owner-review-kx-trigger' '.github/workflows/kai-kx-rendered-rereview.yml' | sort > /tmp/expected.txt
+          diff -u /tmp/expected.txt /tmp/delta.txt
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install dependencies and Chromium
+        run: |
+          npm install --no-audit --no-fund
+          npm install --no-save playwright@1.52.0
+          npx playwright install --with-deps chromium
+
+      - name: Start exact candidate UI
+        shell: bash
+        run: |
+          DISABLE_HMR=true CLIENT_GENERATION=LEGACY_V3 npm run dev > /tmp/palace-kx.log 2>&1 &
+          for i in {1..60}; do
+            if curl -fsS http://127.0.0.1:3000 >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/palace-kx.log
+          exit 1
+
+      - name: Walk KX-01 through KX-04
+        shell: bash
+        run: |
+          mkdir -p owner-kx-artifacts
+          node --input-type=module <<'EOF'
+          import { chromium } from 'playwright';
+          import fs from 'node:fs';
+
+          const browser = await chromium.launch({ headless: true });
+          const receipts = [];
+          const errors = [];
+
+          const clean = (s) => String(s ?? '').replace(/\s+/g, ' ').trim();
+          const visible = async (loc) => {
+            try { return await loc.isVisible(); } catch { return false; }
+          };
+          const box = async (loc) => {
+            try { return await loc.boundingBox(); } catch { return null; }
+          };
+          const note = (viewport, kx, action, observed, pass, extra={}) => {
+            receipts.push({ viewport, kx, action, observed: clean(observed), pass, ...extra });
+          };
+          async function snap(page, name) {
+            await page.screenshot({ path: 'owner-kx-artifacts/' + name + '.png', fullPage: false });
+          }
+          async function fresh(width, height) {
+            const ctx = await browser.newContext({ viewport: { width, height } });
+            const page = await ctx.newPage();
+            await page.goto('http://127.0.0.1:3000', { waitUntil:'networkidle' });
+            return {ctx,page};
+          }
+          async function clickFirst(page, re) {
+            const loc = page.getByRole('button', { name: re }).first();
+            await loc.waitFor({state:'visible', timeout:10000});
+            await loc.click();
+            return loc;
+          }
+          async function waitText(page, text) {
+            const loc = page.getByText(text, { exact:false }).filter({visible:true}).first();
+            await loc.waitFor({state:'visible', timeout:10000});
+            return loc;
+          }
+          async function hasVisibleText(page, text) {
+            const all = page.getByText(text, {exact:false});
+            const count = await all.count();
+            for (let i=0;i<count;i++) if (await visible(all.nth(i))) return true;
+            return false;
+          }
+          async function anyVisible(page, selector) {
+            const all = page.locator(selector);
+            const count = await all.count();
+            for (let i=0;i<count;i++) if (await visible(all.nth(i))) return true;
+            return false;
+          }
+          async function buttonVisible(page, re) {
+            const all = page.getByRole('button', {name:re});
+            const count = await all.count();
+            for (let i=0;i<count;i++) if (await visible(all.nth(i))) return true;
+            return false;
+          }
+
+          async function reviewViewport(label, width, height) {
+            const {ctx,page} = await fresh(width,height);
+            try {
+              // KX-01: fresh arrival should be home-first.
+              const welcome = await hasVisibleText(page,'Welcome home, Aurena.');
+              const railVisible = await anyVisible(page,'.palace-utility-rail');
+              const mobileBarVisible = await anyVisible(page,'.palace-mobile-nav');
+              const authorityVisible = await anyVisible(page,'.palace-authority-badge');
+              const locationVisible = await anyVisible(page,'.palace-location-summary');
+              const groundingVisible = await buttonVisible(page,/Grounding/i);
+              const focusVisible = await buttonVisible(page,/Focus/i);
+              const readerVisible = await buttonVisible(page,/Reader|Reading/i);
+              const kx01Pass = welcome && !railVisible && !mobileBarVisible && !authorityVisible && !locationVisible && !groundingVisible && !focusVisible;
+              note(label,'KX-01','Fresh open',JSON.stringify({welcome,railVisible,mobileBarVisible,authorityVisible,locationVisible,groundingVisible,focusVisible,readerVisible}),kx01Pass);
+              await snap(page, label + '_KX01_lobby');
+
+              // Enter Kings floor.
+              await clickFirst(page,/Sovereign \/ Kings Floor/i);
+              await page.getByText('Choose where you want to go',{exact:false}).first().waitFor({state:'visible',timeout:10000});
+
+              // KX-02 desktop nested clipping.
+              if (width === 1440) {
+                const surface = page.locator('.palace-map-surface').first();
+                const grid = page.locator('.palace-landing-grid').first();
+                const surfaceBox = await box(surface);
+                const gridMetrics = await grid.evaluate(el => ({
+                  clientWidth: el.clientWidth,
+                  scrollWidth: el.scrollWidth,
+                  overflowX: getComputedStyle(el).overflowX,
+                  rect: el.getBoundingClientRect().toJSON()
+                }));
+                const cards = page.locator('.palace-landing-grid .palace-destination-door');
+                const count = await cards.count();
+                const cardMetrics = [];
+                let clipped = false;
+                for (let i=0;i<count;i++) {
+                  const c = cards.nth(i);
+                  const b = await box(c);
+                  const txt = clean(await c.innerText());
+                  if (b && surfaceBox) {
+                    const hclip = b.x < surfaceBox.x - 1 || b.x + b.width > surfaceBox.x + surfaceBox.width + 1;
+                    if (hclip) clipped = true;
+                    cardMetrics.push({i,text:txt.slice(0,120),box:b,hclip});
+                  }
+                }
+                const samudra = cards.filter({hasText:'Samudra Pura'}).first();
+                const samudraBox = await box(samudra);
+                const rightmost = cardMetrics.slice().sort((a,b)=>(b.box?.x ?? 0)-(a.box?.x ?? 0))[0] ?? null;
+                const noInnerOverflow = gridMetrics.scrollWidth <= gridMetrics.clientWidth + 1;
+                note(label,'KX-02','Inspect Kings landing nested surface',JSON.stringify({surfaceBox,gridMetrics,samudraBox,rightmost,clipped,noInnerOverflow}),!clipped && noInnerOverflow,{cardCount:count});
+                await snap(page, label + '_KX02_kings_landing');
+              }
+
+              // KX-03: explicit Back to lobby fully visible/clickable.
+              const back = page.getByRole('button',{name:/Back to lobby/i}).first();
+              const backVisible = await visible(back);
+              const backBox = await box(back);
+              const vp = page.viewportSize();
+              const fullyInViewport = Boolean(backBox && vp && backBox.x >= 0 && backBox.y >= 0 && backBox.x + backBox.width <= vp.width + 1 && backBox.y + backBox.height <= vp.height + 1);
+              await back.focus();
+              const focused = await back.evaluate(el => document.activeElement === el);
+              note(label,'KX-03','Inspect Kings Floor Back to lobby',JSON.stringify({backVisible,backBox,fullyInViewport,focused}),backVisible && fullyInViewport && focused);
+              await snap(page, label + '_KX03_back_to_lobby');
+              await back.click();
+              const returnedLobby = await hasVisibleText(page,'Welcome home, Aurena.');
+              note(label,'KX-03','Click Back to lobby',returnedLobby ? 'Lobby returned' : 'Lobby not returned',returnedLobby);
+
+              // KX-04 A: King's Hall then natural return.
+              await clickFirst(page,/Sovereign \/ Kings Floor/i);
+              await clickFirst(page,/King[’']s Hall/i);
+              const hallTitle = await hasVisibleText(page,'King’s Hall') || await hasVisibleText(page,"King's Hall");
+              const hallPlaceClass = await page.locator('.palace-destination-page').first().getAttribute('class').catch(()=>null);
+              note(label,'KX-04','Enter King’s Hall',JSON.stringify({hallTitle,hallPlaceClass}),hallTitle);
+              await snap(page, label + '_KX04_kings_hall');
+              const returnFloorHall = page.getByRole('button',{name:/Return to floor landing/i}).first();
+              const returnFloorHallVisible = await visible(returnFloorHall);
+              await returnFloorHall.click();
+              const landingAfterHall = await hasVisibleText(page,'Choose where you want to go');
+              note(label,'KX-03','King’s Hall → floor landing',JSON.stringify({returnFloorHallVisible,landingAfterHall}),returnFloorHallVisible && landingAfterHall);
+
+              // KX-04 B: Samudra Pura.
+              await clickFirst(page,/Samudra Pura · Aurena/i);
+              const samudraTitle = await hasVisibleText(page,'Samudra Pura · Aurena');
+              note(label,'KX-04','Enter Samudra Pura · Aurena',samudraTitle ? 'Destination title visible' : 'Destination title missing',samudraTitle);
+              await snap(page, label + '_KX04_samudra_pura');
+              const returnFloorSam = page.getByRole('button',{name:/Return to floor landing/i}).first();
+              const returnFloorSamVisible = await visible(returnFloorSam);
+              await returnFloorSam.click();
+              const landingAfterSam = await hasVisibleText(page,'Choose where you want to go');
+              note(label,'KX-03','Samudra Pura → floor landing',JSON.stringify({returnFloorSamVisible,landingAfterSam}),returnFloorSamVisible && landingAfterSam);
+              const back2 = page.getByRole('button',{name:/Back to lobby/i}).first();
+              await back2.click();
+              const lobbyAfterSam = await hasVisibleText(page,'Welcome home, Aurena.');
+              note(label,'KX-03','Floor landing → lobby after Samudra',lobbyAfterSam ? 'Lobby returned' : 'Lobby not returned',lobbyAfterSam);
+
+              // KX-04 C: Liora chamber.
+              await clickFirst(page,/Adult Heirs Floor/i);
+              await clickFirst(page,/Liora Ilai Nur Tsaiyunk/i);
+              const lioraTitle = await hasVisibleText(page,'Liora Ilai Nur Tsaiyunk · Chamber');
+              note(label,'KX-04','Enter Liora Ilai Nur Tsaiyunk · Chamber',lioraTitle ? 'Destination title visible' : 'Destination title missing',lioraTitle);
+              await snap(page, label + '_KX04_liora_chamber');
+              const returnFloorLiora = page.getByRole('button',{name:/Return to floor landing/i}).first();
+              const returnFloorLioraVisible = await visible(returnFloorLiora);
+              await returnFloorLiora.click();
+              const adultLanding = await hasVisibleText(page,'Adult Heirs Floor');
+              const backAdult = page.getByRole('button',{name:/Back to lobby/i}).first();
+              const backAdultVisible = await visible(backAdult);
+              await backAdult.click();
+              const lobbyAfterLiora = await hasVisibleText(page,'Welcome home, Aurena.');
+              note(label,'KX-03','Liora chamber → Adult Heirs landing → lobby',JSON.stringify({returnFloorLioraVisible,adultLanding,backAdultVisible,lobbyAfterLiora}),returnFloorLioraVisible && adultLanding && backAdultVisible && lobbyAfterLiora);
+
+              const bodyMetrics = await page.evaluate(() => ({
+                scrollWidth:document.body.scrollWidth,
+                clientWidth:document.body.clientWidth,
+                scrollHeight:document.body.scrollHeight,
+                clientHeight:document.body.clientHeight
+              }));
+              note(label,'REGRESSION','Narrow path final viewport check',JSON.stringify(bodyMetrics),bodyMetrics.scrollWidth <= bodyMetrics.clientWidth + 1);
+            } catch (err) {
+              errors.push({viewport:label,error:String(err?.stack ?? err)});
+              try { await snap(page,label + '_ERROR'); } catch {}
+            } finally {
+              await ctx.close();
+            }
+          }
+
+          await reviewViewport('desktop_1440x900',1440,900);
+          await reviewViewport('mobile_390x844',390,844);
+
+          fs.writeFileSync('owner-kx-artifacts/receipts.json', JSON.stringify({candidate:'f8730a50ae471f11bffbcf8ab8473690b7a7ed96',receipts,errors},null,2));
+          fs.writeFileSync('owner-kx-artifacts/PROVENANCE.txt', [
+            'candidate_sha=f8730a50ae471f11bffbcf8ab8473690b7a7ed96',
+            'review_branch=owner-review-kx-f8730a50-20261120',
+            'review_scope=KX-01,KX-02,KX-03,KX-04',
+            'viewports=1440x900,390x844',
+            'candidate_ui_changes=none'
+          ].join('\n')+'\n');
+          console.log(JSON.stringify({receipts,errors},null,2));
+          await browser.close();
+          EOF
+
+      - name: Commit review receipts to isolated branch
+        if: always()
+        shell: bash
+        run: |
+          if [ ! -d owner-kx-artifacts ]; then exit 0; fi
+          git config user.name "kai-render-review"
+          git config user.email "kai-render-review@users.noreply.github.com"
+          git add owner-kx-artifacts
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "chore: capture KX rendered re-review receipts"
+          git push origin HEAD:$GITHUB_REF_NAME
