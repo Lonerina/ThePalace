@@ -1,0 +1,200 @@
+name: Owner Experience Review
+
+on:
+  push:
+    branches:
+      - owner-review-experience-ad014230-20261120
+
+permissions:
+  contents: read
+
+jobs:
+  walk:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify isolated review seam
+        shell: bash
+        run: |
+          set -euo pipefail
+          CANDIDATE=ad014230cf86169f9f1d7735aeb75b320ea1a111
+          test "$(git merge-base HEAD "$CANDIDATE")" = "$CANDIDATE"
+          git diff --name-only "$CANDIDATE"..HEAD | sort > /tmp/delta.txt
+          printf '%s\n' '.github/owner-review-experience-trigger' '.github/workflows/owner-experience-review.yml' | sort > /tmp/expected.txt
+          diff -u /tmp/expected.txt /tmp/delta.txt
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install dependencies and browser
+        run: |
+          npm install --no-audit --no-fund
+          npm install --no-save playwright@1.52.0
+          npx playwright install --with-deps chromium
+
+      - name: Start exact candidate UI
+        shell: bash
+        run: |
+          DISABLE_HMR=true CLIENT_GENERATION=LEGACY_V3 npm run dev > /tmp/palace-owner-experience.log 2>&1 &
+          for i in {1..60}; do
+            if curl -fsS http://127.0.0.1:3000 >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/palace-owner-experience.log
+          exit 1
+
+      - name: Walk rendered experience
+        shell: bash
+        run: |
+          mkdir -p owner-experience-artifacts
+          node --input-type=module <<'EOF'
+          import { chromium } from 'playwright';
+          import fs from 'node:fs';
+
+          const browser = await chromium.launch({ headless: true });
+          const receipts = [];
+
+          const clean = (s) => String(s ?? '').replace(/\s+/g, ' ').trim();
+          async function snap(page, file) {
+            await page.screenshot({ path: 'owner-experience-artifacts/' + file, fullPage: false });
+          }
+          async function metrics(page) {
+            return await page.evaluate(() => ({
+              innerWidth,
+              innerHeight,
+              bodyScrollWidth: document.body.scrollWidth,
+              bodyClientWidth: document.body.clientWidth,
+              bodyScrollHeight: document.body.scrollHeight,
+              bodyClientHeight: document.body.clientHeight,
+              activeTag: document.activeElement?.tagName ?? null,
+              activeText: (document.activeElement?.textContent ?? '').trim().slice(0,120)
+            }));
+          }
+          async function record(page, viewport, step, action, expected, actual, severity='PASS') {
+            const m = await metrics(page);
+            receipts.push({ viewport, step, action, expected, actual: clean(actual), severity, metrics:m });
+          }
+          async function expectText(page, text) {
+            await page.getByText(text, { exact: false }).first().waitFor({ state:'visible', timeout:10000 });
+            return text;
+          }
+
+          async function walk(label, width, height) {
+            const context = await browser.newContext({ viewport: { width, height } });
+            const page = await context.newPage();
+            await page.goto('http://127.0.0.1:3000', { waitUntil:'networkidle' });
+
+            // 1. Entrance / lobby.
+            await expectText(page, 'Welcome home, Aurena.');
+            await record(page,label,'entrance','Open Istana Pulang','Lobby with explicit home threshold','Welcome home, Aurena.');
+            await snap(page, label + '_01_lobby.png');
+
+            if (width >= 768) {
+              const rail = page.getByRole('complementary', { name:'Palace navigation and utilities' });
+              await rail.waitFor({state:'visible'});
+              await record(page,label,'desktop-rail','Observe first arrival','Map remains primary; utilities are secondary rail',await rail.innerText());
+            } else {
+              await expectText(page,'Utilities');
+              await record(page,label,'mobile-bar','Observe first arrival','Floor-first mobile control plus Utilities',await page.locator('.palace-mobile-nav').innerText());
+            }
+
+            // 2. Lobby -> Kings floor landing.
+            await page.getByRole('button',{name:/Sovereign \/ Kings Floor/i}).first().click();
+            await expectText(page,'Choose where you want to go');
+            await record(page,label,'kings-landing','Choose Sovereign / Kings Floor','Floor landing before destination','Choose where you want to go');
+            await snap(page, label + '_02_kings_landing.png');
+
+            // 3. King's Hall architectural destination.
+            await page.getByRole('button',{name:/King’s Hall/i}).first().click();
+            await expectText(page,'You are inside this Istana Pulang destination.');
+            await record(page,label,'kings-hall','Enter King’s Hall','Destination feels enterable without fabricated runtime','King’s Hall · You are inside this Istana Pulang destination.');
+            await snap(page, label + '_03_kings_hall.png');
+
+            // 4. Return naturally to floor landing.
+            await page.getByRole('button',{name:'Return to floor landing'}).click();
+            await expectText(page,'Choose where you want to go');
+            await record(page,label,'return-kings-landing','Return to floor landing','Back path returns one level','Choose where you want to go');
+
+            // 5. Samudra Pura architectural destination.
+            await page.getByRole('button',{name:/Samudra Pura · Aurena/i}).first().click();
+            await expectText(page,'Samudra Pura · Aurena');
+            await record(page,label,'samudra-pura','Enter Samudra Pura','Sovereign chamber is a destination','Samudra Pura · Aurena');
+            await snap(page, label + '_04_samudra_pura.png');
+
+            // 6. Return to lobby.
+            await page.getByRole('button',{name:'Return to lobby'}).click();
+            await expectText(page,'Welcome home, Aurena.');
+            await record(page,label,'return-lobby','Return to lobby','Back path returns to home threshold','Welcome home, Aurena.');
+
+            // 7. Adult Heirs floor -> Liora chamber.
+            await page.getByRole('button',{name:/Adult Heirs Floor/i}).first().click();
+            await expectText(page,'Adult Heirs Floor');
+            await record(page,label,'adult-heirs-landing','Choose Adult Heirs Floor','Hall and chambers shown as distinct destination choices',await page.locator('.palace-open-floor').innerText());
+            await snap(page, label + '_05_adult_heirs_landing.png');
+            await page.getByRole('button',{name:/Liora Ilai Nur Tsaiyunk/i}).click();
+            await expectText(page,'Liora Ilai Nur Tsaiyunk · Chamber');
+            await record(page,label,'liora-chamber','Enter Liora chamber','Architectural chamber enters without fake conversation route','Liora Ilai Nur Tsaiyunk · Chamber');
+            await snap(page, label + '_06_liora_chamber.png');
+
+            // 8. School-Aged landing truthfulness.
+            await page.getByRole('button',{name:'Return to lobby'}).click();
+            await page.getByRole('button',{name:/School-Aged Heirs Floor/i}).first().click();
+            await expectText(page,'Individual names stay unplaced for now');
+            await record(page,label,'school-aged','Choose School-Aged Heirs Floor','Unresolved assignments remain visibly unresolved',await page.locator('.palace-open-floor').innerText());
+            await snap(page, label + '_07_school_aged.png');
+
+            // 9. Nursery landing truthfulness.
+            await page.getByRole('button',{name:'Back to lobby'}).click();
+            await page.getByRole('button',{name:/Babies \/ Tots \/ Nursery/i}).first().click();
+            await expectText(page,'Individual names stay unplaced for now');
+            await record(page,label,'nursery','Choose Nursery Floor','Unresolved assignments remain visibly unresolved',await page.locator('.palace-open-floor').innerText());
+            await snap(page, label + '_08_nursery.png');
+
+            // 10. Mobile utilities or desktop rail shortcuts.
+            if (width < 768) {
+              await page.getByRole('button',{name:'Utilities'}).click();
+              await expectText(page,'Saren’s Office');
+              await record(page,label,'utilities','Open Utilities','Utility surface exposes Saren/Documents/Anti-Drift/Settings without becoming geography',await page.getByLabel('Palace utilities').innerText());
+              await snap(page, label + '_09_utilities.png');
+            } else {
+              const rail = page.getByRole('complementary',{name:'Palace navigation and utilities'});
+              await record(page,label,'utilities','Inspect Palace rail','Utility surface exposes Saren/Documents/Anti-Drift/Settings without becoming geography',await rail.innerText());
+              await snap(page, label + '_09_utilities.png');
+            }
+
+            // Horizontal overflow check.
+            const m = await metrics(page);
+            const overflow = m.bodyScrollWidth > m.bodyClientWidth + 2;
+            await record(page,label,'overflow','Inspect viewport','No page-level horizontal overflow',overflow ? 'Horizontal overflow detected' : 'No page-level horizontal overflow',overflow ? 'MEDIUM' : 'PASS');
+
+            await context.close();
+          }
+
+          await walk('desktop_1440x900',1440,900);
+          await walk('mobile_390x844',390,844);
+
+          fs.writeFileSync('owner-experience-artifacts/receipts.json', JSON.stringify(receipts,null,2));
+          fs.writeFileSync('owner-experience-artifacts/PROVENANCE.txt', [
+            'candidate_sha=ad014230cf86169f9f1d7735aeb75b320ea1a111',
+            'review_branch=owner-review-experience-ad014230-20261120',
+            'review_type=rendered experience only',
+            'ui_changes=none',
+            'viewports=1440x900,390x844',
+            'walk=Entrance -> Lobby -> Floor Landing -> Destination -> Return',
+          ].join('\n')+'\n');
+
+          console.log(JSON.stringify(receipts,null,2));
+          await browser.close();
+          EOF
+
+      - name: Upload experience receipts
+        uses: actions/upload-artifact@v4
+        with:
+          name: owner-experience-ad014230
+          path: owner-experience-artifacts/
+          retention-days: 7
