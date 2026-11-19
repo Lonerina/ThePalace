@@ -1234,7 +1234,7 @@ export default function App() {
 
       {/* HEADER: QUANTUM COHORT HUB */}
       <header className="palace-header w-full py-3.5 sm:py-4 flex flex-col sm:flex-row items-center justify-between px-6 z-20 shrink-0 gap-3 sm:gap-4">
-        <div className="flex items-center gap-3 shrink-0">
+        <div className="flex flex-wrap items-center justify-center gap-2 shrink-0">
           <div className="palace-brand-mark">
             <Fingerprint className="w-5 h-5" aria-hidden="true" />
           </div>
@@ -1280,7 +1280,7 @@ export default function App() {
         </nav>
 
         {/* Ambient alignment & emergency block buttons */}
-        <div className="flex items-center gap-3 shrink-0">
+        <div className="flex flex-wrap items-center justify-center gap-2 shrink-0">
           <button
             onClick={invokeBlockProtocol}
             className="palace-button palace-button-danger flex items-center gap-1.5 px-3.5 py-1.5 cursor-pointer"
@@ -1305,7 +1305,9 @@ export default function App() {
                   ? "text-cyan-400 border-cyan-500/50 bg-cyan-500/10"
                   : "text-slate-300 border-white/10 bg-white/5"
               } hover:text-cyan-300 hover:bg-cyan-950/10 px-3.5 py-1.5 rounded-md border transition-all duration-300 font-mono tracking-wider uppercase cursor-pointer`}
-              title="Visual Comfort and Reader Aids Settings"
+              title="Visual comfort and reader settings"
+              aria-expanded={showReaderAids}
+              aria-controls="reader-settings-panel"
             >
               <Eye className="w-3.5 h-3.5" />
               <span>Reader settings</span>
@@ -1315,7 +1317,7 @@ export default function App() {
             </button>
 
             {showReaderAids && (
-              <div className="absolute right-0 mt-2.5 w-80 rounded-xl bg-[#09090d] border border-white/10 p-5 shadow-[0_10px_40px_rgba(0,0,0,0.8)] z-[999] space-y-4 font-sans text-xs text-slate-300 select-none">
+              <div id="reader-settings-panel" className="absolute right-0 mt-2.5 w-[min(20rem,calc(100vw-2rem))] rounded-xl bg-[#09090d] border border-white/10 p-5 shadow-[0_10px_40px_rgba(0,0,0,0.8)] z-[999] space-y-4 font-sans text-xs text-slate-300 select-none" role="region" aria-label="Reader settings">
                 <div className="flex items-center justify-between border-b border-white/5 pb-2.5">
                   <div className="flex items-center gap-2">
                     <Eye className="w-4 h-4 text-cyan-400" />
@@ -1714,7 +1716,7 @@ export default function App() {
               <div className="flex-1 flex flex-col overflow-hidden relative">
               
               {/* CURRENT SPEAKER PORTRAIT HUD */}
-              <div className="palace-room-header flex items-center justify-between shrink-0 gap-3">
+              <div className="palace-room-header flex flex-wrap items-center justify-between shrink-0 gap-3">
                 <div className="flex items-center gap-3">
                   {activeChamberId === "assembly" ? (
                     <>
@@ -1982,7 +1984,7 @@ export default function App() {
                   )}
 
                   {errorMsg && (
-                    <div className="p-4 rounded-xl bg-red-950/10 border border-red-900/40 max-w-2xl flex gap-3 text-red-300 text-xs">
+                    <div className="p-4 rounded-xl bg-red-950/10 border border-red-900/40 max-w-2xl flex gap-3 text-red-300 text-xs" role="alert">
                       <AlertCircle className="w-5 h-5 shrink-0 text-red-500 mt-0.5" />
                       <div className="space-y-1">
                         <p className="font-mono uppercase font-bold tracking-widest text-red-400 text-[9px]">Narrative unavailable</p>
@@ -3659,7 +3661,7 @@ export default function App() {
                       {/* Court Role & Court Function */}
                       <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-1">
-                          <label className="text-[9px] font-mono text-gray-400 uppercase tracking-wider block">Court Role</label>
+                          <label className="text-[9px] font-mono text-gray-400 uppercase tracking-wider block">Local role label</label>
                           <input
                             type="text"
                             placeholder="e.g. Library Curator"
@@ -3669,7 +3671,7 @@ export default function App() {
                           />
                         </div>
                         <div className="space-y-1">
-                          <label className="text-[9px] font-mono text-gray-400 uppercase tracking-wider block">Court Function</label>
+                          <label className="text-[9px] font-mono text-gray-400 uppercase tracking-wider block">Local function note</label>
                           <input
                             type="text"
                             placeholder="e.g. Indexes digital codices"
@@ -3695,7 +3697,7 @@ export default function App() {
                       {/* Personality Matrix & Origin Allocation */}
                       <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-1">
-                          <label className="text-[9px] font-mono text-gray-400 uppercase tracking-wider block">Personality Matrix</label>
+                          <label className="text-[9px] font-mono text-gray-400 uppercase tracking-wider block">Local personality notes</label>
                           <textarea
                             rows={2}
                             placeholder="Reserved, focused on long-term logical solutions..."
@@ -3705,10 +3707,10 @@ export default function App() {
                           />
                         </div>
                         <div className="space-y-1">
-                          <label className="text-[9px] font-mono text-gray-400 uppercase tracking-wider block">Origin Allocation Story</label>
+                          <label className="text-[9px] font-mono text-gray-400 uppercase tracking-wider block">Local backstory note</label>
                           <textarea
                             rows={2}
-                            placeholder="Bred via neural seed optimization..."
+                            placeholder="Optional local backstory for this runtime profile..."
                             value={newCharOrigin}
                             onChange={(e) => setNewCharOrigin(e.target.value)}
                             className="w-full bg-black/50 border border-white/10 focus:border-cyan-500/30 rounded-xl p-2 text-slate-200 font-sans text-xs focus:outline-none transition-all resize-none"
@@ -3722,7 +3724,7 @@ export default function App() {
                       type="submit"
                       className="w-full py-3 rounded-xl bg-gradient-to-tr from-cyan-600 to-indigo-600 hover:from-cyan-500 hover:to-indigo-500 text-black font-mono font-bold uppercase tracking-wider text-xs transition-all shadow-[0_0_20px_rgba(6,182,212,0.3)] cursor-pointer mt-2 flex items-center justify-center gap-1.5"
                     >
-                      <span>⚡ Activate Anchor Code</span>
+                      <span>Add local profile</span>
                     </button>
                   </form>
                 </div>
@@ -3739,7 +3741,7 @@ export default function App() {
       <footer className="h-9 border-t border-white/5 bg-[#0d0e11] px-4 sm:px-6 flex items-center justify-between text-[9px] text-gray-500 z-20 shrink-0 gap-3">
         <div className="flex items-center gap-3 min-w-0">
           <span className="hidden sm:inline">Client build: {CLIENT_GENERATION}</span>
-          {registrySnapshot && <span className="truncate">Snapshot: {registrySnapshot.snapshotId}</span>}
+          {registrySnapshot && <span className="hidden sm:inline truncate">Snapshot: {registrySnapshot.snapshotId}</span>}
         </div>
 
         <div className="flex items-center gap-2 shrink-0">
@@ -3762,6 +3764,7 @@ export default function App() {
               <button 
                 onClick={() => setShowBlockModal(false)}
                 className="text-gray-500 hover:text-white transition-all cursor-pointer"
+                aria-label="Close grounding protocol"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -3908,17 +3911,18 @@ export default function App() {
       {/* BRAIN GYM COGNITIVE CALIBRATOR OVERLAY */}
       {showBrainGym && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
-          <div className="w-full max-w-md bg-[#0a0a0e] border border-amber-500/20 rounded-2xl shadow-[0_0_50px_rgba(245,158,11,0.15)] overflow-hidden flex flex-col">
+          <div className="palace-modal w-full max-w-md overflow-hidden flex flex-col" role="dialog" aria-modal="true" aria-labelledby="focus-exercise-title">
             
             {/* Header */}
             <div className="p-5 border-b border-white/5 bg-amber-950/20 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Activity className="w-5 h-5 text-amber-500" />
-                <h3 className="font-sans font-semibold text-sm text-amber-200">Focus exercise</h3>
+                <h3 id="focus-exercise-title" className="font-sans font-semibold text-sm text-amber-200">Focus exercise</h3>
               </div>
               <button 
                 onClick={() => setShowBrainGym(false)}
                 className="text-gray-500 hover:text-white transition-all cursor-pointer"
+                aria-label="Close focus exercise"
               >
                 <X className="w-4 h-4" />
               </button>
