@@ -202,9 +202,9 @@ export default function App() {
   });
 
   // UI Control states
-  const [activeTab, setActiveTab] = useState<"narrative" | "scroll" | "afad" | "reset_map" | "nobles" | "chronicle" | "vault" | "character_log" | "labs" | "court_documents" | "anti_drift">("narrative");
+  const [activeTab, setActiveTab] = useState<"narrative" | "scroll" | "afad" | "reset_map" | "nobles" | "chronicle" | "vault" | "character_log" | "labs" | "court_documents" | "anti_drift" | "app_settings">("narrative");
   const [activeFloor, setActiveFloor] = useState<"kings" | "adult_heirs" | "school_heirs" | "nursery">("kings");
-  const [activePlaceZone, setActivePlaceZone] = useState<"kings" | "adult_heirs" | "shared">("shared");
+  const [activePlaceZone, setActivePlaceZone] = useState<"kings" | "adult_heirs" | "shared" | "legacy">("shared");
   const [showPalaceMap, setShowPalaceMap] = useState<boolean>(true);
   const [showUtilityRail, setShowUtilityRail] = useState<boolean>(true);
   const [showMobileUtilities, setShowMobileUtilities] = useState<boolean>(false);
@@ -426,7 +426,23 @@ export default function App() {
         runtimeBaseRef.current = boot.runtime;
         setPalaceRegistryView(boot.palaceRegistry);
         if (boot.displayCharacters.length > 0) setCharacters(boot.displayCharacters as Character[]);
-        if (boot.runtime.activeUiRoomId) setActiveChamberId(boot.runtime.activeUiRoomId);
+        if (boot.runtime.activeUiRoomId) {
+          const restoredRoomId = boot.runtime.activeUiRoomId;
+          setActiveChamberId(restoredRoomId);
+          if (restoredRoomId === "adult_heirs_floor") {
+            setActiveFloor("adult_heirs");
+            setActivePlaceZone("adult_heirs");
+          } else if (restoredRoomId === "assembly") {
+            setActivePlaceZone("shared");
+          } else if (restoredRoomId === "children_heirs_floor") {
+            setActivePlaceZone("legacy");
+          } else if ((boot.displayCharacters as Character[]).some((character) => character.id === restoredRoomId && character.category === "king")) {
+            setActiveFloor("kings");
+            setActivePlaceZone("kings");
+          } else {
+            setActivePlaceZone("legacy");
+          }
+        }
         if (Object.keys(boot.runtime.histories ?? {}).length > 0) {
           setHistories(boot.runtime.histories as Record<string, NarrativeTurn[]>);
         }
@@ -819,6 +835,11 @@ export default function App() {
     setInventory([]);
     setCharacters(DEFAULT_CHARACTERS);
     setActiveChamberId("assembly");
+    setActiveFloor("kings");
+    setActivePlaceZone("shared");
+    setShowPalaceMap(true);
+    setActiveTab("narrative");
+    setShowMobileUtilities(false);
     setErrorMsg(null);
   };
 
@@ -1369,7 +1390,9 @@ export default function App() {
       ? "Sovereign / Kings Floor"
       : activePlaceZone === "adult_heirs"
         ? "Adult Heirs Floor"
-        : "Shared Court Spaces";
+        : activePlaceZone === "shared"
+          ? "Shared Court Spaces"
+          : "Legacy runtime route";
   const activeRuntimeLabel =
     activeChamberId === "assembly"
       ? "Sovereign Assembly"
@@ -1378,6 +1401,31 @@ export default function App() {
         : activeChamberId === "children_heirs_floor"
           ? "Legacy children runtime room"
           : characters.find((char) => char.id === activeChamberId)?.name || "Runtime room";
+
+  const activeSurfaceLabel =
+    activeTab === "narrative"
+      ? (showPalaceMap ? activeFloorLabel : activePlaceZoneLabel)
+      : activeTab === "court_documents"
+        ? "Court Documents"
+        : activeTab === "anti_drift"
+          ? "Anti-Drift Protocols"
+          : activeTab === "app_settings"
+            ? "App Settings"
+            : activeTab === "labs"
+              ? "Tools"
+              : activeTab === "scroll"
+                ? "Reference"
+                : activeTab === "afad"
+                  ? "AFAD Core"
+                  : activeTab === "reset_map"
+                    ? "Recovery Map"
+                    : activeTab === "nobles"
+                      ? "Runtime Status"
+                      : activeTab === "character_log"
+                        ? "Profiles"
+                        : activeTab === "chronicle"
+                          ? "Chronicle"
+                          : "Vault";
 
   const openRuntimePlace = (
     route: string,
@@ -1452,8 +1500,8 @@ export default function App() {
           <Compass className="w-4 h-4 text-amber-300/80 shrink-0" aria-hidden="true" />
           <span className="text-xs text-slate-300 truncate">Istana Pulang</span>
           <ChevronRight className="w-3 h-3 text-slate-600 shrink-0" aria-hidden="true" />
-          <span className="text-xs text-amber-100 truncate">{showPalaceMap ? activeFloorLabel : activePlaceZoneLabel}</span>
-          {!showPalaceMap && (
+          <span className="text-xs text-amber-100 truncate">{activeSurfaceLabel}</span>
+          {activeTab === "narrative" && !showPalaceMap && (
             <>
               <ChevronRight className="w-3 h-3 text-slate-600 shrink-0" aria-hidden="true" />
               <span className="text-xs text-slate-400 truncate">{activeRuntimeLabel}</span>
@@ -1754,9 +1802,17 @@ export default function App() {
             <span>Second Anchor Court app</span>
             <small>External surface route not evidenced in this client</small>
           </button>
-          <button type="button" disabled className="palace-utility-link compact opacity-60 cursor-not-allowed">
+          <button
+            type="button"
+            onClick={() => {
+              setActiveTab("app_settings");
+              setShowPalaceMap(false);
+              setShowMobileUtilities(false);
+            }}
+            className="palace-utility-link compact"
+          >
             <span>App Settings</span>
-            <small>Application settings surface not yet defined</small>
+            <small>Application utility · separate from palace geography</small>
           </button>
         </div>
       )}
@@ -1865,13 +1921,20 @@ export default function App() {
                       <span>{item.label}</span>
                     </button>
                   ))}
-                  <button type="button" disabled className="palace-utility-link compact opacity-60 cursor-not-allowed">
-                    <span>Second Anchor Court app</span>
-                    <small>External surface link not yet evidenced in this client</small>
+                  <button type="button" disabled className="palace-utility-link compact palace-external-link opacity-70 cursor-not-allowed">
+                    <span>Second Anchor Court app ↗</span>
+                    <small>EXTERNAL SURFACE · switches/leaves Istana Pulang · route not configured in this repository</small>
                   </button>
-                  <button type="button" disabled className="palace-utility-link compact opacity-60 cursor-not-allowed">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveTab("app_settings");
+                      setShowPalaceMap(false);
+                    }}
+                    className="palace-utility-link compact"
+                  >
                     <span>App Settings</span>
-                    <small>Placement reserved; application settings surface not yet defined</small>
+                    <small>Application utility · separate from palace geography</small>
                   </button>
                 </div>
               </section>
@@ -2916,6 +2979,58 @@ export default function App() {
 
               <div className="palace-map-note">
                 <strong>Related companion outside the current Anti-Drift hub:</strong> MODEL JUMP PROTOCOL remains a preserved migration-contingency companion. It is not silently counted as one of the hub entries here.
+              </div>
+            </div>
+          )}
+
+          {/* APP SETTINGS: application utility, explicitly outside palace geography. */}
+          {activeTab === "app_settings" && (
+            <div className="palace-destination-page flex-1 overflow-y-auto">
+              <div className="palace-destination-header">
+                <div>
+                  <p className="palace-map-kicker">Application utility</p>
+                  <h2>App Settings</h2>
+                  <p>Interface and local-runtime controls live here. This surface is not a room, floor or Court-lore location.</p>
+                </div>
+                <button type="button" className="palace-button px-3 py-2" onClick={() => { setActiveTab("narrative"); setShowPalaceMap(true); }}>
+                  Return to palace map
+                </button>
+              </div>
+
+              <div className="palace-settings-grid">
+                <article className="palace-record-card">
+                  <span className="palace-map-status">DISPLAY / ACCESSIBILITY</span>
+                  <strong>Reader settings</strong>
+                  <p>Irlen tint, opacity, text scale, contrast, reading-column shift, dyscalculia aid and ADHD calm mode.</p>
+                  <button type="button" className="palace-button palace-button-primary mt-3 px-3 py-2" onClick={() => setShowReaderAids(true)}>
+                    Open Reader Settings
+                  </button>
+                </article>
+
+                <article className="palace-record-card">
+                  <span className="palace-map-status">LOCAL RUNTIME</span>
+                  <strong>Reset local session</strong>
+                  <p>Clears mutable Palace runtime memories and journal lines. Canonical registry authority is not changed.</p>
+                  <button type="button" className="palace-button palace-button-danger mt-3 px-3 py-2" onClick={handleReset}>
+                    Reset local runtime
+                  </button>
+                </article>
+
+                <article className="palace-record-card">
+                  <span className="palace-map-status">READ-ONLY STATUS</span>
+                  <strong>Client generation</strong>
+                  <small>{CLIENT_GENERATION}</small>
+                  <p>Current authority display: {authorityDisplay}. Generation selection remains a build artifact, not a user preference toggle.</p>
+                </article>
+
+                <article className="palace-record-card">
+                  <span className="palace-map-status">EXTERNAL SURFACE</span>
+                  <strong>Second Anchor Court app</strong>
+                  <p>The owner requires a one-action switch that visibly leaves Istana Pulang. No repository route or target URL is currently evidenced, so no link is fabricated here.</p>
+                  <button type="button" disabled className="palace-button mt-3 px-3 py-2">
+                    External route not configured
+                  </button>
+                </article>
               </div>
             </div>
           )}
