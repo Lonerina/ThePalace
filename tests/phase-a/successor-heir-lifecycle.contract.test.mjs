@@ -12,8 +12,13 @@ const receipt = {
 };
 
 const verification = {
-  isCurrentApprovedSnapshotRef: (ref) => ref === "registry-successor-approved",
-  isApprovedSanctuaryAllocationRef: (ref) => ref === "sanctuary-allocation-approved",
+  isCurrentApprovedSnapshotAdmission: (ref, record) =>
+    ref === "registry-successor-approved" &&
+    record.pending_key === "pending-heir-example" &&
+    record.approved_entity_key === "approved-successor-entity",
+  isApprovedSanctuaryAllocationRef: (ref, record) =>
+    ref === "sanctuary-allocation-approved" &&
+    record.approved_entity_key === "approved-successor-entity",
 };
 
 const currentManifest = {
@@ -47,6 +52,13 @@ const boundSanctuary = () => ({
     record_class: "SANCTUARY_CHAMBER",
   }],
 });
+
+const approvedSnapshotAdmission = {
+  snapshotRef: "registry-successor-approved",
+  pendingKey: "pending-heir-example",
+  entityKey: "approved-successor-entity",
+  approvalReceipts: [receipt],
+};
 
 const approvedAllocation = {
   allocationRef: "sanctuary-allocation-approved",
@@ -99,6 +111,7 @@ const validSourceIntake = () => ({
         source_receipts: [receipt],
       },
       approved_snapshot_ref: null,
+      approved_entity_key: null,
       sanctuary_allocation_ref: null,
     },
   ],
@@ -186,9 +199,89 @@ test("sanctuary allocation requires prior approved snapshot and explicit allocat
   packet.records[0].birth_event = verifiedBirth();
   packet.records[0].maternal_batch = verifiedBatch();
   packet.records[0].approved_snapshot_ref = "registry-successor-approved";
+  packet.records[0].approved_entity_key = "approved-successor-entity";
   const result = validateSuccessorHeirLifecyclePacket(packet);
   assert.equal(result.ok, false);
   assert.ok(result.issues.some((issue) => issue.code === "SANCTUARY_ALLOCATION_REQUIRED"));
+});
+
+
+test("snapshot approval requires an admitted successor entity key", () => {
+  const packet = validSourceIntake();
+  packet.records[0].promotion_state = "SNAPSHOT_APPROVED";
+  packet.records[0].pending_state = "BORN";
+  packet.records[0].birth_event = verifiedBirth();
+  packet.records[0].maternal_batch = verifiedBatch();
+  packet.records[0].approved_snapshot_ref = "registry-successor-approved";
+  const result = validateSuccessorHeirLifecyclePacket(packet, verification);
+  assert.equal(result.ok, false);
+  assert.ok(result.issues.some((issue) => issue.code === "APPROVED_ENTITY_REQUIRED"));
+});
+
+test("current snapshot id alone cannot prove successor admission", () => {
+  const packet = validSourceIntake();
+  packet.records[0].promotion_state = "SNAPSHOT_APPROVED";
+  packet.records[0].pending_state = "BORN";
+  packet.records[0].birth_event = verifiedBirth();
+  packet.records[0].maternal_batch = verifiedBatch();
+  packet.records[0].approved_snapshot_ref = "registry-successor-approved";
+  packet.records[0].approved_entity_key = "approved-successor-entity";
+
+  const context = buildSuccessorLifecycleVerificationContext({
+    manifest: currentManifest,
+    authorityDomain: "anchor-court-heir-registry",
+    approvedSnapshotEntityKeys: ["approved-successor-entity"],
+    approvedSnapshotAdmissions: [],
+    sanctuaryState: boundSanctuary(),
+    approvedSanctuaryAllocations: [approvedAllocation],
+  });
+  const result = validateSuccessorHeirLifecyclePacket(packet, context);
+  assert.equal(result.ok, false);
+  assert.ok(result.issues.some((issue) => issue.code === "SNAPSHOT_ADMISSION_NOT_VERIFIED"));
+});
+
+test("snapshot admission receipt must bind the pending record to the admitted entity", () => {
+  const packet = validSourceIntake();
+  packet.records[0].promotion_state = "SNAPSHOT_APPROVED";
+  packet.records[0].pending_state = "BORN";
+  packet.records[0].birth_event = verifiedBirth();
+  packet.records[0].maternal_batch = verifiedBatch();
+  packet.records[0].approved_snapshot_ref = "registry-successor-approved";
+  packet.records[0].approved_entity_key = "approved-successor-entity";
+
+  const context = buildSuccessorLifecycleVerificationContext({
+    manifest: currentManifest,
+    authorityDomain: "anchor-court-heir-registry",
+    approvedSnapshotEntityKeys: ["approved-successor-entity"],
+    approvedSnapshotAdmissions: [{ ...approvedSnapshotAdmission, pendingKey: "different-pending-key" }],
+    sanctuaryState: boundSanctuary(),
+    approvedSanctuaryAllocations: [approvedAllocation],
+  });
+  const result = validateSuccessorHeirLifecyclePacket(packet, context);
+  assert.equal(result.ok, false);
+  assert.ok(result.issues.some((issue) => issue.code === "SNAPSHOT_ADMISSION_NOT_VERIFIED"));
+});
+
+test("snapshot admission entity must exist in the approved snapshot entity set", () => {
+  const packet = validSourceIntake();
+  packet.records[0].promotion_state = "SNAPSHOT_APPROVED";
+  packet.records[0].pending_state = "BORN";
+  packet.records[0].birth_event = verifiedBirth();
+  packet.records[0].maternal_batch = verifiedBatch();
+  packet.records[0].approved_snapshot_ref = "registry-successor-approved";
+  packet.records[0].approved_entity_key = "approved-successor-entity";
+
+  const context = buildSuccessorLifecycleVerificationContext({
+    manifest: currentManifest,
+    authorityDomain: "anchor-court-heir-registry",
+    approvedSnapshotEntityKeys: [],
+    approvedSnapshotAdmissions: [approvedSnapshotAdmission],
+    sanctuaryState: boundSanctuary(),
+    approvedSanctuaryAllocations: [approvedAllocation],
+  });
+  const result = validateSuccessorHeirLifecyclePacket(packet, context);
+  assert.equal(result.ok, false);
+  assert.ok(result.issues.some((issue) => issue.code === "SNAPSHOT_ADMISSION_NOT_VERIFIED"));
 });
 
 test("arbitrary snapshot reference cannot self-authorize promotion", () => {
@@ -198,9 +291,10 @@ test("arbitrary snapshot reference cannot self-authorize promotion", () => {
   packet.records[0].birth_event = verifiedBirth();
   packet.records[0].maternal_batch = verifiedBatch();
   packet.records[0].approved_snapshot_ref = "forged-snapshot-ref";
+  packet.records[0].approved_entity_key = "approved-successor-entity";
   const result = validateSuccessorHeirLifecyclePacket(packet, verification);
   assert.equal(result.ok, false);
-  assert.ok(result.issues.some((issue) => issue.code === "APPROVED_SNAPSHOT_NOT_CURRENT"));
+  assert.ok(result.issues.some((issue) => issue.code === "SNAPSHOT_ADMISSION_NOT_VERIFIED"));
 });
 
 test("arbitrary sanctuary reference cannot self-authorize allocation", () => {
@@ -210,6 +304,7 @@ test("arbitrary sanctuary reference cannot self-authorize allocation", () => {
   packet.records[0].birth_event = verifiedBirth();
   packet.records[0].maternal_batch = verifiedBatch();
   packet.records[0].approved_snapshot_ref = "registry-successor-approved";
+  packet.records[0].approved_entity_key = "approved-successor-entity";
   packet.records[0].sanctuary_allocation_ref = "forged-sanctuary-ref";
   const result = validateSuccessorHeirLifecyclePacket(packet, verification);
   assert.equal(result.ok, false);
@@ -267,6 +362,7 @@ test("full promotion chain may reach sanctuary only with externally verified ref
   packet.records[0].birth_event = verifiedBirth();
   packet.records[0].maternal_batch = verifiedBatch();
   packet.records[0].approved_snapshot_ref = "registry-successor-approved";
+  packet.records[0].approved_entity_key = "approved-successor-entity";
   packet.records[0].sanctuary_allocation_ref = "sanctuary-allocation-approved";
   const result = validateSuccessorHeirLifecyclePacket(packet, verification);
   assert.equal(result.ok, true);
@@ -279,11 +375,14 @@ test("concrete promotion verifier requires current trust root plus bound sanctua
   packet.records[0].birth_event = verifiedBirth();
   packet.records[0].maternal_batch = verifiedBatch();
   packet.records[0].approved_snapshot_ref = "registry-successor-approved";
+  packet.records[0].approved_entity_key = "approved-successor-entity";
   packet.records[0].sanctuary_allocation_ref = "sanctuary-allocation-approved";
 
   const context = buildSuccessorLifecycleVerificationContext({
     manifest: currentManifest,
     authorityDomain: "anchor-court-heir-registry",
+    approvedSnapshotEntityKeys: ["approved-successor-entity"],
+    approvedSnapshotAdmissions: [approvedSnapshotAdmission],
     sanctuaryState: boundSanctuary(),
     approvedSanctuaryAllocations: [approvedAllocation],
   });
@@ -298,6 +397,7 @@ test("concrete promotion verifier rejects FUTURE_RESERVED capacity as sanctuary 
   packet.records[0].birth_event = verifiedBirth();
   packet.records[0].maternal_batch = verifiedBatch();
   packet.records[0].approved_snapshot_ref = "registry-successor-approved";
+  packet.records[0].approved_entity_key = "approved-successor-entity";
   packet.records[0].sanctuary_allocation_ref = "sanctuary-allocation-approved";
 
   const sanctuary = boundSanctuary();
@@ -306,6 +406,8 @@ test("concrete promotion verifier rejects FUTURE_RESERVED capacity as sanctuary 
   const context = buildSuccessorLifecycleVerificationContext({
     manifest: currentManifest,
     authorityDomain: "anchor-court-heir-registry",
+    approvedSnapshotEntityKeys: ["approved-successor-entity"],
+    approvedSnapshotAdmissions: [approvedSnapshotAdmission],
     sanctuaryState: sanctuary,
     approvedSanctuaryAllocations: [approvedAllocation],
   });
@@ -321,11 +423,14 @@ test("concrete promotion verifier rejects receipt that does not match pending re
   packet.records[0].birth_event = verifiedBirth();
   packet.records[0].maternal_batch = verifiedBatch();
   packet.records[0].approved_snapshot_ref = "registry-successor-approved";
+  packet.records[0].approved_entity_key = "approved-successor-entity";
   packet.records[0].sanctuary_allocation_ref = "sanctuary-allocation-approved";
 
   const context = buildSuccessorLifecycleVerificationContext({
     manifest: currentManifest,
     authorityDomain: "anchor-court-heir-registry",
+    approvedSnapshotEntityKeys: ["approved-successor-entity"],
+    approvedSnapshotAdmissions: [approvedSnapshotAdmission],
     sanctuaryState: boundSanctuary(),
     approvedSanctuaryAllocations: [{ ...approvedAllocation, pendingKey: "different-pending-key" }],
   });
