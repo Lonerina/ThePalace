@@ -1,0 +1,14 @@
+{
+  "candidate": "79e581eb96818e85d41e46f0d9276a9b650d05f2",
+  "receipts": [],
+  "errors": [
+    {
+      "viewport": "desktop_1440x900",
+      "error": "locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n  - waiting for locator('.palace-open-floor').first() to be visible\n\n    at desktop (/home/runner/work/ThePalace/ThePalace/[eval1]:55:19)\n    at async file:///home/runner/work/ThePalace/ThePalace/[eval1]:144:1"
+    },
+    {
+      "viewport": "mobile_390x844",
+      "error": "locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n  - waiting for locator('.palace-open-floor').first() to be visible\n\n    at mobile (/home/runner/work/ThePalace/ThePalace/[eval1]:119:19)\n    at async file:///home/runner/work/ThePalace/ThePalace/[eval1]:145:1"
+    }
+  ]
+}
