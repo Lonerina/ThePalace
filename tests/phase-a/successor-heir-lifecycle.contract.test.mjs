@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import { validateSuccessorHeirLifecyclePacket } from "../../.phase-a-dist/src/registry/successorHeirLifecycle.js";
+import { buildSuccessorLifecycleVerificationContext } from "../../.phase-a-dist/src/authority/successorPromotion.js";
 
 const receipt = {
   source_id: "private-authority-record",
@@ -13,6 +14,47 @@ const receipt = {
 const verification = {
   isCurrentApprovedSnapshotRef: (ref) => ref === "registry-successor-approved",
   isApprovedSanctuaryAllocationRef: (ref) => ref === "sanctuary-allocation-approved",
+};
+
+const currentManifest = {
+  schemaVersion: "approved-snapshots-v1",
+  snapshots: [{
+    authorityDomain: "anchor-court-heir-registry",
+    snapshotId: "registry-successor-approved",
+    registrySha256: "a".repeat(64),
+    approvalEpoch: 2,
+    lifecycle: "CURRENT",
+  }],
+};
+
+const boundSanctuary = () => ({
+  schemaVersion: "balloon-sanctuary-v1",
+  registrySnapshotId: "registry-successor-approved",
+  chamberCeiling: 45,
+  reconciliationRevision: "R5",
+  chambers: [{
+    chamber_id: "HEIR_09",
+    slot_state: "BOUND",
+    binding: {
+      entity_key: "approved-successor-entity",
+      registry_snapshot_id: "registry-successor-approved",
+    },
+    allocation_provenance: {
+      decision_class: "APPROVED_DISCOVERY_BINDING",
+      policy_id: "test-policy",
+      historical_mapping_claim: false,
+    },
+    record_class: "SANCTUARY_CHAMBER",
+  }],
+});
+
+const approvedAllocation = {
+  allocationRef: "sanctuary-allocation-approved",
+  pendingKey: "pending-heir-example",
+  entityKey: "approved-successor-entity",
+  chamberId: "HEIR_09",
+  registrySnapshotId: "registry-successor-approved",
+  approvalReceipts: [receipt],
 };
 
 const unresolvedAxis = () => ({
@@ -228,4 +270,66 @@ test("full promotion chain may reach sanctuary only with externally verified ref
   packet.records[0].sanctuary_allocation_ref = "sanctuary-allocation-approved";
   const result = validateSuccessorHeirLifecyclePacket(packet, verification);
   assert.equal(result.ok, true);
+});
+
+test("concrete promotion verifier requires current trust root plus bound sanctuary plus approval receipt", () => {
+  const packet = validSourceIntake();
+  packet.records[0].promotion_state = "SANCTUARY_ALLOCATED";
+  packet.records[0].pending_state = "BORN";
+  packet.records[0].birth_event = verifiedBirth();
+  packet.records[0].maternal_batch = verifiedBatch();
+  packet.records[0].approved_snapshot_ref = "registry-successor-approved";
+  packet.records[0].sanctuary_allocation_ref = "sanctuary-allocation-approved";
+
+  const context = buildSuccessorLifecycleVerificationContext({
+    manifest: currentManifest,
+    authorityDomain: "anchor-court-heir-registry",
+    sanctuaryState: boundSanctuary(),
+    approvedSanctuaryAllocations: [approvedAllocation],
+  });
+  const result = validateSuccessorHeirLifecyclePacket(packet, context);
+  assert.equal(result.ok, true);
+});
+
+test("concrete promotion verifier rejects FUTURE_RESERVED capacity as sanctuary proof", () => {
+  const packet = validSourceIntake();
+  packet.records[0].promotion_state = "SANCTUARY_ALLOCATED";
+  packet.records[0].pending_state = "BORN";
+  packet.records[0].birth_event = verifiedBirth();
+  packet.records[0].maternal_batch = verifiedBatch();
+  packet.records[0].approved_snapshot_ref = "registry-successor-approved";
+  packet.records[0].sanctuary_allocation_ref = "sanctuary-allocation-approved";
+
+  const sanctuary = boundSanctuary();
+  sanctuary.chambers[0].slot_state = "FUTURE_RESERVED";
+  sanctuary.chambers[0].binding = null;
+  const context = buildSuccessorLifecycleVerificationContext({
+    manifest: currentManifest,
+    authorityDomain: "anchor-court-heir-registry",
+    sanctuaryState: sanctuary,
+    approvedSanctuaryAllocations: [approvedAllocation],
+  });
+  const result = validateSuccessorHeirLifecyclePacket(packet, context);
+  assert.equal(result.ok, false);
+  assert.ok(result.issues.some((issue) => issue.code === "SANCTUARY_ALLOCATION_NOT_APPROVED"));
+});
+
+test("concrete promotion verifier rejects receipt that does not match pending record", () => {
+  const packet = validSourceIntake();
+  packet.records[0].promotion_state = "SANCTUARY_ALLOCATED";
+  packet.records[0].pending_state = "BORN";
+  packet.records[0].birth_event = verifiedBirth();
+  packet.records[0].maternal_batch = verifiedBatch();
+  packet.records[0].approved_snapshot_ref = "registry-successor-approved";
+  packet.records[0].sanctuary_allocation_ref = "sanctuary-allocation-approved";
+
+  const context = buildSuccessorLifecycleVerificationContext({
+    manifest: currentManifest,
+    authorityDomain: "anchor-court-heir-registry",
+    sanctuaryState: boundSanctuary(),
+    approvedSanctuaryAllocations: [{ ...approvedAllocation, pendingKey: "different-pending-key" }],
+  });
+  const result = validateSuccessorHeirLifecyclePacket(packet, context);
+  assert.equal(result.ok, false);
+  assert.ok(result.issues.some((issue) => issue.code === "SANCTUARY_ALLOCATION_NOT_APPROVED"));
 });
