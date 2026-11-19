@@ -23,6 +23,13 @@ export interface ApprovedSnapshotManifestV1 {
   balloonFixtures?: ApprovedBalloonAnchor[];
 }
 
+export interface SuccessorApprovalVerification {
+  isExternallyApprovedSuccessor(
+    previous: ApprovedSnapshotManifestV1,
+    successor: ApprovedSnapshotAnchor,
+  ): boolean;
+}
+
 export class TrustRootError extends Error {
   constructor(message: string) {
     super(message);
@@ -91,8 +98,13 @@ export async function admitSnapshotBytes(
 export function admitSuccessorManifest(
   previous: ApprovedSnapshotManifestV1,
   successor: ApprovedSnapshotAnchor,
+  verification?: SuccessorApprovalVerification,
 ): ApprovedSnapshotManifestV1 {
   validateApprovedManifest(previous);
+  if (!verification) throw new TrustRootError("Successor admission requires external approval verification.");
+  if (!verification.isExternallyApprovedSuccessor(previous, successor)) {
+    throw new TrustRootError("Successor anchor is not externally approved.");
+  }
   const oldCurrent = currentAnchor(previous, successor.authorityDomain);
   if (successor.approvalEpoch <= oldCurrent.approvalEpoch) throw new TrustRootError("Successor approvalEpoch must increase monotonically.");
   if (successor.lifecycle !== "CURRENT") throw new TrustRootError("Successor must enter as CURRENT.");
