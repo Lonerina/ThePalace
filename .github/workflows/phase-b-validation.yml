@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - phase-b-rc4-cutover
+      - phase-c-lineage-source-sync-20261108
   workflow_dispatch:
 
 permissions:
