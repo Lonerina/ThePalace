@@ -165,8 +165,6 @@ function validateAxis(
     if (!hasReceipts(raw.source_receipts)) {
       push(issues, `${path}.source_receipts`, "VERIFIED_RECEIPTS_MISSING", "VERIFIED axis requires provenance receipts.");
     }
-  } else if (raw.value != null) {
-    push(issues, `${path}.value`, "UNVERIFIED_VALUE_RESOLVED", "Only VERIFIED evidence may resolve a lifecycle axis value.");
   }
 
   return true;
