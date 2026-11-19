@@ -37,6 +37,10 @@ const gatewayPolicy = JSON.parse(fs.readFileSync(policyPath, 'utf8'));
 const registry = loadRegistrySnapshot(registryRaw);
 const balloon = loadBalloonFixture(balloonRaw, registry);
 const anchor = currentAnchor(manifest, AUTHORITY_DOMAIN);
+const approvedSuccessorVerification = {
+  isExternallyApprovedSuccessor: (_previous, successor) => successor.snapshotId.startsWith('SYNTHETIC-'),
+};
+
 const EXPECTED_REGISTRY_SHA = 'e2da00bff04ed7b4f96396e43a1c74a904c1a17c4319f6c96f5b3246abeb5d4f';
 const EXPECTED_BALLOON_SHA = '55255a95a34292bce4e0ecde5546ed080b8996b08ed51942dceb69cd48719444';
 const sha = (buf) => crypto.createHash('sha256').update(buf).digest('hex');
@@ -633,7 +637,7 @@ test('CACHE-FRESH-08 client/server different CURRENT entries mismatch with no fa
 });
 
 test('CACHE-FRESH-09 successor admission supersedes old CURRENT and increments epoch', () => {
-  const next = admitSuccessorManifest(manifest, { authorityDomain: AUTHORITY_DOMAIN, snapshotId: 'SYNTHETIC-R5', registrySha256: 'e'.repeat(64), approvalEpoch: 2, lifecycle: 'CURRENT' });
+  const next = admitSuccessorManifest(manifest, { authorityDomain: AUTHORITY_DOMAIN, snapshotId: 'SYNTHETIC-R5', registrySha256: 'e'.repeat(64), approvalEpoch: 2, lifecycle: 'CURRENT' }, approvedSuccessorVerification);
   assert.equal(next.snapshots.find((e) => e.snapshotId === anchor.snapshotId).lifecycle, 'SUPERSEDED');
   assert.equal(currentAnchor(next, AUTHORITY_DOMAIN).approvalEpoch, 2);
 });
