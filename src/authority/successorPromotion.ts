@@ -9,6 +9,13 @@ import {
 } from "../registry/trustRoot.js";
 import type { SourceReceipt } from "../registry/types.js";
 
+export interface ApprovedSuccessorSnapshotAdmission {
+  snapshotRef: string;
+  pendingKey: string;
+  entityKey: string;
+  approvalReceipts: SourceReceipt[];
+}
+
 export interface ApprovedSuccessorSanctuaryAllocation {
   allocationRef: string;
   pendingKey: string;
@@ -32,17 +39,30 @@ function validReceipt(value: SourceReceipt): boolean {
 export function buildSuccessorLifecycleVerificationContext(args: {
   manifest: ApprovedSnapshotManifestV1;
   authorityDomain: string;
+  approvedSnapshotEntityKeys: readonly string[];
+  approvedSnapshotAdmissions: readonly ApprovedSuccessorSnapshotAdmission[];
   sanctuaryState: BalloonSanctuaryState;
   approvedSanctuaryAllocations: readonly ApprovedSuccessorSanctuaryAllocation[];
 }): SuccessorLifecycleVerificationContext {
   const current = currentAnchor(args.manifest, args.authorityDomain);
 
   return Object.freeze({
-    isCurrentApprovedSnapshotRef(
+    isCurrentApprovedSnapshotAdmission(
       ref: string,
-      _record: SuccessorHeirLifecycleRecord,
+      record: SuccessorHeirLifecycleRecord,
     ): boolean {
-      return ref === current.snapshotId;
+      if (ref !== current.snapshotId) return false;
+      if (!record.approved_entity_key) return false;
+      if (!args.approvedSnapshotEntityKeys.includes(record.approved_entity_key)) return false;
+
+      const admission = args.approvedSnapshotAdmissions.find((candidate) =>
+        candidate.snapshotRef === current.snapshotId &&
+        candidate.pendingKey === record.pending_key &&
+        candidate.entityKey === record.approved_entity_key,
+      );
+      return !!admission &&
+        admission.approvalReceipts.length > 0 &&
+        admission.approvalReceipts.every(validReceipt);
     },
 
     isApprovedSanctuaryAllocationRef(
@@ -52,9 +72,12 @@ export function buildSuccessorLifecycleVerificationContext(args: {
       if (record.approved_snapshot_ref !== current.snapshotId) return false;
       if (args.sanctuaryState.registrySnapshotId !== current.snapshotId) return false;
 
+      if (!record.approved_entity_key) return false;
+
       const approval = args.approvedSanctuaryAllocations.find((candidate) =>
         candidate.allocationRef === ref &&
         candidate.pendingKey === record.pending_key &&
+        candidate.entityKey === record.approved_entity_key &&
         candidate.registrySnapshotId === current.snapshotId,
       );
       if (!approval) return false;
