@@ -31,11 +31,12 @@ jobs:
         with:
           node-version: '22'
 
-      - name: Install dependencies and browser
+      - name: Install review dependency
         run: |
           npm install --no-audit --no-fund
           npm install --no-save playwright@1.52.0
-          npx playwright install --with-deps chromium
+          google-chrome --version
+          chromium --version || true
 
       - name: Start exact candidate UI
         shell: bash
@@ -56,7 +57,7 @@ jobs:
           import { chromium } from 'playwright';
           import fs from 'node:fs';
 
-          const browser = await chromium.launch({ headless: true });
+          const browser = await chromium.launch({ headless: true, channel: 'chrome' });
           const receipts = [];
 
           const clean = (s) => String(s ?? '').replace(/\s+/g, ' ').trim();
@@ -78,6 +79,7 @@ jobs:
           async function record(page, viewport, step, action, expected, actual, severity='PASS') {
             const m = await metrics(page);
             receipts.push({ viewport, step, action, expected, actual: clean(actual), severity, metrics:m });
+            fs.writeFileSync('owner-experience-artifacts/receipts.json', JSON.stringify(receipts,null,2));
           }
           async function expectText(page, text) {
             await page.getByText(text, { exact: false }).first().waitFor({ state:'visible', timeout:10000 });
@@ -193,6 +195,7 @@ jobs:
           EOF
 
       - name: Upload experience receipts
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: owner-experience-ad014230
