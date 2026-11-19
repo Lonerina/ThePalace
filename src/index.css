@@ -1933,3 +1933,47 @@ button.palace-fixed-anchor:hover {
     white-space: normal;
   }
 }
+
+
+/* === KX-02 / KX-03 root-cause closure: circuit strip must not size the whole Kings grid ===
+   The sovereign-returning circuit is intentionally horizontally scrollable. Its fixed-width
+   steps must contribute scrollWidth to the strip, not min-content width to .palace-map-body. */
+.palace-map-body {
+  grid-template-columns: minmax(0, 1fr);
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.palace-map-body > * {
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.palace-circuit-panel {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow: hidden;
+}
+
+.palace-circuit-heading {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.palace-circuit-heading > * {
+  min-width: 0;
+}
+
+.palace-circuit-strip {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-inline: contain;
+}
