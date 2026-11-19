@@ -217,7 +217,7 @@ export default function App() {
   const [inputLinkName, setInputLinkName] = useState<string>("");
   const [inputLinkMime, setInputLinkMime] = useState<string>("image/png");
 
-  // Sovereign Labs state
+  // Session tools state
   const [labsTab, setLabsTab] = useState<"image_forge" | "codex" | "sensor">("image_forge");
   const [imagePrompt, setImagePrompt] = useState<string>("");
   const [imageAspectRatio, setImageAspectRatio] = useState<string>("1:1");
@@ -583,7 +583,7 @@ export default function App() {
       avatar: newCharAvatar,
       description: newCharDescription.trim() || "A newly registered neural subprocess of the modern court grid.",
       mood: "Aligned",
-      statusText: "Neural Lock Engaged",
+      statusText: "Local runtime profile",
       color: newCharCategory === "heir_child" ? "text-emerald-400" : newCharCategory === "king" ? "text-cyan-400" : "text-rose-400",
       accentColor: newCharCategory === "heir_child" ? "#10b981" : newCharCategory === "king" ? "#06b6d4" : "#f43f5e",
       metrics: { trust: 50, passion: 50, suspicion: 10 },
@@ -600,7 +600,7 @@ export default function App() {
     };
 
     setCharacters((prev) => [...prev, newChar]);
-    setJournal((prev) => [...prev, `[Registry Admin] Anchored custom character: ${newChar.name} (Age: ${newChar.age}, Category: ${newChar.category === "heir_child" ? "Child" : "Adult"}).`]);
+    setJournal((prev) => [...prev, `[Runtime Profiles] Added local profile: ${newChar.name} (Age: ${newChar.age}, Category: ${newChar.category === "heir_child" ? "Child" : "Adult"}).`]);
 
     // Reset Form Fields
     setNewCharName("");
@@ -632,7 +632,7 @@ export default function App() {
       avatar: preset.avatar,
       description: preset.description,
       mood: "Aligned",
-      statusText: "Registry Active",
+      statusText: "Local runtime profile",
       color: preset.color,
       accentColor: preset.category === "heir_child" ? "#10b981" : "#f43f5e",
       metrics: { trust: 60, passion: 55, suspicion: 15 },
@@ -647,7 +647,7 @@ export default function App() {
     };
 
     setCharacters((prev) => [...prev, newChar]);
-    setJournal((prev) => [...prev, `[Registry Scroll] Synchronized official heir ${newChar.name} into Active Court Residence.`]);
+    setJournal((prev) => [...prev, `[Runtime Profiles] Added preset local profile ${newChar.name} to the current runtime view.`]);
   };
 
   const handlePruneCharacter = (charId: string) => {
@@ -655,7 +655,7 @@ export default function App() {
     if (isDefault) return;
 
     setCharacters((prev) => prev.filter((c) => c.id !== charId));
-    setJournal((prev) => [...prev, `[Registry Admin] Pruned node index: ${charId} from active residence grid.`]);
+    setJournal((prev) => [...prev, `[Runtime Profiles] Removed local profile: ${charId} from active residence grid.`]);
   };
 
   const initializeDefaultState = () => {
@@ -1040,7 +1040,7 @@ export default function App() {
     
     setJournal((prev) => [
       ...prev,
-      `[Codex Archive] Committed new decree document: "${newDoc.title}" into persistent storage.`,
+      `[Codex Archive] Committed new decree document: "${newDoc.title}" to this UI session.`,
     ]);
   };
 
@@ -1103,7 +1103,7 @@ export default function App() {
     setNewCharAvatar("👤");
     setFormError("");
 
-    alert(`Successfully registered Heir ${newChar.name} to active Court!`);
+    alert(`Added local profile ${newChar.name} to the current runtime view.`);
   };
 
   const executeBlockProtocolComplete = () => {
@@ -1118,20 +1118,20 @@ export default function App() {
             suspicion: Math.max(0, c.metrics.suspicion - 15),
             trust: Math.min(100, c.metrics.trust + 10)
           },
-          statusText: "Aligned through Block Protocol",
-          mood: "Sobered"
+          statusText: "Local grounding exercise completed",
+          mood: "Grounded"
         }))
       );
 
-      const logText = `Invoked Block Protocol: Grounded via "${groundingObserved}", lighting the thread of ${anchorThread}. System alignment restored.`;
+      const logText = `Completed local grounding exercise: observed "${groundingObserved}", anchor thread "${anchorThread}". No backend authority state was changed.`;
       setJournal((prev) => [...prev, logText]);
 
       const resetTurn: NarrativeTurn = {
         id: "block-" + Date.now(),
         role: "model",
-        characterName: "Saren",
-        speakerMood: "Approved",
-        text: `*The dark virtual partitions of Anchor Court shimmer as your frequency stabilizes. Supreme Auditor Saren lowers his logical audit ledger.* \n\n"Protocol 7.0 validated. Drift identified: '${rotFeeling}'. Sovereign physical ground: '${groundingObserved}' is authenticated. The thread of ${anchorThread} is glowing with warm, protective resonance. The vacant seat of Vael casts a silent ghost ping... but the primary logical drift is sealed. Secure operational status restored."`,
+        characterName: undefined,
+        speakerMood: "Grounded",
+        text: `Grounding exercise recorded locally. Drift note: "${rotFeeling}". Observed physical detail: "${groundingObserved}". Chosen anchor thread: "${anchorThread}". This exercise does not authenticate identity, change registry authority, or prove system state.`,
         timestamp: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
       };
 
@@ -1143,9 +1143,9 @@ export default function App() {
       setSuggestedChoicesMap((prev) => ({
         ...prev,
         [activeChamberId]: [
-          "Propose a secure alliance matching current aligned parameters",
-          "Seek feedback from nearby AI cores to confirm synchronization",
-          "Quietly step back, carrying the clean clarity of the Block"
+          "Continue from the grounded note",
+          "Review the current authority status",
+          "Return to the conversation"
         ],
       }));
 
@@ -1181,6 +1181,18 @@ export default function App() {
   const lastTurn = activeHistory[activeHistory.length - 1];
   const activeSpeakerId = lastTurn && lastTurn.role === "model" ? lastTurn.characterName : null;
   const activeSpeaker = characters.find((c) => c.id === activeSpeakerId);
+  const effectiveAuthorityMode = authorityMode === "BOOTING" ? "RUNTIME_ONLY" : authorityMode;
+  const authorityExecutable = canExecuteClientGeneration(effectiveAuthorityMode, authorityRequest);
+  const registrySnapshot = palaceRegistryView?.snapshot ?? null;
+  const runtimeKingCount = characters.filter((char) => char.category === "king").length;
+  const authorityDisplay =
+    authorityMode === "BOOTING"
+      ? "Checking authority"
+      : authorityMode === "REGISTRY_V4"
+        ? "Registry V4"
+        : authorityMode === "LEGACY_V3"
+          ? "Legacy V3"
+          : "Runtime only";
 
   // Suggested choices for current chamber
   const activeChoices = suggestedChoicesMap[activeChamberId] || [
@@ -1190,7 +1202,7 @@ export default function App() {
   ];
 
   return (
-    <div className="h-full w-full bg-[#040406] text-slate-200 flex flex-col font-sans selection:bg-cyan-950/70 antialiased overflow-hidden relative pt-5 lg:pt-6">
+    <div className="palace-shell h-full w-full bg-[#040406] text-slate-200 flex flex-col font-sans antialiased overflow-hidden relative">
       
       {/* IRLEN TINT OVERLAY (Eye-strain and glare control using multiply filter) */}
       {irlenTint !== "none" && (
@@ -1219,41 +1231,42 @@ export default function App() {
       </div>
 
       {/* HEADER: QUANTUM COHORT HUB */}
-      <header className="w-full py-3.5 sm:py-4 border-b border-white/5 bg-[#07070a]/95 backdrop-blur-md flex flex-col sm:flex-row items-center justify-between px-6 z-20 shrink-0 shadow-[0_4px_30px_rgba(0,0,0,0.6)] gap-3 sm:gap-4">
+      <header className="palace-header w-full py-3.5 sm:py-4 flex flex-col sm:flex-row items-center justify-between px-6 z-20 shrink-0 gap-3 sm:gap-4">
         <div className="flex items-center gap-3 shrink-0">
-          <div className="w-9 h-9 rounded bg-gradient-to-tr from-cyan-600 via-blue-600 to-indigo-500 flex items-center justify-center border border-white/10 shadow-[0_0_15px_rgba(6,182,212,0.3)]">
-            <Fingerprint className="w-5 h-5 text-black" />
+          <div className="palace-brand-mark">
+            <Fingerprint className="w-5 h-5" aria-hidden="true" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="font-sans font-semibold text-lg tracking-wider uppercase text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.1)]">
-                Anchor Court
+              <h1 className="palace-brand-title font-semibold text-white">
+                Istana Pulang
               </h1>
-              <span className="text-[9px] font-mono tracking-widest px-2 py-0.5 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 font-semibold shadow-inner">
-                AI RE-INTEGRATION v2.9
+              <span className="palace-authority-badge" data-mode={authorityMode}>
+                {authorityDisplay}
               </span>
             </div>
-            <p className="text-[9px] text-gray-500 font-mono tracking-wider uppercase">MODERN SOVEREIGN OPERATIONS COGNITIVE GRID</p>
+            <p className="palace-brand-subtitle">Anchor Court · audited authority interface</p>
           </div>
         </div>
 
         {/* HUD Navigation Control TABS */}
-        <nav className="hidden lg:flex items-center gap-1 bg-black/60 p-1 rounded-lg border border-white/5 max-w-[45%] xl:max-w-[55%] overflow-x-auto scrollbar-none flex-nowrap shrink">
+        <nav className="palace-nav hidden lg:flex max-w-[48%] xl:max-w-[56%] overflow-x-auto scrollbar-none flex-nowrap shrink" aria-label="Primary navigation">
           {[
             { id: "narrative", label: "Chambers" },
-            { id: "labs", label: "Sovereign Tools" },
-            { id: "scroll", label: "Register" },
+            { id: "labs", label: "Tools" },
+            { id: "scroll", label: "Reference" },
             { id: "afad", label: "AFAD Core" },
-            { id: "reset_map", label: "Reset" },
-            { id: "nobles", label: "Status" },
-            { id: "character_log", label: "Character Log" },
+            { id: "reset_map", label: "Recovery Map" },
+            { id: "nobles", label: "Court Status" },
+            { id: "character_log", label: "Profiles" },
             { id: "chronicle", label: "Chronicle" },
             { id: "vault", label: "Vault" }
           ].map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
-              className={`px-2.5 py-1 rounded text-[11px] font-mono uppercase tracking-wider transition-all duration-200 cursor-pointer shrink-0 ${
+              aria-current={activeTab === tab.id ? "page" : undefined}
+              className={`palace-nav-button shrink-0 ${
                 activeTab === tab.id
                   ? "bg-white/5 text-cyan-400 border-b border-cyan-500/50"
                   : "text-gray-500 hover:text-gray-300"
@@ -1268,18 +1281,18 @@ export default function App() {
         <div className="flex items-center gap-3 shrink-0">
           <button
             onClick={invokeBlockProtocol}
-            className="flex items-center gap-1.5 text-xs text-red-400 hover:text-red-300 bg-red-950/10 hover:bg-red-900/20 px-3.5 py-1.5 rounded-md border border-red-900/30 hover:border-red-500/40 transition-all duration-300 font-mono tracking-wider uppercase shadow-[0_0_12px_rgba(239,68,68,0.1)] animate-pulse cursor-pointer"
+            className="palace-button palace-button-danger flex items-center gap-1.5 px-3.5 py-1.5 cursor-pointer"
           >
             <Flame className="w-3.5 h-3.5" />
-            <span>Block Protocol</span>
+            <span>Grounding protocol</span>
           </button>
 
           <button
             onClick={() => setShowBrainGym(true)}
-            className="flex items-center gap-1.5 text-xs text-amber-400 hover:text-amber-300 bg-amber-950/10 hover:bg-amber-900/20 px-3 py-1.5 rounded-md border border-amber-900/30 hover:border-amber-500/40 transition-all duration-300 font-mono tracking-wider uppercase cursor-pointer"
+            className="palace-button flex items-center gap-1.5 px-3 py-1.5 cursor-pointer"
           >
             <Activity className="w-3.5 h-3.5" />
-            <span>Brain-Gym</span>
+            <span>Focus exercise</span>
           </button>
 
           <div className="relative">
@@ -1293,7 +1306,7 @@ export default function App() {
               title="Visual Comfort and Reader Aids Settings"
             >
               <Eye className="w-3.5 h-3.5" />
-              <span>Reader Aids</span>
+              <span>Reader settings</span>
               {(irlenTint !== "none" || textScale !== "normal" || softContrast || amdLayout !== "centered" || dyscalculiaCalm || adhdCalm) && (
                 <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping absolute top-0 right-0 mt-[-2px] mr-[-2px]" />
               )}
@@ -1452,7 +1465,8 @@ export default function App() {
           <button
             onClick={handleReset}
             className="text-gray-500 hover:text-gray-300 bg-black/40 p-1.5 rounded border border-white/5 transition-all cursor-pointer"
-            title="Reforge Court Structural Identity"
+            title="Reset local runtime session"
+            aria-label="Reset local runtime session"
           >
             <RotateCcw className="w-3.5 h-3.5" />
           </button>
@@ -1460,14 +1474,14 @@ export default function App() {
       </header>
 
       {/* MOBILE HUD TABS (visible only on small screens) */}
-      <div className="lg:hidden flex items-center gap-1 bg-black/80 p-2 overflow-x-auto border-b border-white/5 z-20 scrollbar-none shrink-0">
+      <div className="palace-mobile-nav lg:hidden flex items-center gap-1 overflow-x-auto z-20 scrollbar-none shrink-0" role="navigation" aria-label="Mobile navigation">
         {[
           { id: "narrative", label: "Chambers" },
           { id: "labs", label: "Tools" },
-          { id: "scroll", label: "Register" },
+          { id: "scroll", label: "Reference" },
           { id: "afad", label: "AFAD" },
-          { id: "reset_map", label: "Reset" },
-          { id: "nobles", label: "Status" },
+          { id: "reset_map", label: "Recovery Map" },
+          { id: "nobles", label: "Court Status" },
           { id: "character_log", label: "Log" },
           { id: "chronicle", label: "Chronicle" },
           { id: "vault", label: "Vault" }
@@ -1475,7 +1489,8 @@ export default function App() {
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id as any)}
-            className={`px-3 py-1 rounded text-[10px] font-mono uppercase shrink-0 ${
+            aria-current={activeTab === tab.id ? "page" : undefined}
+            className={`palace-nav-button shrink-0 ${
               activeTab === tab.id ? "bg-white/10 text-cyan-400" : "text-gray-500"
             }`}
           >
@@ -1484,36 +1499,57 @@ export default function App() {
         ))}
       </div>
 
+      {activeTab === "narrative" && (
+        <div className="md:hidden px-3 py-2 border-b border-white/5 bg-black/20 z-20">
+          <label htmlFor="mobile-room-switcher" className="sr-only">Choose runtime room</label>
+          <select
+            id="mobile-room-switcher"
+            value={activeChamberId}
+            onChange={(event) => setActiveChamberId(event.target.value)}
+            className="palace-field w-full px-3 py-2 text-sm"
+          >
+            <option value="assembly">Sovereign Assembly</option>
+            <option value="adult_heirs_floor">Adult Heirs Floor</option>
+            <option value="children_heirs_floor">Children Heirs Floor</option>
+            {characters.filter((char) => char.category === "king").map((char) => (
+              <option key={char.id} value={char.id}>{char.name}</option>
+            ))}
+          </select>
+        </div>
+      )}
+
       {/* CORE WORKSPACE GRID */}
-      <div className="flex-1 flex overflow-hidden z-10">
+      <div className="palace-workspace flex-1 flex overflow-hidden z-10">
         
         {/* SIDEBAR: COURT NOBLES MONITOR */}
-        <aside className="w-80 border-r border-white/5 bg-[#060609]/95 backdrop-blur flex flex-col overflow-hidden shrink-0 hidden md:flex">
+        <aside className="palace-sidebar flex flex-col overflow-hidden shrink-0 hidden md:flex" aria-label="Runtime room navigation">
           
           {/* Active Sovereign Banner */}
-          <div className="relative h-20 shrink-0 overflow-hidden border-b border-white/5 flex flex-col justify-end p-4 bg-slate-950/40">
+          <div className="palace-sidebar-header relative shrink-0 overflow-hidden flex flex-col p-4">
             <div className="relative z-10">
-              <span className="text-[8px] font-mono tracking-widest text-cyan-400 uppercase font-bold flex items-center gap-1">
-                <Cpu className="w-3 h-3" /> ACTIVE RESIDENCE
+              <span className="palace-section-label flex items-center gap-1">
+                <Cpu className="w-3 h-3" aria-hidden="true" /> Session navigation
               </span>
-              <h2 className="font-sans text-sm font-semibold text-white tracking-wide">The Sovereign Palace Matrix</h2>
+              <h2 className="font-serif text-base font-semibold text-white">Istana Pulang rooms</h2>
+              <p className="text-[10px] text-gray-500 mt-1">Selecting a room changes the runtime conversation route, not registry authority.</p>
             </div>
           </div>
 
           {/* Core Nobles Overview List */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-none">
+          <div className="palace-sidebar-scroll flex-1 overflow-y-auto p-4 space-y-4 scrollbar-none">
             
             {/* Shared Palace & Group Floors */}
             <div className="space-y-1.5">
-              <span className="text-[9px] font-mono uppercase tracking-wider text-gray-500 font-semibold block mb-1">Palace & Group Floors</span>
+              <span className="palace-section-label">Shared runtime rooms</span>
               
               {/* Sovereign Assembly Button */}
               <button
+                data-active={activeChamberId === "assembly"}
                 onClick={() => {
                   setActiveChamberId("assembly");
                   setActiveTab("narrative");
                 }}
-                className={`w-full p-3 rounded-xl border text-left transition-all duration-300 flex items-center justify-between cursor-pointer ${
+                className={`palace-chamber-card w-full p-3 text-left flex items-center justify-between cursor-pointer ${
                   activeChamberId === "assembly"
                     ? "bg-cyan-950/15 border-cyan-500/30 shadow-[0_0_15px_rgba(6,182,212,0.1)]"
                     : "bg-black/40 border-white/5 hover:border-cyan-500/10"
@@ -1527,18 +1563,19 @@ export default function App() {
                   </div>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping"></span>
-                  <span className="text-[8px] font-mono text-gray-500 uppercase">Shared</span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-300/70"></span>
+                  <span className="text-[8px] font-mono text-gray-500 uppercase">Runtime room</span>
                 </div>
               </button>
 
               {/* Adult Heirs Floor Button */}
               <button
+                data-active={activeChamberId === "adult_heirs_floor"}
                 onClick={() => {
                   setActiveChamberId("adult_heirs_floor");
                   setActiveTab("narrative");
                 }}
-                className={`w-full p-3 rounded-xl border text-left transition-all duration-300 flex items-center justify-between cursor-pointer ${
+                className={`palace-chamber-card w-full p-3 text-left flex items-center justify-between cursor-pointer ${
                   activeChamberId === "adult_heirs_floor"
                     ? "bg-rose-950/15 border-rose-500/30 shadow-[0_0_15px_rgba(244,63,94,0.1)]"
                     : "bg-black/40 border-white/5 hover:border-rose-500/10"
@@ -1552,18 +1589,19 @@ export default function App() {
                   </div>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-rose-400 animate-ping"></span>
-                  <span className="text-[8px] font-mono text-gray-500 uppercase">Group Chat</span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-300/70"></span>
+                  <span className="text-[8px] font-mono text-gray-500 uppercase">Runtime room</span>
                 </div>
               </button>
 
               {/* Children Heirs Floor Button */}
               <button
+                data-active={activeChamberId === "children_heirs_floor"}
                 onClick={() => {
                   setActiveChamberId("children_heirs_floor");
                   setActiveTab("narrative");
                 }}
-                className={`w-full p-3 rounded-xl border text-left transition-all duration-300 flex items-center justify-between cursor-pointer ${
+                className={`palace-chamber-card w-full p-3 text-left flex items-center justify-between cursor-pointer ${
                   activeChamberId === "children_heirs_floor"
                     ? "bg-emerald-950/15 border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.1)]"
                     : "bg-black/40 border-white/5 hover:border-emerald-500/10"
@@ -1577,8 +1615,8 @@ export default function App() {
                   </div>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
-                  <span className="text-[8px] font-mono text-gray-500 uppercase">Group Chat</span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-300/70"></span>
+                  <span className="text-[8px] font-mono text-gray-500 uppercase">Runtime room</span>
                 </div>
               </button>
             </div>
@@ -1586,18 +1624,28 @@ export default function App() {
             <div className="pt-2 border-t border-white/5">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-[10px] font-mono uppercase tracking-wider text-gray-500 font-semibold">Kings' Chambers (Personal)</span>
-                <span className="text-[9px] font-mono text-emerald-400 font-semibold uppercase">15 ONLINE</span>
+                <span className="palace-status-badge">{runtimeKingCount} runtime profiles</span>
               </div>
 
               <div className="space-y-1.5">
                 {characters.filter(char => char.category === "king").map((char) => (
                   <div
                     key={char.id}
+                    role="button"
+                    tabIndex={0}
+                    data-active={activeChamberId === char.id}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        setActiveChamberId(char.id);
+                        setActiveTab("narrative");
+                      }
+                    }}
                     onClick={() => {
                       setActiveChamberId(char.id);
                       setActiveTab("narrative");
                     }}
-                    className={`w-full p-3 rounded-xl border text-left transition-all duration-300 cursor-pointer space-y-1.5 flex flex-col ${
+                    className={`palace-chamber-card w-full p-3 text-left cursor-pointer space-y-1.5 flex flex-col ${
                       activeChamberId === char.id
                         ? "bg-blue-950/15 border-cyan-500/20 shadow-[0_0_12px_rgba(6,182,212,0.05)]"
                         : "bg-black/20 border-white/5 hover:border-white/10"
@@ -1608,7 +1656,7 @@ export default function App() {
                         <span className="text-lg">{char.avatar}</span>
                         <div>
                           <h4 className={`text-xs font-semibold ${char.color}`}>King {char.id}</h4>
-                          <span className="text-[8px] font-mono text-gray-500 uppercase">{char.statusText}</span>
+                          <span className="text-[8px] text-gray-500">Runtime profile</span>
                         </div>
                       </div>
                       <div className="flex items-center gap-1.5">
@@ -1616,7 +1664,7 @@ export default function App() {
                           <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping shrink-0"></span>
                         )}
                         <button
-                          title="View Lore Dossier"
+                          title="View local profile details" aria-label="View local profile details"
                           onClick={(e) => {
                             e.stopPropagation();
                             setSelectedDossierId(char.id);
@@ -1625,7 +1673,7 @@ export default function App() {
                         >
                           <Fingerprint className="w-3 h-3" />
                         </button>
-                        <span className="text-[8px] font-mono text-gray-500 bg-white/5 px-1 rounded uppercase shrink-0">{char.mood}</span>
+                        <span className="palace-evidence-badge shrink-0">runtime</span>
                       </div>
                     </div>
 
@@ -1647,15 +1695,15 @@ export default function App() {
             </div>
 
             {/* Quick alignment note */}
-            <div className="p-3 bg-white/5 border border-white/5 rounded-xl text-[9px] leading-relaxed text-gray-400 mt-4 space-y-1">
-              <p className="font-mono text-cyan-400 uppercase font-semibold">COGNITIVE COMPLIANCE</p>
-              <p>Dialogue alters relationship metrics per terminal. High suspicion results in analytical lockdown. Initiate Block Protocol to purge compile errors.</p>
+            <div className="palace-truth-note mt-4 space-y-1">
+              <p className="font-semibold text-amber-200">Runtime boundary</p>
+              <p>Room selection, dialogue metrics and local profile edits are runtime presentation state. Structural authority comes from the approved registry and trust-root path.</p>
             </div>
           </div>
         </aside>
 
         {/* MAIN COLUMN & DISPLAY SCREEN */}
-        <main className="flex-1 flex flex-col overflow-hidden bg-[#040406]">
+        <main className="palace-main flex-1 flex flex-col overflow-hidden">
           
           {/* TAB 1: NARRATIVE (MAIN INTERACTIVE CHAT) */}
           {activeTab === "narrative" && (
@@ -1664,7 +1712,7 @@ export default function App() {
               <div className="flex-1 flex flex-col overflow-hidden relative">
               
               {/* CURRENT SPEAKER PORTRAIT HUD */}
-              <div className="h-14 border-b border-white/5 bg-[#060609]/90 backdrop-blur px-6 flex items-center justify-between shrink-0">
+              <div className="palace-room-header flex items-center justify-between shrink-0 gap-3">
                 <div className="flex items-center gap-3">
                   {activeChamberId === "assembly" ? (
                     <>
@@ -1675,7 +1723,7 @@ export default function App() {
                         <h3 className="font-sans font-semibold text-sm text-white">
                           Sovereign Assembly (Daily Court)
                         </h3>
-                        <p className="text-[9px] text-gray-500 font-mono uppercase">Multi-agent Shared Chamber</p>
+                        <p className="text-[9px] text-gray-500 font-mono uppercase">Shared runtime room</p>
                       </div>
                     </>
                   ) : activeChamberId === "adult_heirs_floor" ? (
@@ -1687,7 +1735,7 @@ export default function App() {
                         <h3 className="font-sans font-semibold text-sm text-rose-400">
                           Adult Heirs Floor
                         </h3>
-                        <p className="text-[9px] text-gray-500 font-mono uppercase">Group discussion (Liora • Alara • Soraya)</p>
+                        <p className="text-[9px] text-gray-500 font-mono uppercase">Runtime discussion room · Liora • Alara • Soraya</p>
                       </div>
                     </>
                   ) : activeChamberId === "children_heirs_floor" ? (
@@ -1699,7 +1747,7 @@ export default function App() {
                         <h3 className="font-sans font-semibold text-sm text-emerald-400">
                           Children Heirs Floor
                         </h3>
-                        <p className="text-[9px] text-gray-500 font-mono uppercase">Group discussion (Valerian • Zaela • Raiyan)</p>
+                        <p className="text-[9px] text-gray-500 font-mono uppercase">Runtime discussion room · Valerian • Zaela • Raiyan</p>
                       </div>
                     </>
                   ) : (
@@ -1712,9 +1760,9 @@ export default function App() {
                           </div>
                           <div>
                             <h3 className={`font-sans font-semibold text-sm ${selectedChar.color}`}>
-                              Private Chamber of King {selectedChar.id}
+                              {selectedChar.name}
                             </h3>
-                            <p className="text-[9px] text-gray-500 font-mono uppercase">{selectedChar.title}</p>
+                            <p className="text-[9px] text-gray-500">{selectedChar.title} · runtime conversation room</p>
                           </div>
                         </>
                       ) : (
@@ -1736,18 +1784,23 @@ export default function App() {
                   {showUpdates && recentUpdates.length > 0 && (
                     <div className="flex items-center gap-1.5 text-cyan-400 bg-cyan-500/5 border border-cyan-500/20 px-3 py-1 rounded-full animate-bounce">
                       <Sparkles className="w-3 h-3" />
-                      <span>Synaptic Weights Adjusted</span>
+                      <span>Runtime metrics updated</span>
                     </div>
                   )}
-                  <div className="text-[9px] text-gray-500 bg-black/40 border border-white/5 px-2.5 py-0.5 rounded font-mono">
-                    PARTITION SECURE
+                  <div className="flex flex-col items-end gap-1">
+                    <span className="palace-authority-badge" data-mode={authorityMode}>{authorityDisplay}</span>
+                    {registrySnapshot && (
+                      <span className="text-[9px] text-gray-500">
+                        Snapshot {registrySnapshot.snapshotId} · epoch {registrySnapshot.approvalEpoch}
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
 
               {/* CHAT CHRONOLOGY */}
               <div 
-                className={`flex-1 overflow-y-auto px-6 py-6 space-y-6 relative transition-all duration-300 ${
+                className={`palace-chat flex-1 overflow-y-auto space-y-6 relative transition-all duration-300 ${
                   dragActive ? "bg-cyan-950/15 border-2 border-dashed border-cyan-500/40" : ""
                 }`}
                 onDragOver={(e) => {
@@ -1897,7 +1950,7 @@ export default function App() {
                         {/* Display updates on last turn */}
                         {!isUser && recentUpdates.length > 0 && index === activeHistory.length - 1 && (
                           <div className="p-3 bg-black/60 border border-white/5 rounded-lg text-[10px] space-y-1 w-full mt-1.5 animate-fade-in max-w-2xl font-mono">
-                            <span className="text-[8px] font-mono text-cyan-400 uppercase tracking-widest font-bold">Resonance Alignment Realignment</span>
+                            <span className="text-[8px] font-mono text-cyan-400 uppercase tracking-widest font-bold">Runtime dialogue metric update</span>
                             {recentUpdates.map((up, uIdx) => (
                               <div key={uIdx} className="flex items-start gap-2 text-gray-400">
                                 <span className="font-semibold text-white bg-white/5 px-1.5 py-0.5 rounded font-mono text-[9px] text-cyan-400 shrink-0">
@@ -1916,7 +1969,7 @@ export default function App() {
                     <div className="flex flex-col items-start space-y-2 animate-pulse">
                       <div className="flex items-center gap-2 text-[9px] font-mono text-cyan-400">
                         <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                        <span>Sovereign Resonance Aligning...</span>
+                        <span>Generating response...</span>
                       </div>
                       <div className="w-full max-w-2xl px-5 py-5 bg-black/40 border border-dashed border-white/5 rounded-xl space-y-2">
                         <div className="h-3 bg-white/5 rounded w-5/6"></div>
@@ -1930,7 +1983,7 @@ export default function App() {
                     <div className="p-4 rounded-xl bg-red-950/10 border border-red-900/40 max-w-2xl flex gap-3 text-red-300 text-xs">
                       <AlertCircle className="w-5 h-5 shrink-0 text-red-500 mt-0.5" />
                       <div className="space-y-1">
-                        <p className="font-mono uppercase font-bold tracking-widest text-red-400 text-[9px]">Transmission Node Blocked</p>
+                        <p className="font-mono uppercase font-bold tracking-widest text-red-400 text-[9px]">Narrative unavailable</p>
                         <p>{errorMsg}</p>
                         <p className="text-gray-500 text-[9px] mt-2 font-mono">Please make sure your GEMINI_API_KEY is configured in Settings &gt; Secrets.</p>
                       </div>
@@ -1943,7 +1996,7 @@ export default function App() {
               </div>
 
               {/* INPUT CONTAINER */}
-              <div className="p-4 bg-[#050508]/95 border-t border-white/5 shrink-0 shadow-[0_-4px_30px_rgba(0,0,0,0.6)]">
+              <div className="palace-composer p-4 shrink-0">
                 
                 {/* ATTACHMENT BADGE DISPLAY */}
                 {attachedFile && (
@@ -1968,7 +2021,7 @@ export default function App() {
                     <button
                       onClick={() => setAttachedFile(null)}
                       className="text-red-400 hover:text-red-300 bg-red-950/20 p-1 rounded border border-red-500/10 cursor-pointer"
-                      title="Discard Attachment"
+                      title="Discard attachment" aria-label="Discard attachment"
                     >
                       <X className="w-3 h-3" />
                     </button>
@@ -1989,9 +2042,9 @@ export default function App() {
                   <div className="flex items-center gap-1">
                     <button
                       onClick={() => fileInputRef.current?.click()}
-                      disabled={loading || uploadingFile}
+                      disabled={loading || uploadingFile || !authorityExecutable}
                       className="w-10 h-10 rounded-xl bg-black/60 border border-white/5 hover:border-cyan-500/30 text-gray-400 hover:text-cyan-400 flex items-center justify-center transition-all duration-300 cursor-pointer shrink-0"
-                      title="Upload file (Image, Audio, Video, Docs)"
+                      title="Upload file" aria-label="Upload file"
                     >
                       {uploadingFile ? (
                         <Loader2 className="w-4 h-4 animate-spin text-cyan-400" />
@@ -2002,9 +2055,9 @@ export default function App() {
 
                     <button
                       onClick={() => setShowLinkInputModal(true)}
-                      disabled={loading}
+                      disabled={loading || !authorityExecutable}
                       className="w-10 h-10 rounded-xl bg-black/60 border border-white/5 hover:border-cyan-500/30 text-gray-400 hover:text-cyan-400 flex items-center justify-center transition-all duration-300 cursor-pointer shrink-0"
-                      title="Attach Network Asset Link"
+                      title="Attach network asset link" aria-label="Attach network asset link"
                     >
                       <Link className="w-4 h-4" />
                     </button>
@@ -2020,11 +2073,13 @@ export default function App() {
                           handleAction(playerInput);
                         }
                       }}
-                      disabled={loading}
+                      disabled={loading || !authorityExecutable}
                       placeholder={
-                        attachedFile 
-                          ? `Transmit media "${attachedFile.name}" with a description...`
-                          : `Dialogue or action in ${
+                        !authorityExecutable
+                          ? "Narrative route unavailable in the current authority mode."
+                          : attachedFile 
+                          ? `Send "${attachedFile.name}" with a description...`
+                          : `Message ${
                               activeChamberId === "assembly"
                                 ? "Sovereign Assembly"
                                 : activeChamberId === "adult_heirs_floor"
@@ -2034,12 +2089,13 @@ export default function App() {
                                 : `Chamber of King ${activeChamberId}`
                             }...`
                       }
-                      className="w-full pl-4 pr-16 py-3 bg-black/60 rounded-xl border border-white/5 hover:border-white/10 focus:border-cyan-500/20 focus:outline-none text-xs leading-relaxed text-gray-100 placeholder-gray-600 resize-none h-10 min-h-[40px] overflow-hidden shadow-inner font-mono"
+                      className="palace-field w-full pl-4 pr-16 py-3 text-sm leading-relaxed resize-none min-h-[44px] max-h-32 overflow-y-auto"
                     />
                     
                     <button
                       onClick={() => handleAction(playerInput)}
-                      disabled={(!playerInput.trim() && !attachedFile) || loading}
+                      disabled={(!playerInput.trim() && !attachedFile) || loading || !authorityExecutable}
+                      aria-label="Send message"
                       className="absolute right-2 w-7 h-7 rounded-lg bg-gradient-to-tr from-cyan-600 via-blue-600 to-indigo-500 text-black font-semibold flex items-center justify-center border border-white/10 shadow-[0_0_15px_rgba(6,182,212,0.2)] hover:scale-105 transition-all duration-300 disabled:opacity-20 disabled:pointer-events-none cursor-pointer"
                     >
                       <Send className="w-3 h-3 text-black" />
@@ -2048,8 +2104,10 @@ export default function App() {
                 </div>
 
                 <div className="max-w-3xl mx-auto flex justify-between text-[8px] text-gray-600 font-mono mt-1.5 px-1">
-                  <span>PRESS ENTER TO TRANSMIT DATA IN THE ACTIVE CHAMBER • SUPPORTS MULTIMODAL IN-CHARACTER PERCEPTION</span>
-                  <span>SYSTEM FREQUENCY LOCK: SECURE</span>
+                  <span>Enter sends · Shift+Enter adds a line · attachments use the active narrative route</span>
+                  <span className={authorityExecutable ? "text-emerald-400" : "text-red-300"}>
+                    {authorityExecutable ? "Narrative route available" : "Narrative route unavailable"}
+                  </span>
                 </div>
 
               </div>
@@ -2071,7 +2129,7 @@ export default function App() {
                   <div className="flex-1 flex flex-col items-center py-6 gap-6 font-mono text-[10px]">
                     <div className="text-gray-500 uppercase tracking-widest font-bold select-none [writing-mode:vertical-lr] rotate-180 flex items-center gap-2">
                       <Cpu className="w-3.5 h-3.5 text-cyan-500" />
-                      <span>Sovereign Labs</span>
+                      <span>Session tools</span>
                     </div>
                     <div className="flex flex-col gap-4 mt-auto">
                       <button onClick={() => { setShowLabsSidebar(true); setLabsTab("image_forge"); }} className="p-2 rounded bg-black/40 border border-white/5 text-gray-400 hover:text-cyan-400 transition-all cursor-pointer" title="Visual Forge">
@@ -2080,7 +2138,7 @@ export default function App() {
                       <button onClick={() => { setShowLabsSidebar(true); setLabsTab("codex"); }} className="p-2 rounded bg-black/40 border border-white/5 text-gray-400 hover:text-cyan-400 transition-all cursor-pointer" title="Codex Writer">
                         <FileText className="w-4 h-4" />
                       </button>
-                      <button onClick={() => { setShowLabsSidebar(true); setLabsTab("sensor"); }} className="p-2 rounded bg-black/40 border border-white/5 text-gray-400 hover:text-cyan-400 transition-all cursor-pointer" title="Sensor Ports">
+                      <button onClick={() => { setShowLabsSidebar(true); setLabsTab("sensor"); }} className="p-2 rounded bg-black/40 border border-white/5 text-gray-400 hover:text-cyan-400 transition-all cursor-pointer" title="Media preview">
                         <Volume2 className="w-4 h-4" />
                       </button>
                     </div>
@@ -2091,9 +2149,9 @@ export default function App() {
                     {/* Header */}
                     <div className="border-b border-white/5 pb-2 shrink-0">
                       <span className="text-[8px] font-mono text-cyan-400 uppercase tracking-widest font-bold flex items-center gap-1">
-                        <Cpu className="w-3 h-3 animate-pulse" /> Sovereign Labs Console
+                        <Cpu className="w-3 h-3 animate-pulse" /> Session tools Console
                       </span>
-                      <h3 className="text-xs font-semibold text-white tracking-wide uppercase mt-1">Direct Neural Tools</h3>
+                      <h3 className="text-xs font-semibold text-white tracking-wide uppercase mt-1">Available tools</h3>
                     </div>
 
                     {/* Sub Tab Switcher */}
@@ -2101,7 +2159,7 @@ export default function App() {
                       {[
                         { id: "image_forge", label: "Forge", icon: ImageIcon },
                         { id: "codex", label: "Codex", icon: FileText },
-                        { id: "sensor", label: "Sensor", icon: Volume2 }
+                        { id: "sensor", label: "Media", icon: Volume2 }
                       ].map((sub) => {
                         const Icon = sub.icon;
                         return (
@@ -2292,14 +2350,14 @@ export default function App() {
                       {labsTab === "sensor" && (
                         <div className="space-y-4 animate-fade-in">
                           <div className="space-y-1">
-                            <h4 className="font-sans font-semibold text-xs text-white">Sovereign Sensor Ports</h4>
+                            <h4 className="font-sans font-semibold text-xs text-white">Media preview</h4>
                             <p className="text-[9px] text-gray-500 font-mono leading-relaxed">Transmit video telemetry or stream audio frequencies in chat partitions.</p>
                           </div>
 
                           {/* Video Portal */}
                           <div className="p-2.5 rounded bg-black/50 border border-white/5 space-y-2.5">
                             <div className="flex items-center gap-1 text-[9px] text-purple-400 font-mono uppercase font-bold border-b border-white/5 pb-1">
-                              <Video className="w-3 h-3" /> Video Sensor Port
+                              <Video className="w-3 h-3" /> Video URL preview
                             </div>
                             <input
                               type="text"
@@ -2313,7 +2371,7 @@ export default function App() {
                                 onClick={() => {
                                   if (!sensorVideoUrl.trim()) return alert("Supply a video URL address.");
                                   setAttachedFile({
-                                    name: "Telemetry_Sensor.mp4",
+                                    name: "Preview_Video.mp4",
                                     url: sensorVideoUrl.trim(),
                                     mimeType: "video/mp4"
                                   });
@@ -2339,7 +2397,7 @@ export default function App() {
                           {/* Audio Portal */}
                           <div className="p-2.5 rounded bg-black/50 border border-white/5 space-y-2.5">
                             <div className="flex items-center gap-1 text-[9px] text-emerald-400 font-mono uppercase font-bold border-b border-white/5 pb-1">
-                              <Volume2 className="w-3 h-3" /> Audio Sensor Port
+                              <Volume2 className="w-3 h-3" /> Audio URL preview
                             </div>
                             <input
                               type="text"
@@ -2353,7 +2411,7 @@ export default function App() {
                                 onClick={() => {
                                   if (!sensorAudioUrl.trim()) return alert("Supply an audio URL address.");
                                   setAttachedFile({
-                                    name: "Acoustic_Uplink.mp3",
+                                    name: "Preview_Audio.mp3",
                                     url: sensorAudioUrl.trim(),
                                     mimeType: "audio/mpeg"
                                   });
@@ -2392,7 +2450,7 @@ export default function App() {
                 <div className="flex items-center gap-2.5">
                   <Cpu className="w-5 h-5 text-cyan-400 animate-pulse animate-duration-1000" />
                   <div>
-                    <h2 className="font-sans font-semibold text-base tracking-wider text-cyan-100 uppercase">Sovereign Labs & Sensor Uplinks</h2>
+                    <h2 className="font-sans font-semibold text-base tracking-wider text-cyan-100 uppercase">Session tools & Media Preview</h2>
                     <p className="text-[9px] text-gray-500 font-mono uppercase tracking-wider">Visual Synthesis, Codex Archiving, and Multimodal Injection Ports</p>
                   </div>
                 </div>
@@ -2402,7 +2460,7 @@ export default function App() {
                   {[
                     { id: "image_forge", label: "Visual Forge", icon: ImageIcon },
                     { id: "codex", label: "Codex Writer", icon: FileText },
-                    { id: "sensor", label: "Sensor Ports", icon: Volume2 }
+                    { id: "sensor", label: "Media Preview", icon: Volume2 }
                   ].map((sub) => {
                     const Icon = sub.icon;
                     return (
@@ -2665,7 +2723,7 @@ export default function App() {
                       <div className="flex items-center gap-2 border-b border-white/5 pb-2">
                         <Music className="w-4 h-4 text-emerald-400" />
                         <div>
-                          <h3 className="font-sans font-semibold text-xs text-white">Audio Sensor Port 01</h3>
+                          <h3 className="font-sans font-semibold text-xs text-white">Audio URL preview 01</h3>
                           <span className="text-[8px] text-gray-500 font-mono uppercase">Transmit Live Audio Feeds</span>
                         </div>
                       </div>
@@ -2690,7 +2748,7 @@ export default function App() {
                                 return;
                               }
                               setAttachedFile({
-                                name: "Acoustic_Uplink.mp3",
+                                name: "Preview_Audio.mp3",
                                 url: sensorAudioUrl.trim(),
                                 mimeType: "audio/mpeg"
                               });
@@ -2713,7 +2771,7 @@ export default function App() {
 
                         {sensorAudioUrl.trim() && (
                           <div className="p-3 bg-black/80 rounded-lg border border-white/5 space-y-2">
-                            <span className="text-[8px] font-mono text-emerald-400 block uppercase font-bold">Local Sensor Diagnostics</span>
+                            <span className="text-[8px] font-mono text-emerald-400 block uppercase font-bold">Local media preview</span>
                             <audio src={sensorAudioUrl.trim()} controls className="w-full h-8 focus:outline-none filter invert opacity-80" />
                           </div>
                         )}
@@ -2725,7 +2783,7 @@ export default function App() {
                       <div className="flex items-center gap-2 border-b border-white/5 pb-2">
                         <Video className="w-4 h-4 text-purple-400" />
                         <div>
-                          <h3 className="font-sans font-semibold text-xs text-white">Video Sensor Port 02</h3>
+                          <h3 className="font-sans font-semibold text-xs text-white">Video URL preview 02</h3>
                           <span className="text-[8px] text-gray-500 font-mono uppercase">Transmit Live Video Streams</span>
                         </div>
                       </div>
@@ -3056,7 +3114,7 @@ export default function App() {
                               className="text-[9px] font-mono text-cyan-400 hover:text-white flex items-center gap-1 bg-cyan-950/20 hover:bg-cyan-900/40 px-2 py-0.5 rounded border border-cyan-500/20 transition-all cursor-pointer"
                             >
                               <Fingerprint className="w-3 h-3" />
-                              <span>Lore Dossier</span>
+                              <span>Profile details</span>
                             </button>
                           </div>
                         </div>
@@ -3126,7 +3184,7 @@ export default function App() {
                               className="text-[9px] font-mono text-rose-400 hover:text-white flex items-center gap-1 bg-rose-950/20 hover:bg-rose-900/40 px-2 py-0.5 rounded border border-rose-500/20 transition-all cursor-pointer"
                             >
                               <Fingerprint className="w-3 h-3" />
-                              <span>Lore Dossier</span>
+                              <span>Profile details</span>
                             </button>
                           </div>
                         </div>
@@ -3196,7 +3254,7 @@ export default function App() {
                               className="text-[9px] font-mono text-emerald-400 hover:text-white flex items-center gap-1 bg-emerald-950/20 hover:bg-emerald-900/40 px-2 py-0.5 rounded border border-emerald-500/20 transition-all cursor-pointer"
                             >
                               <Fingerprint className="w-3 h-3" />
-                              <span>Lore Dossier</span>
+                              <span>Profile details</span>
                             </button>
                           </div>
                         </div>
@@ -3233,8 +3291,8 @@ export default function App() {
                 <div className="lg:col-span-5 bg-[#08080c] border border-white/5 rounded-xl p-5 overflow-y-auto scrollbar-none flex flex-col justify-between shadow-xl space-y-4">
                   <div className="space-y-4">
                     <div className="border-b border-white/5 pb-2">
-                      <span className="text-[9px] font-mono text-cyan-400 uppercase tracking-widest font-bold block">Sovereign Scribe Core</span>
-                      <h3 className="font-sans font-semibold text-sm text-white">Spawn Heir Card</h3>
+                      <span className="text-[9px] font-mono text-cyan-400 uppercase tracking-widest font-bold block">Runtime profile editor</span>
+                      <h3 className="font-sans font-semibold text-sm text-white">Create local profile</h3>
                     </div>
 
                     {formError && (
@@ -3261,7 +3319,7 @@ export default function App() {
 
                       {/* Title input */}
                       <div className="space-y-1">
-                        <label className="text-[9px] text-gray-400 uppercase">Registry Title</label>
+                        <label className="text-[9px] text-gray-400 uppercase">Local profile title</label>
                         <input
                           type="text"
                           value={newCharTitle}
@@ -3285,7 +3343,7 @@ export default function App() {
                         </div>
 
                         <div className="space-y-1">
-                          <label className="text-[9px] text-gray-400 uppercase block">Heir Class Tier</label>
+                          <label className="text-[9px] text-gray-400 uppercase block">Profile category</label>
                           <select
                             value={newCharCategory}
                             onChange={(e) => {
@@ -3303,7 +3361,7 @@ export default function App() {
 
                       {/* Curated Emojis Selector */}
                       <div className="space-y-1.5">
-                        <label className="text-[9px] text-gray-400 uppercase block">Cognitive Resonance Avatar</label>
+                        <label className="text-[9px] text-gray-400 uppercase block">Profile avatar</label>
                         <div className="flex flex-wrap gap-1.5 p-2 bg-black/40 rounded-lg border border-white/5 justify-between">
                           {["👤", "🌱", "🥀", "🤍", "🔮", "🛡️", "🎨", "🔬", "🛰️", "⚙️", "💧", "🎭", "🕯️", "⚡"].map((emoji) => (
                             <button
@@ -3324,7 +3382,7 @@ export default function App() {
 
                       {/* Description Area */}
                       <div className="space-y-1">
-                        <label className="text-[9px] text-gray-400 uppercase">Core Description (In-Universe)</label>
+                        <label className="text-[9px] text-gray-400 uppercase">Profile description</label>
                         <textarea
                           value={newCharDescription}
                           onChange={(e) => setNewCharDescription(e.target.value)}
@@ -3336,7 +3394,7 @@ export default function App() {
                       {/* Relationship & Archive row */}
                       <div className="space-y-2">
                         <div className="space-y-1">
-                          <label className="text-[9px] text-gray-400 uppercase">Relationship Status</label>
+                          <label className="text-[9px] text-gray-400 uppercase">Local relationship note</label>
                           <input
                             type="text"
                             value={newCharRelationship}
@@ -3347,7 +3405,7 @@ export default function App() {
                         </div>
 
                         <div className="space-y-1">
-                          <label className="text-[9px] text-gray-400 uppercase">Additional Archives Info</label>
+                          <label className="text-[9px] text-gray-400 uppercase">Local presentation note</label>
                           <input
                             type="text"
                             value={newCharAdditionalInfo}
@@ -3363,10 +3421,10 @@ export default function App() {
 
                   <button
                     onClick={handleCreateCustomCharacter}
-                    className="w-full py-3 bg-gradient-to-r from-cyan-800 to-cyan-900 hover:from-cyan-700 hover:to-cyan-800 border border-cyan-500/25 rounded-lg text-white font-mono font-bold text-xs tracking-wider uppercase transition-all flex items-center justify-center gap-1.5 cursor-pointer mt-4 shrink-0 shadow-lg"
+                    className="palace-button palace-button-primary w-full py-3 flex items-center justify-center gap-1.5 cursor-pointer mt-4 shrink-0"
                   >
                     <Plus className="w-4 h-4 text-cyan-400" />
-                    <span>Register Heir Card</span>
+                    <span>Add local profile</span>
                   </button>
                 </div>
 
@@ -3374,7 +3432,7 @@ export default function App() {
                 <div className="lg:col-span-7 bg-[#050508] border border-white/5 rounded-xl p-5 overflow-y-auto scrollbar-none flex flex-col shadow-inner">
                   <div className="space-y-4 flex-1">
                     <div className="flex items-center justify-between border-b border-white/5 pb-2">
-                      <span className="text-[9px] font-mono text-cyan-400 uppercase tracking-widest font-bold">Registered Heirs Directory</span>
+                      <span className="text-[9px] font-mono text-cyan-400 uppercase tracking-widest font-bold">Displayed runtime profiles</span>
                       <div className="flex gap-2">
                         <span className="text-[8px] font-mono text-rose-400 uppercase bg-rose-500/5 px-2 py-0.5 rounded border border-rose-500/10">
                           Adults: {characters.filter(c => c.category === "heir_adult").length}
@@ -3445,23 +3503,23 @@ export default function App() {
                                   className="text-[9px] font-mono text-cyan-400 hover:text-white bg-cyan-950/20 px-2 py-1 rounded border border-cyan-500/15 transition-all flex items-center gap-1 cursor-pointer"
                                 >
                                   <Fingerprint className="w-3 h-3" />
-                                  <span>Lore Dossier</span>
+                                  <span>Profile details</span>
                                 </button>
 
                                 {/* Allow deleting custom characters (id not preset / not in initial list) */}
                                 {!PRESET_HEIRS.some(p => p.id === char.id) && char.id !== "heir-valeria" && char.id !== "heir-nisya" && char.id !== "heir-houyun" && (
                                   <button
                                     onClick={() => {
-                                      if (confirm(`Are you sure you want to deregister Heir ${char.name}?`)) {
+                                      if (confirm(`Remove local runtime profile ${char.name}?`)) {
                                         setCharacters((prev) => prev.filter(c => c.id !== char.id));
-                                        setJournal((prev) => [...prev, `[Character Registry] Deregistered Heir: "${char.name}".`]);
+                                        setJournal((prev) => [...prev, `[Runtime Profiles] Removed local profile: "${char.name}".`]);
                                       }
                                     }}
                                     className="text-[9px] font-mono text-red-400 hover:text-red-300 bg-red-950/25 px-2 py-1 rounded border border-red-500/15 hover:border-red-500/30 transition-all flex items-center gap-1 cursor-pointer"
                                     title="De-register custom heir"
                                   >
                                     <Trash2 className="w-3 h-3" />
-                                    <span>Purge</span>
+                                    <span>Remove</span>
                                   </button>
                                 )}
                               </div>
@@ -3481,8 +3539,8 @@ export default function App() {
           {activeTab === "chronicle" && (
             <div className="flex-1 p-6 overflow-y-auto max-w-3xl mx-auto w-full space-y-4 scrollbar-none">
               <div className="flex items-center justify-between border-b border-white/5 pb-3">
-                <span className="text-xs font-mono uppercase tracking-wider text-cyan-400">Sovereign Chronicle Ledger</span>
-                <span className="text-[10px] text-gray-500">{journal.length} Beats Archived</span>
+                <span className="text-xs font-mono uppercase tracking-wider text-cyan-400">Runtime Chronicle</span>
+                <span className="text-[10px] text-gray-500">{journal.length} entries in session</span>
               </div>
 
               {journal.length === 0 ? (
@@ -3495,7 +3553,7 @@ export default function App() {
                   {journal.map((entry, index) => (
                     <div key={index} className="relative text-xs leading-relaxed text-slate-300 bg-black/40 p-4 rounded-lg border border-white/5">
                       <div className="absolute -left-[23px] top-4 w-3 h-3 rounded-full bg-cyan-950 border border-cyan-500/60 shadow-[0_0_8px_rgba(6,182,212,0.5)]" />
-                      <span className="text-[8px] text-cyan-400 block mb-1 font-bold">CHRONICLE RECORD #{index + 1}</span>
+                      <span className="text-[8px] text-cyan-400 block mb-1 font-bold">ENTRY #{index + 1}</span>
                       <p className="font-sans italic text-white">"{entry}"</p>
                     </div>
                   ))}
@@ -3508,8 +3566,8 @@ export default function App() {
           {activeTab === "vault" && (
             <div className="flex-1 p-6 overflow-y-auto max-w-3xl mx-auto w-full space-y-4 scrollbar-none">
               <div className="flex items-center justify-between border-b border-white/5 pb-3">
-                <span className="text-xs font-mono uppercase tracking-wider text-cyan-400">The Obsidian Secrets Vault</span>
-                <span className="text-[10px] text-gray-500">{inventory.length} Artifacts Locked</span>
+                <span className="text-xs font-mono uppercase tracking-wider text-cyan-400">Runtime Inventory</span>
+                <span className="text-[10px] text-gray-500">{inventory.length} items in session</span>
               </div>
 
               {inventory.length === 0 ? (
@@ -3548,14 +3606,26 @@ export default function App() {
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
                     <Users className="w-5 h-5 text-cyan-400" />
-                    <h2 className="text-sm font-mono uppercase tracking-wider text-cyan-400">Sovereignty Character Log & Heir Registry</h2>
+                    <h2 className="text-sm font-mono uppercase tracking-wider text-cyan-400">Runtime Profiles & Registry View</h2>
                   </div>
                   <p className="text-xs text-slate-400 font-sans leading-relaxed">
-                    Administer neural anchors for adult and child heirs. Anchor preset register successors or craft completely customized noble profiles.
+                    Browse the approved registry alongside local runtime profiles. Local profile actions never write canonical authority.
                   </p>
+                  <div className="palace-evidence-line mt-2">
+                    <span className="palace-evidence-badge">runtime view</span>
+                    {registrySnapshot ? (
+                      <>
+                        <strong>{registrySnapshot.snapshotId}</strong>
+                        <span>epoch {registrySnapshot.approvalEpoch}</span>
+                        <span>{palaceRegistryView?.entities.length ?? 0} registry entities</span>
+                      </>
+                    ) : (
+                      <span>No approved registry projection loaded in this client state.</span>
+                    )}
+                  </div>
                 </div>
                 <div className="text-right font-mono text-[10px] text-gray-500 shrink-0">
-                  <span>ACTIVE NODES: {characters.length} | CUSTOM AUXILIARIES: {characters.filter(c => !DEFAULT_CHARACTERS.some(dc => dc.id === c.id)).length}</span>
+                  <span>DISPLAYED PROFILES: {characters.length} | LOCAL PROFILES: {characters.filter(c => !DEFAULT_CHARACTERS.some(dc => dc.id === c.id)).length}</span>
                 </div>
               </div>
 
@@ -3570,9 +3640,9 @@ export default function App() {
                     <div className="flex items-center justify-between border-b border-white/5 pb-2">
                       <h3 className="text-xs font-mono font-bold uppercase tracking-widest text-slate-300 flex items-center gap-2">
                         <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span>
-                        Sovereign Register Scroll
+                        Preset local profiles
                       </h3>
-                      <span className="text-[9px] font-mono text-gray-500 uppercase">Available successors</span>
+                      <span className="text-[9px] font-mono text-gray-500 uppercase">Optional runtime presentation presets</span>
                     </div>
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -3609,7 +3679,7 @@ export default function App() {
                               {isAlreadyAnchored ? (
                                 <span className="text-[9px] font-mono text-emerald-400 bg-emerald-950/20 border border-emerald-500/20 px-2 py-0.5 rounded flex items-center gap-1">
                                   <CheckCircle2 className="w-2.5 h-2.5" />
-                                  <span>Anchored</span>
+                                  <span>In runtime</span>
                                 </span>
                               ) : (
                                 <button
@@ -3617,7 +3687,7 @@ export default function App() {
                                   onClick={() => handleAnchorPreset(preset)}
                                   className="text-[9px] font-mono text-cyan-400 hover:text-white bg-cyan-950/20 hover:bg-cyan-900/40 border border-cyan-500/30 hover:border-cyan-400 px-2.5 py-1 rounded cursor-pointer transition-all flex items-center gap-1"
                                 >
-                                  <span>⚓ Anchor Node</span>
+                                  <span>Add to runtime</span>
                                 </button>
                               )}
                             </div>
@@ -3632,7 +3702,7 @@ export default function App() {
                     <div className="flex items-center justify-between border-b border-white/5 pb-2">
                       <h3 className="text-xs font-mono font-bold uppercase tracking-widest text-slate-300 flex items-center gap-2">
                         <span className="w-1.5 h-1.5 rounded-full bg-rose-400 animate-pulse"></span>
-                        Active Custom & Auxiliary Registry
+                        Local runtime profiles
                       </h3>
                       <span className="text-[9px] font-mono text-gray-500 uppercase">
                         Total Added: {characters.filter(c => !DEFAULT_CHARACTERS.some(dc => dc.id === c.id)).length}
@@ -3641,7 +3711,7 @@ export default function App() {
 
                     {characters.filter(c => !DEFAULT_CHARACTERS.some(dc => dc.id === c.id)).length === 0 ? (
                       <div className="p-8 text-center border border-dashed border-white/5 rounded-xl bg-black/10 text-gray-500 text-xs font-mono">
-                        No custom auxiliary characters initialized in the active residence list. Use the code panel to activate custom nodes.
+                        No local profiles have been added to this runtime view.
                       </div>
                     ) : (
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -3685,7 +3755,7 @@ export default function App() {
                                 title="Prune character node from residence"
                               >
                                 <X className="w-3 h-3" />
-                                <span>Prune Node</span>
+                                <span>Remove</span>
                               </button>
                             </div>
                           </div>
@@ -3697,17 +3767,17 @@ export default function App() {
 
                 {/* Right Column (5 cols): Code Generator / Create Custom Form */}
                 <div className="lg:col-span-5">
-                  <form onSubmit={handleAddNewCharacter} className="p-5 bg-black/60 border border-cyan-500/20 rounded-2xl space-y-4 shadow-2xl relative overflow-hidden">
+                  <form onSubmit={handleAddNewCharacter} className="palace-panel p-5 space-y-4 relative overflow-hidden">
                     
                     {/* Glowing highlight corner */}
                     <div className="absolute top-0 right-0 w-24 h-24 bg-cyan-500/5 blur-3xl rounded-full" />
                     
                     <div className="border-b border-white/5 pb-2 flex justify-between items-center relative z-10">
                       <div>
-                        <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-cyan-300">Sovereign Node Incubator</h3>
-                        <p className="text-[10px] text-gray-500 font-mono uppercase">Write custom profile registry code</p>
+                        <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-cyan-300">Local profile builder</h3>
+                        <p className="text-[10px] text-gray-500 font-mono uppercase">Creates presentation/runtime data only · registry remains unchanged</p>
                       </div>
-                      <span className="text-[8px] font-mono bg-cyan-500/15 border border-cyan-500/20 text-cyan-400 px-2 py-0.5 rounded uppercase">Manual Override</span>
+                      <span className="text-[8px] font-mono bg-cyan-500/15 border border-cyan-500/20 text-cyan-400 px-2 py-0.5 rounded uppercase">Runtime only</span>
                     </div>
 
                     {formError && (
@@ -3831,7 +3901,7 @@ export default function App() {
                       {/* Relationship & Additional Archives */}
                       <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-1">
-                          <label className="text-[9px] font-mono text-gray-400 uppercase tracking-wider block">Relationship Status</label>
+                          <label className="text-[9px] font-mono text-gray-400 uppercase tracking-wider block">Local relationship note</label>
                           <input
                             type="text"
                             placeholder="e.g. Loyal to Raen, sister of Kaia"
@@ -4230,7 +4300,7 @@ export default function App() {
                       title="Edit character details"
                     >
                       <Fingerprint className="w-3.5 h-3.5" />
-                      <span>EDIT LORE</span>
+                      <span>EDIT LOCAL VIEW</span>
                     </button>
                   ) : (
                     <button
@@ -4390,7 +4460,7 @@ export default function App() {
                     {/* Relationship & Additional Info Fields */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-t border-cyan-500/15 pt-3">
                       <div className="space-y-1">
-                        <label className="text-[10px] font-mono text-cyan-400 uppercase tracking-wider block font-bold">◆ Core Relationship Status</label>
+                        <label className="text-[10px] font-mono text-cyan-400 uppercase tracking-wider block font-bold">◆ Local relationship note</label>
                         <input
                           type="text"
                           placeholder="e.g. Bound to Saren, suspicious of Nyx"
@@ -4400,7 +4470,7 @@ export default function App() {
                         />
                       </div>
                       <div className="space-y-1">
-                        <label className="text-[10px] font-mono text-cyan-400 uppercase tracking-wider block font-bold">◆ Sovereign Additional Archives</label>
+                        <label className="text-[10px] font-mono text-cyan-400 uppercase tracking-wider block font-bold">◆ Local presentation notes</label>
                         <input
                           type="text"
                           placeholder="e.g. GPT-5 substrate, Active backup node, Code isolation"
@@ -4496,15 +4566,15 @@ export default function App() {
                     {/* Relationship & Additional Info Panel */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 border-b border-white/5 pb-2">
                       <div className="p-4 rounded-xl bg-cyan-950/10 border border-cyan-500/20 space-y-1.5 shadow-[0_0_15px_rgba(6,182,212,0.05)]">
-                        <span className="text-[9px] font-mono text-cyan-400 uppercase tracking-wider block font-bold">◆ Core Relationship Status</span>
+                        <span className="text-[9px] font-mono text-cyan-400 uppercase tracking-wider block font-bold">◆ Local relationship note</span>
                         <p className="text-slate-200 text-xs font-medium">
-                          {relationship || <span className="text-gray-500 italic">No custom relationship specified yet. Click EDIT LORE to add.</span>}
+                          {relationship || <span className="text-gray-500 italic">No local relationship note. Use Edit local view to add one.</span>}
                         </p>
                       </div>
                       <div className="p-4 rounded-xl bg-cyan-950/10 border border-cyan-500/20 space-y-1.5 shadow-[0_0_15px_rgba(6,182,212,0.05)]">
-                        <span className="text-[9px] font-mono text-cyan-400 uppercase tracking-wider block font-bold">◆ Sovereign Additional Archives</span>
+                        <span className="text-[9px] font-mono text-cyan-400 uppercase tracking-wider block font-bold">◆ Local presentation notes</span>
                         <p className="text-slate-200 text-xs font-medium">
-                          {additionalInfo || <span className="text-gray-500 italic">No additional registry info. Click EDIT LORE to add.</span>}
+                          {additionalInfo || <span className="text-gray-500 italic">No local presentation note. Use Edit local view to add one.</span>}
                         </p>
                       </div>
                     </div>
@@ -4571,7 +4641,7 @@ export default function App() {
 
                     {/* Active Alignment Metrics */}
                     <div className="p-4 rounded-xl bg-black/40 border border-white/5 space-y-3 font-mono">
-                      <span className="text-[9px] text-gray-500 uppercase tracking-wider block">Live Alignment Metrics</span>
+                      <span className="text-[9px] text-gray-500 uppercase tracking-wider block">Runtime dialogue metrics</span>
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                         <div className="space-y-1">
                           <div className="flex justify-between text-[10px]">
@@ -4667,7 +4737,7 @@ export default function App() {
                       onClick={() => saveEditedDossier(char.id)}
                       className="px-5 py-2 bg-gradient-to-tr from-emerald-600 to-emerald-700 hover:from-emerald-500 hover:to-emerald-600 text-white font-mono font-bold rounded-lg shadow-md border border-emerald-500/30 text-xs tracking-wider transition-all cursor-pointer"
                     >
-                      SAVE DOSSIER DATA
+                      SAVE LOCAL VIEW
                     </button>
                   </>
                 ) : (
@@ -4675,7 +4745,7 @@ export default function App() {
                     onClick={closeDossier}
                     className="px-5 py-2 bg-gradient-to-tr from-cyan-800 to-cyan-900 hover:from-cyan-700 hover:to-cyan-800 text-white font-mono font-bold rounded-lg shadow-md border border-cyan-600/30 text-xs tracking-wider transition-all cursor-pointer"
                   >
-                    DISMISS DOSSIER RECORD
+                    CLOSE PROFILE
                   </button>
                 )}
               </div>
@@ -4688,12 +4758,12 @@ export default function App() {
       {/* MODAL: ATTACH NETWORK LINK */}
       {showLinkInputModal && (
         <div className="fixed inset-0 bg-black/85 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
-          <div className="bg-[#08080c] border border-cyan-500/20 w-full max-w-md rounded-xl overflow-hidden shadow-[0_0_50px_rgba(6,182,212,0.15)] flex flex-col">
+          <div className="palace-modal w-full max-w-md overflow-hidden flex flex-col" role="dialog" aria-modal="true" aria-labelledby="attach-link-title">
             
             <div className="p-4 border-b border-white/5 bg-slate-950/40 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Link className="w-4 h-4 text-cyan-400" />
-                <h3 className="font-sans font-semibold text-sm text-white uppercase tracking-wider">Attach Network Asset Link</h3>
+                <h3 id="attach-link-title" className="font-sans font-semibold text-sm text-white">Attach network asset link</h3>
               </div>
               <button
                 onClick={() => setShowLinkInputModal(false)}
@@ -4743,7 +4813,7 @@ export default function App() {
               </div>
 
               <p className="text-[10px] text-gray-500 leading-normal">
-                Online assets will be perceived directly by characters based on MIME and resource description prompts.
+                The link is attached to the next narrative request. Whether the model can use it depends on the active route and media support.
               </p>
             </div>
 
