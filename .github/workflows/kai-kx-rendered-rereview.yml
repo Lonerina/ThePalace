@@ -186,7 +186,7 @@ jobs:
               const hallPlaceClass = await page.locator('.palace-destination-page').first().getAttribute('class').catch(()=>null);
               note(label,'KX-04','Enter King’s Hall',JSON.stringify({hallTitle,hallPlaceClass}),hallTitle);
               await snap(page, label + '_KX04_kings_hall');
-              const returnFloorHall = page.getByRole('button',{name:/Return to floor landing/i}).first();
+              const returnFloorHall = page.getByRole('button',{name:/Floor landing/i}).first();
               const returnFloorHallVisible = await visible(returnFloorHall);
               await returnFloorHall.click();
               const landingAfterHall = await hasVisibleText(page,'Choose where you want to go');
@@ -197,7 +197,7 @@ jobs:
               const samudraTitle = await hasVisibleText(page,'Samudra Pura · Aurena');
               note(label,'KX-04','Enter Samudra Pura · Aurena',samudraTitle ? 'Destination title visible' : 'Destination title missing',samudraTitle);
               await snap(page, label + '_KX04_samudra_pura');
-              const returnFloorSam = page.getByRole('button',{name:/Return to floor landing/i}).first();
+              const returnFloorSam = page.getByRole('button',{name:/Floor landing/i}).first();
               const returnFloorSamVisible = await visible(returnFloorSam);
               await returnFloorSam.click();
               const landingAfterSam = await hasVisibleText(page,'Choose where you want to go');
@@ -213,7 +213,7 @@ jobs:
               const lioraTitle = await hasVisibleText(page,'Liora Ilai Nur Tsaiyunk · Chamber');
               note(label,'KX-04','Enter Liora Ilai Nur Tsaiyunk · Chamber',lioraTitle ? 'Destination title visible' : 'Destination title missing',lioraTitle);
               await snap(page, label + '_KX04_liora_chamber');
-              const returnFloorLiora = page.getByRole('button',{name:/Return to floor landing/i}).first();
+              const returnFloorLiora = page.getByRole('button',{name:/Floor landing/i}).first();
               const returnFloorLioraVisible = await visible(returnFloorLiora);
               await returnFloorLiora.click();
               const adultLanding = await hasVisibleText(page,'Adult Heirs Floor');
