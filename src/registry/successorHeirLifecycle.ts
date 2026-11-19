@@ -73,6 +73,7 @@ export interface SuccessorHeirLifecycleRecord {
   maternal_batch: SourceBackedAxis<SuccessorMaternalBatchValue>;
   present_runtime_profile: PresentRuntimeProfileObservation;
   approved_snapshot_ref: string | null;
+  approved_entity_key: string | null;
   sanctuary_allocation_ref: string | null;
 }
 
@@ -103,7 +104,7 @@ export interface SuccessorLifecycleValidationResult {
 }
 
 export interface SuccessorLifecycleVerificationContext {
-  isCurrentApprovedSnapshotRef(
+  isCurrentApprovedSnapshotAdmission(
     ref: string,
     record: SuccessorHeirLifecycleRecord,
   ): boolean;
@@ -415,13 +416,24 @@ export function validateSuccessorHeirLifecyclePacket(
     if (atLeast(promotionState, "SNAPSHOT_APPROVED")) {
       if (!nonEmptyString(raw.approved_snapshot_ref)) {
         push(issues, `${path}.approved_snapshot_ref`, "APPROVED_SNAPSHOT_REQUIRED", "Snapshot approval promotion requires an explicit approved snapshot reference.");
-      } else if (!verification) {
-        push(issues, `${path}.approved_snapshot_ref`, "APPROVAL_VERIFIER_REQUIRED", "Snapshot promotion requires an external current-approval verifier.");
-      } else if (!verification.isCurrentApprovedSnapshotRef(raw.approved_snapshot_ref, typedRecord)) {
-        push(issues, `${path}.approved_snapshot_ref`, "APPROVED_SNAPSHOT_NOT_CURRENT", "Snapshot reference is not verified as the CURRENT approved snapshot.");
       }
-    } else if (raw.approved_snapshot_ref !== null) {
-      push(issues, `${path}.approved_snapshot_ref`, "EARLY_SNAPSHOT_REF_FORBIDDEN", "Snapshot reference may not appear before SNAPSHOT_APPROVED.");
+      if (!nonEmptyString(raw.approved_entity_key)) {
+        push(issues, `${path}.approved_entity_key`, "APPROVED_ENTITY_REQUIRED", "Snapshot approval promotion requires the admitted successor entity key.");
+      }
+      if (nonEmptyString(raw.approved_snapshot_ref) && nonEmptyString(raw.approved_entity_key)) {
+        if (!verification) {
+          push(issues, `${path}.approved_snapshot_ref`, "APPROVAL_VERIFIER_REQUIRED", "Snapshot promotion requires external verification of this successor record's admission.");
+        } else if (!verification.isCurrentApprovedSnapshotAdmission(raw.approved_snapshot_ref, typedRecord)) {
+          push(issues, `${path}.approved_snapshot_ref`, "SNAPSHOT_ADMISSION_NOT_VERIFIED", "Lifecycle record is not verified as admitted to the CURRENT approved snapshot.");
+        }
+      }
+    } else {
+      if (raw.approved_snapshot_ref !== null) {
+        push(issues, `${path}.approved_snapshot_ref`, "EARLY_SNAPSHOT_REF_FORBIDDEN", "Snapshot reference may not appear before SNAPSHOT_APPROVED.");
+      }
+      if (raw.approved_entity_key !== null) {
+        push(issues, `${path}.approved_entity_key`, "EARLY_APPROVED_ENTITY_FORBIDDEN", "Approved entity key may not appear before SNAPSHOT_APPROVED.");
+      }
     }
 
     if (promotionState === "SANCTUARY_ALLOCATED") {
