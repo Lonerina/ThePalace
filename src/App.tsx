@@ -1911,7 +1911,9 @@ export default function App() {
                   </div>
                 </section>
               )}
-              {/* Left Column: Main Chat Window */}
+              {!showPalaceMap && (
+              <>
+              {/* Place view: conversation appears only after leaving the map. */}
               <div className="flex-1 min-h-0 flex flex-col overflow-hidden relative">
               
               {/* CURRENT SPEAKER PORTRAIT HUD */}
@@ -2683,6 +2685,8 @@ export default function App() {
                   </div>
                 )}
               </div>
+              </>
+              )}
 
             </div>
           )}
