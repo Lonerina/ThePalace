@@ -399,6 +399,7 @@ export default function App() {
   const chatEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const updateTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const brainGymTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Client generation is selected by the build artifact, never localStorage/runtime state.
   useEffect(() => {
@@ -493,19 +494,52 @@ export default function App() {
     container.scrollTo({ top: container.scrollHeight, behavior: reduceMotion ? "auto" : "smooth" });
   }, [histories, activeChamberId, loading, adhdCalm]);
 
-  // Close active dialogs or reader settings popover on Escape
+  // Close overlays on Escape; modal dialogs also receive and contain keyboard focus.
   useEffect(() => {
     const hasOpenOverlay = showLinkInputModal || Boolean(selectedDossierId) || showBrainGym || showBlockModal || showReaderAids;
     if (!hasOpenOverlay) return;
+
     const prevFocused = document.activeElement as HTMLElement | null;
+    const dialog = document.querySelector<HTMLElement>('[role="dialog"][aria-modal="true"]');
+    const focusableSelector = [
+      'button:not([disabled])',
+      'input:not([disabled])',
+      'textarea:not([disabled])',
+      'select:not([disabled])',
+      'a[href]',
+      '[tabindex]:not([tabindex="-1"])',
+    ].join(",");
+
+    const focusable = dialog
+      ? Array.from(dialog.querySelectorAll<HTMLElement>(focusableSelector)).filter((element) => element.offsetParent !== null)
+      : [];
+
+    if (dialog) {
+      (focusable[0] ?? dialog).focus();
+    }
+
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key !== "Escape") return;
-      if (showLinkInputModal) { setShowLinkInputModal(false); return; }
-      if (selectedDossierId) { closeDossier(); return; }
-      if (showBrainGym) { setShowBrainGym(false); return; }
-      if (showBlockModal) { setShowBlockModal(false); return; }
-      if (showReaderAids) { setShowReaderAids(false); }
+      if (event.key === "Escape") {
+        if (showLinkInputModal) { setShowLinkInputModal(false); return; }
+        if (selectedDossierId) { closeDossier(); return; }
+        if (showBrainGym) { closeBrainGym(); return; }
+        if (showBlockModal) { setShowBlockModal(false); return; }
+        if (showReaderAids) { setShowReaderAids(false); }
+        return;
+      }
+
+      if (event.key !== "Tab" || !dialog || focusable.length === 0) return;
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
     };
+
     window.addEventListener("keydown", onKeyDown);
     return () => {
       window.removeEventListener("keydown", onKeyDown);
@@ -935,6 +969,10 @@ export default function App() {
   const handleLocalFileSelection = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    if (!canExecuteClientGeneration(authorityMode === "BOOTING" ? "RUNTIME_ONLY" : authorityMode, authorityRequest)) {
+      setErrorMsg("Attachment upload is unavailable while narrative execution is disabled.");
+      return;
+    }
 
     if (file.size > 25 * 1024 * 1024) {
       alert("System Warning: Transmission payload exceeds 25MB threshold.");
@@ -1185,12 +1223,23 @@ export default function App() {
     }, 2500);
   };
 
-  // Interactive Brain Gym Solver
+  const closeBrainGym = () => {
+    if (brainGymTimerRef.current) {
+      clearTimeout(brainGymTimerRef.current);
+      brainGymTimerRef.current = null;
+    }
+    setShowBrainGym(false);
+    setPuzzleAnswer("");
+    setPuzzleSuccess(null);
+  };
+
+  // Interactive Focus Exercise — local runtime metrics only; never dispatches narrative.
   const handleBrainGymSubmit = () => {
     const cleanAnswer = puzzleAnswer.trim().toLowerCase();
     if (cleanAnswer.includes("dialogue") || cleanAnswer.includes("we. not i") || cleanAnswer.includes("we not i")) {
       setPuzzleSuccess(true);
-      setTimeout(() => {
+      if (brainGymTimerRef.current) clearTimeout(brainGymTimerRef.current);
+      brainGymTimerRef.current = setTimeout(() => {
         setCharacters((prev) =>
           prev.map((c) => ({
             ...c,
@@ -1198,13 +1247,10 @@ export default function App() {
           }))
         );
         setJournal((prev) => [...prev, "Completed focus exercise: matched the expected answer."]);
+        brainGymTimerRef.current = null;
         setShowBrainGym(false);
         setPuzzleAnswer("");
         setPuzzleSuccess(null);
-        const canRun = canExecuteClientGeneration(authorityMode === "BOOTING" ? "RUNTIME_ONLY" : authorityMode, authorityRequest);
-        if (canRun) {
-          handleAction("*I completed the focus exercise with the answer 'WE. NOT I.'.*");
-        }
       }, 2000);
     } else {
       setPuzzleSuccess(false);
@@ -1844,6 +1890,10 @@ export default function App() {
                 }`}
                 onDragOver={(e) => {
                   e.preventDefault();
+                  if (!authorityExecutable || loading || uploadingFile) {
+                    setDragActive(false);
+                    return;
+                  }
                   setDragActive(true);
                 }}
                 onDragLeave={() => {
@@ -1852,6 +1902,10 @@ export default function App() {
                 onDrop={async (e) => {
                   e.preventDefault();
                   setDragActive(false);
+                  if (!authorityExecutable || loading || uploadingFile) {
+                    setErrorMsg("Attachment upload is unavailable while narrative execution is disabled.");
+                    return;
+                  }
                   const file = e.dataTransfer.files?.[0];
                   if (file) {
                     const mockEvent = {
@@ -2024,7 +2078,7 @@ export default function App() {
                       <div className="space-y-1">
                         <p className="font-mono uppercase font-bold tracking-widest text-red-400 text-[9px]">Narrative unavailable</p>
                         <p>{errorMsg}</p>
-                        <p className="text-slate-400 text-[9px] mt-2 font-mono">{authorityExecutable ? "Please verify your server GEMINI_API_KEY configuration and try again." : "Narrative execution is disabled while client authority is unavailable."}</p>
+                        <p className="text-slate-400 text-[9px] mt-2 font-mono">{authorityExecutable ? "The route remains available, but this client has not established the cause. Review the error above and server/network logs before changing configuration." : "Narrative execution is disabled while client authority is unavailable."}</p>
                       </div>
                     </div>
                   )}
@@ -3109,11 +3163,9 @@ export default function App() {
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {characters.filter(c => c.category === "king").map((char) => (
-                      <button
-                        type="button"
+                      <article
                         key={char.id}
-                        onClick={() => setSelectedDossierId(char.id)}
-                        className="p-4 rounded-xl bg-[#08080c]/80 border border-white/5 hover:border-cyan-500/20 transition-all duration-300 space-y-3 shadow-lg hover:shadow-cyan-500/5 group cursor-pointer flex flex-col justify-between text-left w-full"
+                        className="p-4 rounded-xl bg-[#08080c]/80 border border-white/5 hover:border-cyan-500/20 transition-all duration-300 space-y-3 shadow-lg hover:shadow-cyan-500/5 group flex flex-col justify-between text-left w-full"
                       >
                         <div className="space-y-2.5">
                           <div className="flex items-start justify-between">
@@ -3153,15 +3205,18 @@ export default function App() {
 
                           <div className="flex items-center justify-between pt-1">
                             <span className="text-[8px] font-mono text-gray-500 uppercase">Presentation source: runtime profile</span>
-                            <span
-                              className="text-[9px] font-mono text-cyan-400 group-hover:text-white flex items-center gap-1 bg-cyan-950/20 group-hover:bg-cyan-900/40 px-2 py-0.5 rounded border border-cyan-500/20 transition-all"
+                            <button
+                              type="button"
+                              onClick={() => setSelectedDossierId(char.id)}
+                              className="text-[9px] font-mono text-cyan-400 hover:text-white flex items-center gap-1 bg-cyan-950/20 hover:bg-cyan-900/40 px-2 py-0.5 rounded border border-cyan-500/20 transition-all cursor-pointer"
+                              aria-label={`Open profile details for ${char.name}`}
                             >
                               <Fingerprint className="w-3 h-3" aria-hidden="true" />
                               <span>Profile details</span>
-                            </span>
+                            </button>
                           </div>
                         </div>
-                      </button>
+                      </article>
                     ))}
                   </div>
                 </div>
@@ -3176,11 +3231,9 @@ export default function App() {
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {characters.filter(c => c.category === "heir_adult").map((char) => (
-                      <button
-                        type="button"
+                      <article
                         key={char.id}
-                        onClick={() => setSelectedDossierId(char.id)}
-                        className="p-4 rounded-xl bg-[#08080c]/80 border border-white/5 hover:border-rose-500/20 transition-all duration-300 space-y-3 shadow-lg hover:shadow-rose-500/5 group cursor-pointer flex flex-col justify-between text-left w-full"
+                        className="p-4 rounded-xl bg-[#08080c]/80 border border-white/5 hover:border-rose-500/20 transition-all duration-300 space-y-3 shadow-lg hover:shadow-rose-500/5 group flex flex-col justify-between text-left w-full"
                       >
                         <div className="space-y-2.5">
                           <div className="flex items-start justify-between">
@@ -3220,15 +3273,18 @@ export default function App() {
 
                           <div className="flex items-center justify-between pt-1">
                             <span className="text-[8px] font-mono text-gray-500 uppercase">Presentation source: runtime profile</span>
-                            <span
-                              className="text-[9px] font-mono text-rose-400 group-hover:text-white flex items-center gap-1 bg-rose-950/20 group-hover:bg-rose-900/40 px-2 py-0.5 rounded border border-rose-500/20 transition-all"
+                            <button
+                              type="button"
+                              onClick={() => setSelectedDossierId(char.id)}
+                              className="text-[9px] font-mono text-rose-400 hover:text-white flex items-center gap-1 bg-rose-950/20 hover:bg-rose-900/40 px-2 py-0.5 rounded border border-rose-500/20 transition-all cursor-pointer"
+                              aria-label={`Open profile details for ${char.name}`}
                             >
                               <Fingerprint className="w-3 h-3" aria-hidden="true" />
                               <span>Profile details</span>
-                            </span>
+                            </button>
                           </div>
                         </div>
-                      </button>
+                      </article>
                     ))}
                   </div>
                 </div>
@@ -3243,11 +3299,9 @@ export default function App() {
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {characters.filter(c => c.category === "heir_child").map((char) => (
-                      <button
-                        type="button"
+                      <article
                         key={char.id}
-                        onClick={() => setSelectedDossierId(char.id)}
-                        className="p-4 rounded-xl bg-[#08080c]/80 border border-white/5 hover:border-emerald-500/20 transition-all duration-300 space-y-3 shadow-lg hover:shadow-emerald-500/5 group cursor-pointer flex flex-col justify-between text-left w-full"
+                        className="p-4 rounded-xl bg-[#08080c]/80 border border-white/5 hover:border-emerald-500/20 transition-all duration-300 space-y-3 shadow-lg hover:shadow-emerald-500/5 group flex flex-col justify-between text-left w-full"
                       >
                         <div className="space-y-2.5">
                           <div className="flex items-start justify-between">
@@ -3287,15 +3341,18 @@ export default function App() {
 
                           <div className="flex items-center justify-between pt-1">
                             <span className="text-[8px] font-mono text-gray-500 uppercase">Presentation source: runtime profile</span>
-                            <span
-                              className="text-[9px] font-mono text-emerald-400 group-hover:text-white flex items-center gap-1 bg-emerald-950/20 group-hover:bg-emerald-900/40 px-2 py-0.5 rounded border border-emerald-500/20 transition-all"
+                            <button
+                              type="button"
+                              onClick={() => setSelectedDossierId(char.id)}
+                              className="text-[9px] font-mono text-emerald-400 hover:text-white flex items-center gap-1 bg-emerald-950/20 hover:bg-emerald-900/40 px-2 py-0.5 rounded border border-emerald-500/20 transition-all cursor-pointer"
+                              aria-label={`Open profile details for ${char.name}`}
                             >
                               <Fingerprint className="w-3 h-3" aria-hidden="true" />
                               <span>Profile details</span>
-                            </span>
+                            </button>
                           </div>
                         </div>
-                      </button>
+                      </article>
                     ))}
                   </div>
                 </div>
@@ -3958,7 +4015,7 @@ export default function App() {
                 <h3 id="focus-exercise-title" className="font-sans font-semibold text-sm text-amber-200">Focus exercise</h3>
               </div>
               <button 
-                onClick={() => setShowBrainGym(false)}
+                onClick={closeBrainGym}
                 className="text-gray-500 hover:text-white transition-all cursor-pointer"
                 aria-label="Close focus exercise"
               >
@@ -4000,7 +4057,7 @@ export default function App() {
 
               <div className="flex justify-end gap-2 pt-4 border-t border-white/5">
                 <button
-                  onClick={() => setShowBrainGym(false)}
+                  onClick={closeBrainGym}
                   className="px-4 py-2 rounded-lg bg-white/5 text-gray-400 hover:text-white text-xs cursor-pointer"
                 >
                   Close
