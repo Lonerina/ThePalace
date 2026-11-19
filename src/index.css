@@ -1483,3 +1483,398 @@ button.palace-fixed-anchor:hover {
     padding-block: .7rem;
   }
 }
+
+
+/* === Rendered experience reconciliation: KX-01..KX-04 === */
+
+/* KX-01 — first arrival is a home threshold, not an administration dashboard. */
+.palace-header.is-arrival {
+  min-height: 64px;
+  background: linear-gradient(180deg, rgba(9,10,12,.90), rgba(9,10,12,.68)) !important;
+  border-bottom-color: rgba(213,176,106,.12) !important;
+  box-shadow: none !important;
+}
+
+.palace-header.is-arrival .palace-brand-mark {
+  background: rgba(213,176,106,.08);
+  box-shadow: none;
+}
+
+.palace-header.is-arrival .palace-brand-subtitle {
+  color: rgba(220,213,198,.62) !important;
+  letter-spacing: .12em !important;
+  text-transform: uppercase !important;
+}
+
+.palace-location-summary.arrival-hidden {
+  display: none !important;
+}
+
+.palace-arrival-comfort {
+  position: relative;
+  margin-left: auto;
+}
+
+.palace-arrival-comfort-button {
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  gap: .45rem;
+  padding: .5rem .72rem;
+  border: 1px solid rgba(213,176,106,.14);
+  border-radius: 999px;
+  background: rgba(255,255,255,.018);
+  color: rgba(220,213,198,.72);
+  font-size: .74rem;
+  cursor: pointer;
+}
+
+.palace-arrival-comfort-button:hover,
+.palace-arrival-comfort-button:focus-visible {
+  color: var(--palace-text);
+  border-color: rgba(213,176,106,.32);
+  outline: none;
+}
+
+.palace-map-surface.is-arrival {
+  background:
+    radial-gradient(circle at 50% 28%, rgba(213,176,106,.09), transparent 34%),
+    radial-gradient(circle at 50% 80%, rgba(28,73,87,.08), transparent 40%),
+    rgba(7,8,10,.88);
+}
+
+.palace-map-surface.is-arrival .palace-map-header {
+  max-width: 980px;
+  margin-inline: auto;
+}
+
+.palace-map-surface.is-arrival .palace-map-header .palace-map-kicker {
+  color: rgba(213,176,106,.72);
+}
+
+.palace-map-surface.is-arrival .palace-lobby-grid {
+  gap: .9rem;
+}
+
+.palace-map-surface.is-arrival .palace-destination-door {
+  min-height: 120px;
+  background:
+    linear-gradient(180deg, rgba(213,176,106,.055), rgba(255,255,255,.012)),
+    rgba(4,6,9,.58);
+}
+
+/* KX-02 — prevent padded 100%-width flex surfaces from clipping nested landing cards. */
+.palace-map-surface,
+.palace-map-body,
+.palace-floor-landing,
+.palace-landing-grid,
+.palace-open-floor {
+  box-sizing: border-box;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.palace-map-surface {
+  width: auto;
+}
+
+.palace-floor-landing,
+.palace-open-floor {
+  width: 100%;
+  overflow: visible;
+}
+
+.palace-landing-grid > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
+/* KX-03 — explicit, high-contrast return affordance. */
+.palace-back-lobby {
+  min-height: 38px;
+  min-width: max-content;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .42rem;
+  padding: .5rem .78rem;
+  border: 1px solid rgba(213,176,106,.34);
+  border-radius: 11px;
+  background: rgba(213,176,106,.09);
+  color: #fff0c9;
+  font-family: var(--font-sans);
+  font-size: .78rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+  position: relative;
+  z-index: 2;
+}
+
+.palace-back-lobby:hover,
+.palace-back-lobby:focus-visible {
+  border-color: rgba(213,176,106,.58);
+  background: rgba(213,176,106,.15);
+  color: #fff8e5;
+  outline: none;
+}
+
+/* KX-04 — a destination renders as a place first, evidence second. */
+.palace-place-page {
+  width: 100%;
+  box-sizing: border-box;
+  padding: clamp(1rem, 2.6vw, 2.2rem);
+  background:
+    radial-gradient(circle at 50% 18%, rgba(213,176,106,.06), transparent 30%),
+    rgba(6,8,11,.82);
+}
+
+.palace-place-topbar {
+  max-width: 1040px;
+  margin: 0 auto 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.palace-place-breadcrumb {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: .35rem;
+  color: var(--palace-muted);
+  font-size: .68rem;
+}
+
+.palace-place-breadcrumb strong {
+  color: var(--palace-brass);
+}
+
+.palace-place-actions {
+  display: flex;
+  gap: .5rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.palace-place-stage {
+  max-width: 1040px;
+  min-height: clamp(300px, 46vh, 500px);
+  margin: 0 auto;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(213,176,106,.22);
+  border-radius: 24px;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.02), transparent 45%),
+    radial-gradient(circle at 50% 28%, rgba(213,176,106,.08), transparent 30%),
+    rgba(9,11,14,.92);
+  box-shadow: inset 0 -60px 100px rgba(0,0,0,.28), 0 20px 60px rgba(0,0,0,.22);
+}
+
+.palace-place-architecture {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.palace-place-arch {
+  position: absolute;
+  left: 50%;
+  top: 9%;
+  width: min(52%, 390px);
+  height: 68%;
+  transform: translateX(-50%);
+  border: 1px solid rgba(213,176,106,.18);
+  border-bottom: 0;
+  border-radius: 48% 48% 12px 12px / 34% 34% 10px 10px;
+  background:
+    linear-gradient(90deg, transparent, rgba(213,176,106,.035), transparent),
+    rgba(255,255,255,.008);
+}
+
+.palace-place-floorline {
+  position: absolute;
+  left: 10%;
+  right: 10%;
+  bottom: 16%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(213,176,106,.30), transparent);
+}
+
+.palace-place-intro {
+  position: relative;
+  z-index: 1;
+  min-height: inherit;
+  max-width: 680px;
+  margin: 0 auto;
+  padding: clamp(2rem, 6vh, 4rem) 1.5rem 2.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.palace-place-kind {
+  color: var(--palace-brass);
+  font-family: var(--font-mono);
+  font-size: .62rem;
+  font-weight: 800;
+  letter-spacing: .13em;
+}
+
+.palace-place-intro h2 {
+  margin: .55rem 0 .65rem;
+  color: var(--palace-text);
+  font-family: var(--font-serif);
+  font-size: clamp(1.8rem, 4vw, 3rem);
+  line-height: 1.08;
+}
+
+.palace-place-intro p {
+  max-width: 52ch;
+  margin: 0;
+  color: var(--palace-muted);
+  font-size: .86rem;
+  line-height: 1.65;
+}
+
+.palace-place-floor-label {
+  margin-top: 1rem;
+  padding: .35rem .65rem;
+  border: 1px solid rgba(213,176,106,.16);
+  border-radius: 999px;
+  color: rgba(220,213,198,.66);
+  font-size: .66rem;
+}
+
+/* Hall = broad ceremonial room. */
+.palace-place-hall .palace-place-stage {
+  background:
+    radial-gradient(ellipse at 50% 12%, rgba(213,176,106,.12), transparent 36%),
+    linear-gradient(90deg, rgba(213,176,106,.018), transparent 20%, transparent 80%, rgba(213,176,106,.018)),
+    rgba(9,11,14,.94);
+}
+
+.palace-place-hall .palace-place-arch {
+  width: min(68%, 560px);
+  height: 72%;
+}
+
+/* Chamber = quieter and more contained. */
+.palace-place-chamber .palace-place-stage {
+  max-width: 880px;
+  background:
+    radial-gradient(circle at 50% 36%, rgba(130,200,194,.07), transparent 34%),
+    linear-gradient(180deg, rgba(213,176,106,.045), transparent 48%),
+    rgba(8,10,13,.95);
+}
+
+.palace-place-chamber .palace-place-arch {
+  width: min(46%, 330px);
+  height: 62%;
+}
+
+/* Meeting = deliberately structured. */
+.palace-place-meeting .palace-place-stage {
+  background:
+    linear-gradient(rgba(130,200,194,.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(130,200,194,.018) 1px, transparent 1px),
+    radial-gradient(circle at 50% 35%, rgba(130,200,194,.07), transparent 32%),
+    rgba(8,10,13,.95);
+  background-size: 48px 48px, 48px 48px, auto, auto;
+}
+
+/* Movement threshold = vertical emphasis. */
+.palace-place-movement .palace-place-arch {
+  width: min(30%, 220px);
+  height: 78%;
+}
+
+.palace-place-known {
+  max-width: 1040px;
+  margin: 1rem auto 0;
+  display: grid;
+  grid-template-columns: 1.2fr .8fr;
+  gap: .8rem;
+}
+
+.palace-place-known article {
+  padding: 1rem;
+  border: 1px solid var(--palace-border);
+  border-radius: 14px;
+  background: rgba(255,255,255,.016);
+}
+
+.palace-place-known strong {
+  display: block;
+  color: var(--palace-text);
+  font-size: .82rem;
+}
+
+.palace-place-known p {
+  margin: .35rem 0 0;
+  color: var(--palace-muted);
+  font-size: .72rem;
+  line-height: 1.55;
+}
+
+.palace-place-seam {
+  max-width: 1040px;
+  margin: .8rem auto 0;
+  color: var(--palace-faint);
+  font-size: .66rem;
+  line-height: 1.5;
+  text-align: center;
+}
+
+@media (max-width: 767px) {
+  .palace-header.is-arrival {
+    min-height: 58px;
+  }
+
+  .palace-arrival-comfort-button span {
+    display: none;
+  }
+
+  .palace-map-surface.is-arrival .palace-destination-door {
+    min-height: 92px;
+  }
+
+  .palace-back-lobby {
+    width: 100%;
+    min-width: 0;
+  }
+
+  .palace-place-topbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .palace-place-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .palace-place-known {
+    grid-template-columns: 1fr;
+  }
+
+  .palace-place-stage {
+    min-height: 330px;
+    border-radius: 18px;
+  }
+
+  .palace-place-arch {
+    width: 70%;
+  }
+}
+
+@media (max-width: 480px) {
+  .palace-place-actions {
+    grid-template-columns: 1fr;
+  }
+}
