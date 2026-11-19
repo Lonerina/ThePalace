@@ -642,6 +642,28 @@ test('CACHE-FRESH-09 successor admission supersedes old CURRENT and increments e
   assert.equal(currentAnchor(next, AUTHORITY_DOMAIN).approvalEpoch, 2);
 });
 
+test('CACHE-FRESH-09A successor admission fails closed without external approval verifier', () => {
+  assert.throws(() => admitSuccessorManifest(manifest, {
+    authorityDomain: AUTHORITY_DOMAIN,
+    snapshotId: 'SYNTHETIC-R5',
+    registrySha256: 'e'.repeat(64),
+    approvalEpoch: 2,
+    lifecycle: 'CURRENT',
+  }), /requires external approval verification/);
+});
+
+test('CACHE-FRESH-09B successor admission rejects verifier denial', () => {
+  assert.throws(() => admitSuccessorManifest(manifest, {
+    authorityDomain: AUTHORITY_DOMAIN,
+    snapshotId: 'SYNTHETIC-R5',
+    registrySha256: 'e'.repeat(64),
+    approvalEpoch: 2,
+    lifecycle: 'CURRENT',
+  }, {
+    isExternallyApprovedSuccessor: () => false,
+  }), /not externally approved/);
+});
+
 test('CACHE-FRESH-10 no CURRENT approved snapshot fails closed; no old-cache downgrade', async () => {
   const bad = cloneJson(manifest);
   bad.snapshots[0].lifecycle = 'SUPERSEDED';
