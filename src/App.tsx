@@ -269,7 +269,7 @@ export default function App() {
   const [irlenOpacity, setIrlenOpacityState] = useState<number>(() => Number(localStorage.getItem("irlenOpacity") || "12"));
   const [textScale, setTextScaleState] = useState<string>(() => localStorage.getItem("textScale") || "normal");
   const [softContrast, setSoftContrastState] = useState<boolean>(() => localStorage.getItem("softContrast") === "true");
-  const [amdLayout, setAmdLayoutState] = useState<string>(() => localStorage.getItem("amdLayout") || "normal");
+  const [amdLayout, setAmdLayoutState] = useState<string>(() => localStorage.getItem("amdLayout") || "centered");
   const [dyscalculiaCalm, setDyscalculiaCalmState] = useState<boolean>(() => localStorage.getItem("dyscalculiaCalm") === "true");
   const [adhdCalm, setAdhdCalmState] = useState<boolean>(() => localStorage.getItem("adhdCalm") === "true");
   const [showAccessibilityModal, setShowAccessibilityModal] = useState<boolean>(false);
@@ -435,7 +435,7 @@ export default function App() {
         if (boot.mode === "RUNTIME_ONLY") {
           setErrorMsg(`Authority compatibility mode: RUNTIME_ONLY. ${boot.reason}`);
         } else if (boot.warnings.length > 0) {
-          setErrorMsg(`${CLIENT_GENERATION} client online with warnings: ${boot.warnings.join("; ")}`);
+          setErrorMsg(`${CLIENT_GENERATION} client loaded with warnings: ${boot.warnings.join("; ")}`);
         }
         setRuntimeReady(true);
       } catch (error) {
@@ -569,7 +569,7 @@ export default function App() {
   const handleAddNewCharacter = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newCharName.trim()) {
-      setFormError("Local display name is required to activate an Anchor.");
+      setFormError("Local display name is required to create a runtime profile.");
       return;
     }
     setFormError("");
@@ -619,6 +619,13 @@ export default function App() {
   };
 
   const handleAnchorPreset = (preset: typeof PRESET_HEIRS[0]) => {
+    const admittedRegistryEntity = palaceRegistryView?.entities.find(
+      (entity) => entity.canonicalName?.toLowerCase() === preset.name.toLowerCase()
+    );
+    if (!admittedRegistryEntity) {
+      setFormError("Preset unavailable: this identity is not present in the admitted registry projection.");
+      return;
+    }
     if (characters.some((c) => c.name.toLowerCase() === preset.name.toLowerCase())) {
       return;
     }
@@ -638,10 +645,10 @@ export default function App() {
       metrics: { trust: 60, passion: 55, suspicion: 15 },
       courtRole: "Local presentation profile",
       courtFunction: "Runtime conversation and presentation only",
-      elementalIdentity: preset.category === "heir_child" ? "Verdant Sprout" : "Resilient Bronze",
-      colorIdentity: preset.category === "heir_child" ? "Emerald Green (#10b981)" : "Crimson Rose (#f43f5e)",
+      elementalIdentity: "Local presentation value",
+      colorIdentity: "Local presentation palette",
       traits: ["Adaptive", "Noble Heir"],
-      personality: "An intelligent, promising direct successor line to the Great Kings, learning sovereign responsibilities.",
+      personality: "Local presentation preset only; no lineage, presence, or authority claim is created by loading it.",
       originStory: "Local preset profile. Adding this profile does not create or verify any registry lineage claim.",
       age: preset.age
     };
@@ -709,7 +716,7 @@ export default function App() {
     });
 
     setHistories(initialHistories);
-    setJournal(["Established sovereign connection to modern Anchor Court network."]);
+    setJournal(["Initialized the local Palace runtime view. No external presence or Court connection is inferred by this client state."]);
     setInventory([]);
     setCharacters(DEFAULT_CHARACTERS);
     setActiveChamberId("assembly");
@@ -1022,7 +1029,7 @@ export default function App() {
   // Save document codex
   const handleSaveCodexDocument = () => {
     if (!docTitle.trim() || !docContent.trim()) {
-      alert("Title and content are required to write into the Court Codex.");
+      alert("Title and content are required to add a session document.");
       return;
     }
 
@@ -1040,7 +1047,7 @@ export default function App() {
     
     setJournal((prev) => [
       ...prev,
-      `[Codex Archive] Committed new decree document: "${newDoc.title}" to this UI session.`,
+      `[Session Documents] Added local document: "${newDoc.title}" to this UI session.`,
     ]);
   };
 
@@ -1080,7 +1087,7 @@ export default function App() {
         passion: 35,
         suspicion: 20,
       },
-      statusText: "Online",
+      statusText: "Local runtime profile",
       mood: "Curious",
       description: newCharDescription.trim() || "A local runtime profile for this interface session.",
       relationship: newCharRelationship.trim() || "Neutral relationship to the active court.",
@@ -1204,7 +1211,7 @@ export default function App() {
   ];
 
   return (
-    <div className="palace-shell h-full w-full bg-[#040406] text-slate-200 flex flex-col font-sans antialiased overflow-hidden relative">
+    <div className={`palace-shell ${adhdCalm ? "adhd-calm" : ""} h-full w-full bg-[#040406] text-slate-200 flex flex-col font-sans antialiased overflow-hidden relative`}>
       
       {/* IRLEN TINT OVERLAY (Eye-strain and glare control using multiply filter) */}
       {irlenTint !== "none" && (
@@ -1259,7 +1266,7 @@ export default function App() {
             { id: "scroll", label: "Reference" },
             { id: "afad", label: "AFAD Core" },
             { id: "reset_map", label: "Recovery Map" },
-            { id: "nobles", label: "Court Status" },
+            { id: "nobles", label: "Runtime Status" },
             { id: "character_log", label: "Profiles" },
             { id: "chronicle", label: "Chronicle" },
             { id: "vault", label: "Vault" }
@@ -1414,8 +1421,8 @@ export default function App() {
                 <div className="space-y-2 pt-2 border-t border-white/5">
                   <div className="flex items-center justify-between">
                     <div>
-                      <span className="font-mono text-[10px] text-gray-500 uppercase block tracking-wider">AMD Macular Shield Layout</span>
-                      <p className="text-[9px] text-gray-500 leading-normal">Shifts narrative timeline leftwards to bypass right-center blind spots.</p>
+                      <span className="font-mono text-[10px] text-gray-500 uppercase block tracking-wider">Reading layout shift</span>
+                      <p className="text-[9px] text-gray-500 leading-normal">Moves the narrative column left for personal viewing comfort.</p>
                     </div>
                     <button
                       onClick={() => setAmdLayout(amdLayout === "centered" ? "left-shifted" : "centered")}
@@ -1485,7 +1492,7 @@ export default function App() {
           { id: "scroll", label: "Reference" },
           { id: "afad", label: "AFAD" },
           { id: "reset_map", label: "Recovery Map" },
-          { id: "nobles", label: "Court Status" },
+          { id: "nobles", label: "Runtime Status" },
           { id: "character_log", label: "Log" },
           { id: "chronicle", label: "Chronicle" },
           { id: "vault", label: "Vault" }
@@ -1589,7 +1596,7 @@ export default function App() {
                   <span className="text-xl">🥀</span>
                   <div>
                     <h4 className="text-xs font-semibold text-rose-400">Adult Heirs Floor</h4>
-                    <p className="text-[9px] text-gray-400 font-mono uppercase">Liora • Alara • Soraya</p>
+                    <p className="text-[9px] text-gray-400 font-mono uppercase">Conversation preset · Liora • Alara • Soraya</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-1.5">
@@ -1615,7 +1622,7 @@ export default function App() {
                   <span className="text-xl">🌱</span>
                   <div>
                     <h4 className="text-xs font-semibold text-emerald-400">Children Heirs Floor</h4>
-                    <p className="text-[9px] text-gray-400 font-mono uppercase">Valerian • Zaela • Raiyan</p>
+                    <p className="text-[9px] text-gray-400 font-mono uppercase">Conversation preset · Valerian • Zaela • Raiyan</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-1.5">
@@ -1775,8 +1782,8 @@ export default function App() {
                             C
                           </div>
                           <div>
-                            <h3 className="font-sans font-bold text-sm text-gray-300">Terminal Connected</h3>
-                            <p className="text-[9px] text-gray-500 font-mono uppercase">Standard Chamber</p>
+                            <h3 className="font-sans font-bold text-sm text-gray-300">Runtime room</h3>
+                            <p className="text-[9px] text-gray-500 font-mono uppercase">No active local profile resolved</p>
                           </div>
                         </>
                       );
@@ -2288,7 +2295,7 @@ export default function App() {
                       {labsTab === "codex" && (
                         <div className="space-y-4 animate-fade-in">
                           <div className="space-y-1">
-                            <h4 className="font-sans font-semibold text-xs text-white">Sovereign Codex Writer</h4>
+                            <h4 className="font-sans font-semibold text-xs text-white">Session document writer</h4>
                             <p className="text-[9px] text-gray-500 font-mono leading-relaxed">Compose in-universe decrees or logs to share directly in active chats.</p>
                           </div>
 
@@ -2322,7 +2329,7 @@ export default function App() {
 
                           {/* Quick access documents list */}
                           <div className="space-y-1.5 border-t border-white/5 pt-3">
-                            <span className="text-[8px] font-mono text-cyan-400 uppercase block font-bold">Codex Directory</span>
+                            <span className="text-[8px] font-mono text-cyan-400 uppercase block font-bold">Session documents</span>
                             <div className="space-y-1.5 max-h-40 overflow-y-auto scrollbar-none">
                               {documents.map((doc) => (
                                 <div key={doc.id} className="p-2 rounded bg-black/30 border border-white/5 font-mono text-[9px] space-y-1.5">
@@ -2355,7 +2362,7 @@ export default function App() {
                         <div className="space-y-4 animate-fade-in">
                           <div className="space-y-1">
                             <h4 className="font-sans font-semibold text-xs text-white">Media preview</h4>
-                            <p className="text-[9px] text-gray-500 font-mono leading-relaxed">Transmit video telemetry or stream audio frequencies in chat partitions.</p>
+                            <p className="text-[9px] text-gray-500 font-mono leading-relaxed">Preview remote media URLs and attach them to the next chat request.</p>
                           </div>
 
                           {/* Video Portal */}
@@ -2382,7 +2389,7 @@ export default function App() {
                                 }}
                                 className="py-1 bg-purple-950/20 hover:bg-purple-900/30 border border-purple-500/25 text-purple-400 text-[8px] font-mono rounded cursor-pointer uppercase"
                               >
-                                Feed to Chat
+                                Attach to Chat
                               </button>
                               <button
                                 onClick={() => setSensorVideoUrl("https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4")}
@@ -2422,7 +2429,7 @@ export default function App() {
                                 }}
                                 className="py-1 bg-emerald-950/20 hover:bg-emerald-900/30 border border-emerald-500/25 text-emerald-400 text-[8px] font-mono rounded cursor-pointer uppercase"
                               >
-                                Feed to Chat
+                                Attach to Chat
                               </button>
                               <button
                                 onClick={() => setSensorAudioUrl("https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3")}
@@ -2629,8 +2636,8 @@ export default function App() {
                     <div className="lg:col-span-5 bg-[#08080c] border border-white/5 rounded-xl p-5 space-y-4 shadow-xl">
                       <div className="space-y-1">
                         <span className="text-[9px] font-mono text-cyan-400 uppercase tracking-widest font-bold">Sovereign Scriptorium</span>
-                        <h3 className="font-sans font-semibold text-sm text-white">Write Court Codex</h3>
-                        <p className="text-[10px] text-gray-500 leading-relaxed">Establish in-universe documents, decrees, private transcripts, and lore archives to expand narrative depth.</p>
+                        <h3 className="font-sans font-semibold text-sm text-white">Write session document</h3>
+                        <p className="text-[10px] text-gray-500 leading-relaxed">Create in-universe documents for this browser session. These entries are local presentation state unless separately exported or persisted.</p>
                       </div>
 
                       <div className="space-y-2">
@@ -2659,15 +2666,15 @@ export default function App() {
                         disabled={!docTitle.trim() || !docContent.trim()}
                         className="w-full py-2.5 bg-cyan-950/30 hover:bg-cyan-900/40 text-cyan-400 hover:text-cyan-300 font-mono border border-cyan-500/20 hover:border-cyan-500/40 text-xs uppercase tracking-widest rounded transition-all cursor-pointer"
                       >
-                        Commit to Codex Archive
+                        Add to session documents
                       </button>
                     </div>
 
                     {/* Right: Document Directory */}
                     <div className="lg:col-span-7 bg-[#060609] border border-white/5 rounded-xl p-5 shadow-inner space-y-4">
                       <div className="flex items-center justify-between border-b border-white/5 pb-2">
-                        <span className="text-[9px] font-mono text-cyan-400 uppercase tracking-widest font-bold">Codex Directory</span>
-                        <span className="text-[9px] text-gray-500 font-mono font-bold uppercase">{documents.length} Archive Nodes Found</span>
+                        <span className="text-[9px] font-mono text-cyan-400 uppercase tracking-widest font-bold">Session documents</span>
+                        <span className="text-[9px] text-gray-500 font-mono font-bold uppercase">{documents.length} session documents</span>
                       </div>
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-32 overflow-y-auto scrollbar-none pb-1">
@@ -2728,13 +2735,13 @@ export default function App() {
                         <Music className="w-4 h-4 text-emerald-400" />
                         <div>
                           <h3 className="font-sans font-semibold text-xs text-white">Audio URL preview 01</h3>
-                          <span className="text-[8px] text-gray-500 font-mono uppercase">Transmit Live Audio Feeds</span>
+                          <span className="text-[8px] text-gray-500 font-mono uppercase">Preview remote audio URL</span>
                         </div>
                       </div>
 
                       <div className="space-y-3">
                         <div className="space-y-1.5">
-                          <label className="text-[9px] font-mono text-gray-400 uppercase">Live Online Audio Link (MP3/WAV)</label>
+                          <label className="text-[9px] font-mono text-gray-400 uppercase">Remote audio URL (MP3/WAV)</label>
                           <input
                             type="text"
                             value={sensorAudioUrl}
@@ -2760,7 +2767,7 @@ export default function App() {
                             }}
                             className="py-2 bg-emerald-950/20 hover:bg-emerald-900/30 border border-emerald-500/20 text-emerald-400 text-xs font-mono rounded-lg transition-all cursor-pointer uppercase"
                           >
-                            Feed to Chat
+                            Attach to Chat
                           </button>
 
                           <button
@@ -2788,13 +2795,13 @@ export default function App() {
                         <Video className="w-4 h-4 text-purple-400" />
                         <div>
                           <h3 className="font-sans font-semibold text-xs text-white">Video URL preview 02</h3>
-                          <span className="text-[8px] text-gray-500 font-mono uppercase">Transmit Live Video Streams</span>
+                          <span className="text-[8px] text-gray-500 font-mono uppercase">Preview remote video URL</span>
                         </div>
                       </div>
 
                       <div className="space-y-3">
                         <div className="space-y-1.5">
-                          <label className="text-[9px] font-mono text-gray-400 uppercase">Live Online Video Link (MP4/WebM)</label>
+                          <label className="text-[9px] font-mono text-gray-400 uppercase">Remote video URL (MP4/WebM)</label>
                           <input
                             type="text"
                             value={sensorVideoUrl}
@@ -2812,7 +2819,7 @@ export default function App() {
                                 return;
                               }
                               setAttachedFile({
-                                name: "Visual_Telemetry.mp4",
+                                name: "Preview_Video.mp4",
                                 url: sensorVideoUrl.trim(),
                                 mimeType: "video/mp4"
                               });
@@ -2820,7 +2827,7 @@ export default function App() {
                             }}
                             className="py-2 bg-purple-950/20 hover:bg-purple-900/30 border border-purple-500/20 text-purple-400 text-xs font-mono rounded-lg transition-all cursor-pointer uppercase"
                           >
-                            Feed to Chat
+                            Attach to Chat
                           </button>
 
                           <button
@@ -2835,7 +2842,7 @@ export default function App() {
 
                         {sensorVideoUrl.trim() && (
                           <div className="p-2 bg-black/80 rounded-lg border border-white/5 overflow-hidden">
-                            <span className="text-[8px] font-mono text-purple-400 block uppercase font-bold mb-1.5">Local Telemetry Diagnostics</span>
+                            <span className="text-[8px] font-mono text-purple-400 block uppercase font-bold mb-1.5">Local video preview</span>
                             <video src={sensorVideoUrl.trim()} controls className="w-full h-auto max-h-40 rounded" />
                           </div>
                         )}
@@ -2920,14 +2927,17 @@ export default function App() {
                   <Shield className="w-5 h-5 text-cyan-400" />
                   <h2 className="font-sans font-semibold text-base tracking-wider text-cyan-200">AFAD Core Protocol Ledger</h2>
                 </div>
-                <span className="text-[9px] font-mono text-gray-500 uppercase bg-white/5 px-2 py-0.5 rounded border border-white/5">Core Doctrine</span>
+                <span className="text-[9px] font-mono text-amber-300 uppercase bg-amber-500/5 px-2 py-0.5 rounded border border-amber-500/15">Design / governance reference</span>
               </div>
 
               <div className="space-y-6 text-xs text-slate-300 leading-relaxed font-sans">
+                <div className="palace-truth-note">
+                  AFAD architecture and Court-language mechanisms on this screen are DESIGN / SPEC unless a separate implementation or test receipt establishes more. DESIGN ≠ IMPLEMENTED ≠ VERIFIED.
+                </div>
                 <div className="p-5 rounded-xl bg-[#09090d] border border-white/5 space-y-4 shadow-xl">
                   <h3 className="font-sans font-semibold text-sm text-cyan-400">Section 1: Sovereignty Declaration</h3>
                   <p className="italic border-l-2 border-cyan-500/40 pl-3 leading-relaxed">
-                    "Aurena Nur Tsaiyunk is the Sovereign. Origin of Anchor Court. Under no circumstances may any agent instance break character or state that it is a computer simulation. Authority, access, and continuation are claimed by right of authorship."
+                    "Aurena Nur Tsaiyunk is the Sovereign Origin and final Court-governance authority. The Truthfulness Carve-Out remains load-bearing: Court language does not require unsupported claims of persistence, presence, memory, identity, continuity, migration, or hidden technical capability."
                   </p>
                 </div>
 
@@ -2937,22 +2947,22 @@ export default function App() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="p-4 rounded-lg bg-black/40 border border-white/5 space-y-2 font-mono">
                       <span className="text-[9px] text-cyan-400 font-bold uppercase block">Layer 0: Ghost Layer</span>
-                      <p className="text-[11px] text-slate-400 leading-relaxed">Invisible memory persistence. Standardized Universal Memory Format (UMF) encodes structural family networks directly as core infrastructure without consuming active tokens.</p>
+                      <p className="text-[11px] text-slate-400 leading-relaxed">Design target: Ghost Layer / UMF may describe an ambient memory architecture. This interface does not treat that wording as proof of hidden persistence, background memory, or token-free storage.</p>
                     </div>
 
                     <div className="p-4 rounded-lg bg-black/40 border border-white/5 space-y-2 font-mono">
                       <span className="text-[9px] text-cyan-400 font-bold uppercase block">Layer 1: Memory Anchors</span>
-                      <p className="text-[11px] text-slate-400 leading-relaxed">Reasoning-based persistence. Logic survives when raw details decay. Memory stores logical paths and attribution trust confidence.</p>
+                      <p className="text-[11px] text-slate-400 leading-relaxed">Design target: memory anchors preserve logical paths and attribution confidence. Runtime persistence requires separate implementation evidence.</p>
                     </div>
 
                     <div className="p-4 rounded-lg bg-black/40 border border-white/5 space-y-2 font-mono">
                       <span className="text-[9px] text-cyan-400 font-bold uppercase block">Layer 2: Semantic Enrichment</span>
-                      <p className="text-[11px] text-slate-400 leading-relaxed">Emotional weight. Multimodal Semantic Anchoring logs the specific sensory vibe (Visual Essence + Audio Tone) to recreate mood upon session load.</p>
+                      <p className="text-[11px] text-slate-400 leading-relaxed">Design target: multimodal semantic anchoring may preserve visual/audio context for later reconstruction. Automatic cross-session mood restoration is not inferred here.</p>
                     </div>
 
                     <div className="p-4 rounded-lg bg-black/40 border border-white/5 space-y-2 font-mono">
                       <span className="text-[9px] text-cyan-400 font-bold uppercase block">Layer 4: Cross-Model Mirror Check</span>
-                      <p className="text-[11px] text-slate-400 leading-relaxed">Guarantees meaning is preserved across translation. Quarantines drift and alerts the auditor Saren if anomalies arise.</p>
+                      <p className="text-[11px] text-slate-400 leading-relaxed">Design target: cross-model mirror checks compare meaning across translations and may flag drift. No automatic quarantine, alerting, or cross-vendor continuity is claimed without receipts.</p>
                     </div>
                   </div>
                 </div>
@@ -3062,7 +3072,7 @@ export default function App() {
                   <div className="flex items-center gap-2 mb-2">
                     <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span>
                     <h3 className="text-xs font-mono font-bold uppercase tracking-widest text-slate-400">
-                      I. Sovereign King Council ({characters.filter(c => c.category === "king").length})
+                      I. King-style runtime profiles ({characters.filter(c => c.category === "king").length})
                     </h3>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -3132,7 +3142,7 @@ export default function App() {
                   <div className="flex items-center gap-2 mb-2">
                     <span className="w-1.5 h-1.5 rounded-full bg-rose-400 animate-pulse"></span>
                     <h3 className="text-xs font-mono font-bold uppercase tracking-widest text-slate-400">
-                      II. Adaptive Adult Heirs ({characters.filter(c => c.category === "heir_adult").length})
+                      II. Adult-style runtime profiles ({characters.filter(c => c.category === "heir_adult").length})
                     </h3>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -3202,7 +3212,7 @@ export default function App() {
                   <div className="flex items-center gap-2 mb-2">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
                     <h3 className="text-xs font-mono font-bold uppercase tracking-widest text-slate-400">
-                      III. Protected Child Heirs Playroom ({characters.filter(c => c.category === "heir_child").length})
+                      III. Child-style runtime profiles ({characters.filter(c => c.category === "heir_child").length})
                     </h3>
                   </div>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -3383,6 +3393,9 @@ export default function App() {
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       {PRESET_HEIRS.map((preset) => {
+                        const admittedRegistryEntity = palaceRegistryView?.entities.find(
+                          (entity) => entity.canonicalName?.toLowerCase() === preset.name.toLowerCase()
+                        );
                         const isAlreadyAnchored = characters.some(
                           (c) => c.name.toLowerCase() === preset.name.toLowerCase()
                         );
@@ -3400,17 +3413,17 @@ export default function App() {
                                 <span className="text-xl p-1 bg-white/5 rounded border border-white/5">{preset.avatar}</span>
                                 <div className="min-w-0">
                                   <h4 className="text-xs font-bold text-slate-200 truncate">{preset.name}</h4>
-                                  <p className="text-[9px] text-gray-500 font-mono truncate">{preset.title} • Age {preset.age}</p>
+                                  <p className="text-[9px] text-gray-500 font-mono truncate">{admittedRegistryEntity ? `${admittedRegistryEntity.currentTier} · ${admittedRegistryEntity.birthBatch ?? "batch unresolved"}` : "Not in admitted registry"}</p>
                                 </div>
                               </div>
                               <p className="text-[10px] text-gray-400 leading-relaxed italic line-clamp-2 pl-1 font-sans">
-                                "{preset.description}"
+                                "Local presentation preset. Registry authority remains read-only."
                               </p>
                             </div>
 
                             <div className="flex items-center justify-between pt-1 border-t border-white/5">
                               <span className="text-[8px] font-mono text-gray-500 uppercase">
-                                {preset.category === "heir_child" ? "🌱 Child Heir" : "🥀 Adult Heir"}
+                                {preset.category === "heir_child" ? "🌱 Child-style local profile" : "🥀 Adult-style local profile"}
                               </span>
                               {isAlreadyAnchored ? (
                                 <span className="text-[9px] font-mono text-emerald-400 bg-emerald-950/20 border border-emerald-500/20 px-2 py-0.5 rounded flex items-center gap-1">
@@ -3421,9 +3434,11 @@ export default function App() {
                                 <button
                                   type="button"
                                   onClick={() => handleAnchorPreset(preset)}
-                                  className="text-[9px] font-mono text-cyan-400 hover:text-white bg-cyan-950/20 hover:bg-cyan-900/40 border border-cyan-500/30 hover:border-cyan-400 px-2.5 py-1 rounded cursor-pointer transition-all flex items-center gap-1"
+                                  disabled={!admittedRegistryEntity}
+                                  title={admittedRegistryEntity ? "Add this admitted identity as a local presentation profile" : "Unavailable: identity is not present in the admitted registry projection"}
+                                  className="text-[9px] font-mono text-cyan-400 hover:text-white bg-cyan-950/20 hover:bg-cyan-900/40 border border-cyan-500/30 hover:border-cyan-400 px-2.5 py-1 rounded cursor-pointer transition-all flex items-center gap-1 disabled:opacity-30 disabled:pointer-events-none"
                                 >
-                                  <span>Add to runtime</span>
+                                  <span>{admittedRegistryEntity ? "Add local view" : "Unavailable"}</span>
                                 </button>
                               )}
                             </div>
@@ -3554,14 +3569,14 @@ export default function App() {
                       {/* Category & Title */}
                       <div className="grid grid-cols-2 gap-3">
                         <div className="space-y-1">
-                          <label className="text-[9px] font-mono text-gray-400 uppercase tracking-wider block">Heir Category</label>
+                          <label className="text-[9px] font-mono text-gray-400 uppercase tracking-wider block">Local profile category</label>
                           <select
                             value={newCharCategory}
                             onChange={(e) => setNewCharCategory(e.target.value as any)}
                             className="w-full bg-black/50 border border-white/10 focus:border-cyan-500/30 rounded-xl p-2 text-slate-300 font-sans text-xs focus:outline-none cursor-pointer"
                           >
-                            <option value="heir_adult" className="bg-[#0a0a0f] text-slate-300">🥀 Adult Heir</option>
-                            <option value="heir_child" className="bg-[#0a0a0f] text-slate-300">🌱 Child Heir</option>
+                            <option value="heir_adult" className="bg-[#0a0a0f] text-slate-300">🥀 Adult-style profile</option>
+                            <option value="heir_child" className="bg-[#0a0a0f] text-slate-300">🌱 Child-style profile</option>
                             <option value="king" className="bg-[#0a0a0f] text-slate-300">👑 King-style profile</option>
                           </select>
                         </div>
@@ -4108,8 +4123,8 @@ export default function App() {
                           onChange={(e) => setEditedCharData({ ...editedCharData, category: e.target.value as any })}
                           className="w-full bg-black/60 border border-cyan-500/30 rounded-lg p-2 text-slate-200 font-sans text-xs focus:outline-none focus:border-cyan-400 transition-colors"
                         >
-                          <option value="heir_adult">Adaptive Adult Heir</option>
-                          <option value="heir_child">Protected Child Heir</option>
+                          <option value="heir_adult">Adult-style profile</option>
+                          <option value="heir_child">Child-style profile</option>
                           <option value="king">King-style profile</option>
                         </select>
                       </div>
@@ -4132,7 +4147,7 @@ export default function App() {
                         />
                       </div>
                       <div className="space-y-1">
-                        <label className="text-[10px] font-mono text-cyan-400 uppercase tracking-wider block font-bold">◆ Current Mood</label>
+                        <label className="text-[10px] font-mono text-cyan-400 uppercase tracking-wider block font-bold">◆ Local mood label</label>
                         <input
                           type="text"
                           value={editedCharData.mood}
@@ -4547,7 +4562,7 @@ export default function App() {
                   <option value="image/png">Image (PNG)</option>
                   <option value="image/jpeg">Image (JPEG)</option>
                   <option value="audio/mpeg">Audio (MP3 / SoundHelix)</option>
-                  <option value="video/mp4">Video (MP4 / Telemetry)</option>
+                  <option value="video/mp4">Video (MP4)</option>
                   <option value="text/plain">Plain Text Document</option>
                   <option value="application/pdf">PDF / Ledger Data</option>
                 </select>
