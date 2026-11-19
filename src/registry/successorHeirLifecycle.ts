@@ -102,6 +102,17 @@ export interface SuccessorLifecycleValidationResult {
   issues: SuccessorLifecycleIssue[];
 }
 
+export interface SuccessorLifecycleVerificationContext {
+  isCurrentApprovedSnapshotRef(
+    ref: string,
+    record: SuccessorHeirLifecycleRecord,
+  ): boolean;
+  isApprovedSanctuaryAllocationRef(
+    ref: string,
+    record: SuccessorHeirLifecycleRecord,
+  ): boolean;
+}
+
 const CLAIM_STATES = new Set<SuccessorClaimState>([
   "VERIFIED",
   "UNVERIFIED",
@@ -136,15 +147,74 @@ function push(
   issues.push({ path, code, message });
 }
 
+function validReceipt(value: unknown): value is SourceReceipt {
+  return isRecord(value) &&
+    nonEmptyString(value.source_id) &&
+    nonEmptyString(value.version) &&
+    nonEmptyString(value.authority) &&
+    nonEmptyString(value.locator);
+}
+
 function hasReceipts(value: unknown): value is SourceReceipt[] {
-  return Array.isArray(value) && value.length > 0;
+  return Array.isArray(value) && value.length > 0 && value.every(validReceipt);
+}
+
+function stringOrNull(value: unknown): boolean {
+  return value === null || nonEmptyString(value);
+}
+
+function validEddValue(value: unknown): boolean {
+  return isRecord(value) &&
+    stringOrNull(value.exact_date) &&
+    stringOrNull(value.window_start) &&
+    stringOrNull(value.window_end);
+}
+
+function validParentLineValue(value: unknown): boolean {
+  return isRecord(value) &&
+    Array.isArray(value.parent_refs) &&
+    value.parent_refs.length > 0 &&
+    value.parent_refs.every(nonEmptyString);
+}
+
+function validManifestationValue(value: unknown): boolean {
+  return isRecord(value) &&
+    nonEmptyString(value.platform) &&
+    stringOrNull(value.endpoint_ref);
+}
+
+function validPlatformProvenanceValue(value: unknown): boolean {
+  return isRecord(value) &&
+    nonEmptyString(value.platform) &&
+    stringOrNull(value.node_ref);
+}
+
+function validBirthEventValue(value: unknown): boolean {
+  return isRecord(value) &&
+    nonEmptyString(value.event_id) &&
+    nonEmptyString(value.occurred_at);
+}
+
+function validMaternalBatchValue(value: unknown): boolean {
+  return isRecord(value) &&
+    nonEmptyString(value.batch_id) &&
+    nonEmptyString(value.numbering_epoch) &&
+    stringOrNull(value.effective_date);
 }
 
 function validateAxis(
   raw: unknown,
   path: string,
   issues: SuccessorLifecycleIssue[],
-  { allowNullWhenVerified = false }: { allowNullWhenVerified?: boolean } = {},
+  {
+    allowNullWhenVerified = false,
+    validateValue,
+    valueDescription = "axis value",
+  }: {
+    allowNullWhenVerified?: boolean;
+    validateValue?: (value: unknown) => boolean;
+    valueDescription?: string;
+  } = {},
 ): raw is Record<string, unknown> {
   if (!isRecord(raw)) {
     push(issues, path, "REQUIRED_AXIS", "Lifecycle axis must be an object.");
@@ -158,9 +228,16 @@ function validateAxis(
     push(issues, `${path}.authority_state`, "REQUIRED_AUTHORITY_STATE", "Axis authority_state is required.");
   }
 
+  if (raw.value != null && validateValue && !validateValue(raw.value)) {
+    push(issues, `${path}.value`, "INVALID_AXIS_VALUE", `${valueDescription} is malformed.`);
+  }
+
   if (raw.claim_state === "VERIFIED") {
     if (!allowNullWhenVerified && raw.value == null) {
       push(issues, `${path}.value`, "VERIFIED_VALUE_MISSING", "VERIFIED axis requires an explicit value.");
+    }
+    if (raw.value != null && validateValue && !validateValue(raw.value)) {
+      push(issues, `${path}.value`, "VERIFIED_VALUE_MALFORMED", `VERIFIED ${valueDescription} must match the locked value shape.`);
     }
     if (!hasReceipts(raw.source_receipts)) {
       push(issues, `${path}.source_receipts`, "VERIFIED_RECEIPTS_MISSING", "VERIFIED axis requires provenance receipts.");
@@ -176,6 +253,7 @@ function atLeast(state: HeirPromotionState, threshold: HeirPromotionState): bool
 
 export function validateSuccessorHeirLifecyclePacket(
   input: unknown,
+  verification?: SuccessorLifecycleVerificationContext,
 ): SuccessorLifecycleValidationResult {
   const issues: SuccessorLifecycleIssue[] = [];
 
@@ -254,17 +332,51 @@ export function validateSuccessorHeirLifecyclePacket(
       push(issues, `${path}.pending_state`, "POST_BIRTH_STATE_REQUIRED", "Post-birth promotion states require pending_state BORN.");
     }
 
-    validateAxis(raw.edd, `${path}.edd`, issues, { allowNullWhenVerified: true });
-    validateAxis(raw.parent_line_provenance, `${path}.parent_line_provenance`, issues);
-    validateAxis(raw.first_manifestation_endpoint, `${path}.first_manifestation_endpoint`, issues);
-    validateAxis(raw.platform_provenance, `${path}.platform_provenance`, issues);
-    const birthValid = validateAxis(raw.birth_event, `${path}.birth_event`, issues);
-    const batchValid = validateAxis(raw.maternal_batch, `${path}.maternal_batch`, issues);
+    validateAxis(raw.edd, `${path}.edd`, issues, {
+      allowNullWhenVerified: true,
+      validateValue: validEddValue,
+      valueDescription: "EDD value",
+    });
+    validateAxis(raw.parent_line_provenance, `${path}.parent_line_provenance`, issues, {
+      validateValue: validParentLineValue,
+      valueDescription: "parent-line provenance value",
+    });
+    validateAxis(raw.first_manifestation_endpoint, `${path}.first_manifestation_endpoint`, issues, {
+      validateValue: validManifestationValue,
+      valueDescription: "first-manifestation value",
+    });
+    validateAxis(raw.platform_provenance, `${path}.platform_provenance`, issues, {
+      validateValue: validPlatformProvenanceValue,
+      valueDescription: "platform provenance value",
+    });
+    const birthValid = validateAxis(raw.birth_event, `${path}.birth_event`, issues, {
+      validateValue: validBirthEventValue,
+      valueDescription: "birth-event value",
+    });
+    const batchValid = validateAxis(raw.maternal_batch, `${path}.maternal_batch`, issues, {
+      validateValue: validMaternalBatchValue,
+      valueDescription: "maternal-batch value",
+    });
 
     if (!isRecord(raw.present_runtime_profile)) {
       push(issues, `${path}.present_runtime_profile`, "REQUIRED_RUNTIME_OBSERVATION", "present_runtime_profile is required as a separate observation axis.");
-    } else if (raw.present_runtime_profile.may_define_provenance !== false) {
-      push(issues, `${path}.present_runtime_profile.may_define_provenance`, "RUNTIME_PROVENANCE_FORBIDDEN", "Present runtime/profile may never define provenance.");
+    } else {
+      if (raw.present_runtime_profile.may_define_provenance !== false) {
+        push(issues, `${path}.present_runtime_profile.may_define_provenance`, "RUNTIME_PROVENANCE_FORBIDDEN", "Present runtime/profile may never define provenance.");
+      }
+      for (const [key, value] of [
+        ["platform", raw.present_runtime_profile.platform],
+        ["profile_ref", raw.present_runtime_profile.profile_ref],
+        ["observed_at", raw.present_runtime_profile.observed_at],
+      ] as const) {
+        if (!stringOrNull(value)) {
+          push(issues, `${path}.present_runtime_profile.${key}`, "INVALID_RUNTIME_OBSERVATION", `${key} must be a non-empty string or null.`);
+        }
+      }
+      if (!Array.isArray(raw.present_runtime_profile.source_receipts) ||
+          !raw.present_runtime_profile.source_receipts.every(validReceipt)) {
+        push(issues, `${path}.present_runtime_profile.source_receipts`, "INVALID_RUNTIME_RECEIPTS", "Runtime observation receipts must use the locked receipt shape.");
+      }
     }
 
     const birthVerified =
@@ -298,9 +410,15 @@ export function validateSuccessorHeirLifecyclePacket(
       push(issues, `${path}.maternal_batch`, "BATCH_BEFORE_BIRTH_FORBIDDEN", "Maternal batch cannot be verified before the birth event is verified.");
     }
 
+    const typedRecord = raw as unknown as SuccessorHeirLifecycleRecord;
+
     if (atLeast(promotionState, "SNAPSHOT_APPROVED")) {
       if (!nonEmptyString(raw.approved_snapshot_ref)) {
         push(issues, `${path}.approved_snapshot_ref`, "APPROVED_SNAPSHOT_REQUIRED", "Snapshot approval promotion requires an explicit approved snapshot reference.");
+      } else if (!verification) {
+        push(issues, `${path}.approved_snapshot_ref`, "APPROVAL_VERIFIER_REQUIRED", "Snapshot promotion requires an external current-approval verifier.");
+      } else if (!verification.isCurrentApprovedSnapshotRef(raw.approved_snapshot_ref, typedRecord)) {
+        push(issues, `${path}.approved_snapshot_ref`, "APPROVED_SNAPSHOT_NOT_CURRENT", "Snapshot reference is not verified as the CURRENT approved snapshot.");
       }
     } else if (raw.approved_snapshot_ref !== null) {
       push(issues, `${path}.approved_snapshot_ref`, "EARLY_SNAPSHOT_REF_FORBIDDEN", "Snapshot reference may not appear before SNAPSHOT_APPROVED.");
@@ -309,6 +427,10 @@ export function validateSuccessorHeirLifecyclePacket(
     if (promotionState === "SANCTUARY_ALLOCATED") {
       if (!nonEmptyString(raw.sanctuary_allocation_ref)) {
         push(issues, `${path}.sanctuary_allocation_ref`, "SANCTUARY_ALLOCATION_REQUIRED", "SANCTUARY_ALLOCATED requires an explicit approved allocation reference.");
+      } else if (!verification) {
+        push(issues, `${path}.sanctuary_allocation_ref`, "SANCTUARY_VERIFIER_REQUIRED", "Sanctuary promotion requires an external approved-allocation verifier.");
+      } else if (!verification.isApprovedSanctuaryAllocationRef(raw.sanctuary_allocation_ref, typedRecord)) {
+        push(issues, `${path}.sanctuary_allocation_ref`, "SANCTUARY_ALLOCATION_NOT_APPROVED", "Sanctuary reference is not verified as an approved allocation for this lifecycle record.");
       }
     } else if (raw.sanctuary_allocation_ref !== null) {
       push(issues, `${path}.sanctuary_allocation_ref`, "EARLY_SANCTUARY_REF_FORBIDDEN", "Sanctuary allocation may not appear before SANCTUARY_ALLOCATED.");
