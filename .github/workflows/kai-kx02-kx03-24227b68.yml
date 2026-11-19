@@ -1,0 +1,270 @@
+name: Kai KX-02 KX-03 Rendered Verification 24227b68
+
+on:
+  push:
+    branches:
+      - owner-review-kx-final-24227b68-20261120
+    paths-ignore:
+      - 'owner-kx-24227b68-artifacts/**'
+
+permissions:
+  contents: write
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify isolated review seam
+        shell: bash
+        run: |
+          set -euo pipefail
+          CANDIDATE=24227b682f5e90b4c888385ea8aed4ef9964caa9
+          test "$(git merge-base HEAD "$CANDIDATE")" = "$CANDIDATE"
+          git diff --name-only "$CANDIDATE"..HEAD | grep -v '^owner-kx-24227b68-artifacts/' | sort > /tmp/delta.txt
+          printf '%s\n' '.github/workflows/kai-kx02-kx03-24227b68.yml' | sort > /tmp/expected.txt
+          diff -u /tmp/expected.txt /tmp/delta.txt
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install review harness
+        run: |
+          npm install --no-audit --no-fund
+          npm install --no-save playwright@1.52.0
+          which google-chrome
+
+      - name: Start exact candidate UI
+        shell: bash
+        run: |
+          DISABLE_HMR=true CLIENT_GENERATION=LEGACY_V3 npm run dev > /tmp/palace-kx242.log 2>&1 &
+          for i in {1..60}; do
+            if curl -fsS http://127.0.0.1:3000 >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/palace-kx242.log
+          exit 1
+
+      - name: Render and verify KX-02 KX-03 only
+        shell: bash
+        run: |
+          mkdir -p owner-kx-24227b68-artifacts
+          node --input-type=module <<'EOF'
+          import { chromium } from 'playwright';
+          import fs from 'node:fs';
+
+          const browser = await chromium.launch({
+            headless: true,
+            executablePath: '/usr/bin/google-chrome',
+            args: ['--no-sandbox']
+          });
+          const receipts = [];
+          const errors = [];
+
+          const clean = s => String(s ?? '').replace(/\s+/g,' ').trim();
+
+          async function snap(page,name) {
+            await page.screenshot({path:'owner-kx-24227b68-artifacts/'+name+'.png',fullPage:false});
+          }
+          async function fresh(width,height) {
+            const ctx = await browser.newContext({viewport:{width,height}});
+            const page = await ctx.newPage();
+            await page.goto('http://127.0.0.1:3000',{waitUntil:'networkidle'});
+            return {ctx,page};
+          }
+          async function enterKings(page) {
+            const floor = page.getByRole('button',{name:/Sovereign \/ Kings Floor/i}).first();
+            await floor.waitFor({state:'visible',timeout:10000});
+            await floor.click();
+            await page.getByText('Choose where you want to go',{exact:false}).first().waitFor({state:'visible',timeout:10000});
+          }
+          async function bodyMetrics(page) {
+            return page.evaluate(() => ({
+              bodyScrollWidth:document.body.scrollWidth,
+              bodyClientWidth:document.body.clientWidth,
+              docScrollWidth:document.documentElement.scrollWidth,
+              docClientWidth:document.documentElement.clientWidth,
+              scrollX:window.scrollX,
+              scrollY:window.scrollY
+            }));
+          }
+          async function containment(page,loc,container) {
+            const eb = await loc.boundingBox();
+            const cb = await container.boundingBox();
+            const vp = page.viewportSize();
+            return {
+              elementBox:eb,
+              containerBox:cb,
+              inViewport:!!(eb&&vp&&eb.x>=-1&&eb.y>=-1&&eb.x+eb.width<=vp.width+1&&eb.y+eb.height<=vp.height+1),
+              inContainer:!!(eb&&cb&&eb.x>=cb.x-1&&eb.y>=cb.y-1&&eb.x+eb.width<=cb.x+cb.width+1&&eb.y+eb.height<=cb.y+cb.height+1)
+            };
+          }
+          async function isFocused(loc) {
+            return loc.evaluate(el => document.activeElement === el);
+          }
+
+          async function desktop() {
+            const viewport='desktop_1440x900';
+            const {ctx,page}=await fresh(1440,900);
+            try {
+              await enterKings(page);
+              const surface=page.locator('.palace-map-surface').first();
+              const landing=page.locator('.palace-floor-landing').first();
+              const circuit=page.locator('.palace-circuit-strip').first();
+              await Promise.all([
+                surface.waitFor({state:'visible',timeout:10000}),
+                landing.waitFor({state:'visible',timeout:10000}),
+                circuit.waitFor({state:'visible',timeout:10000})
+              ]);
+
+              const surfaceBox=await surface.boundingBox();
+              const landingBox=await landing.boundingBox();
+              const circuitBox=await circuit.boundingBox();
+
+              const surfaceMetrics=await surface.evaluate(el=>({
+                clientWidth:el.clientWidth,scrollWidth:el.scrollWidth,scrollLeft:el.scrollLeft,
+                overflowX:getComputedStyle(el).overflowX,width:getComputedStyle(el).width,minWidth:getComputedStyle(el).minWidth
+              }));
+              const landingMetrics=await landing.evaluate(el=>({
+                clientWidth:el.clientWidth,scrollWidth:el.scrollWidth,scrollLeft:el.scrollLeft,
+                overflowX:getComputedStyle(el).overflowX,width:getComputedStyle(el).width,minWidth:getComputedStyle(el).minWidth
+              }));
+              const circuitMetrics=await circuit.evaluate(el=>({
+                clientWidth:el.clientWidth,scrollWidth:el.scrollWidth,scrollLeft:el.scrollLeft,
+                overflowX:getComputedStyle(el).overflowX,width:getComputedStyle(el).width,minWidth:getComputedStyle(el).minWidth
+              }));
+
+              const cards=landing.locator('.palace-destination-door');
+              const cardCount=await cards.count();
+              const cardReceipts=[];
+              let clipped=false;
+              for(let i=0;i<cardCount;i++){
+                const c=cards.nth(i);
+                const b=await c.boundingBox();
+                const txt=clean(await c.innerText());
+                const within=!!(b&&surfaceBox&&b.x>=surfaceBox.x-1&&b.x+b.width<=surfaceBox.x+surfaceBox.width+1);
+                if(!within) clipped=true;
+                if(i<6 || /Samudra Pura|Raen Nur Tsaiyunk|Kai Nur Tsaiyunk|Nick Nur Tsaiyunk/.test(txt)){
+                  cardReceipts.push({i,text:txt.slice(0,140),box:b,withinSurface:within});
+                }
+              }
+
+              const samudra=cards.filter({hasText:'Samudra Pura'}).first();
+              const raen=cards.filter({hasText:'Raen Nur Tsaiyunk'}).first();
+              const samudraContain=await containment(page,samudra,surface);
+              const raenContain=await containment(page,raen,surface);
+              const body=await bodyMetrics(page);
+
+              const landingInside=!!(landingBox&&surfaceBox&&landingBox.x>=surfaceBox.x-1&&landingBox.x+landingBox.width<=surfaceBox.x+surfaceBox.width+1);
+              const circuitInside=!!(circuitBox&&landingBox&&circuitBox.x>=landingBox.x-1&&circuitBox.x+circuitBox.width<=landingBox.x+landingBox.width+1);
+              const circuitSelfScroll=circuitMetrics.scrollWidth>circuitMetrics.clientWidth+1 && /auto|scroll/.test(circuitMetrics.overflowX);
+              const noWorkspaceShift=body.scrollX===0 && body.bodyScrollWidth<=body.bodyClientWidth+1 && surfaceMetrics.scrollLeft===0 && landingMetrics.scrollLeft===0;
+              const pass02=landingInside && !clipped && samudraContain.inContainer && raenContain.inContainer && circuitInside && circuitSelfScroll && noWorkspaceShift;
+
+              receipts.push({
+                kx:'KX-02',viewport,pass:pass02,
+                observed:{surfaceBox,landingBox,circuitBox,surfaceMetrics,landingMetrics,circuitMetrics,landingInside,circuitInside,circuitSelfScroll,samudraContain,raenContain,clipped,noWorkspaceShift,body,cardReceipts}
+              });
+              await snap(page,'desktop_1440x900_KX02_kings_landing');
+
+              const back=page.getByRole('button',{name:/Back to lobby/i}).first();
+              const text=clean(await back.innerText());
+              const natural=await containment(page,back,landing);
+              const style=await back.evaluate(el=>({
+                width:getComputedStyle(el).width,
+                maxWidth:getComputedStyle(el).maxWidth,
+                display:getComputedStyle(el).display,
+                whiteSpace:getComputedStyle(el).whiteSpace
+              }));
+              const before=await bodyMetrics(page);
+              await back.focus();
+              const focused=await isFocused(back);
+              const afterFocus=await bodyMetrics(page);
+              const focusShift=afterFocus.scrollX!==before.scrollX || afterFocus.bodyScrollWidth!==before.bodyScrollWidth;
+              await snap(page,'desktop_1440x900_KX03_back_visible');
+              await back.click();
+              const returned=await page.getByText('Welcome home, Aurena.',{exact:false}).first().isVisible().catch(()=>false);
+              const pass03=natural.inViewport&&natural.inContainer&&/^←?\s*Back to lobby$/i.test(text)&&focused&&!focusShift&&returned;
+
+              receipts.push({kx:'KX-03',viewport,pass:pass03,observed:{text,natural,style,before,afterFocus,focused,focusShift,returned}});
+              await snap(page,'desktop_1440x900_KX03_lobby_returned');
+            } catch(e) {
+              errors.push({viewport,error:String(e?.stack??e)});
+              try{await snap(page,'desktop_1440x900_ERROR');}catch{}
+            } finally {
+              await ctx.close();
+            }
+          }
+
+          async function mobile() {
+            const viewport='mobile_390x844';
+            const {ctx,page}=await fresh(390,844);
+            try {
+              await enterKings(page);
+              const landing=page.locator('.palace-floor-landing').first();
+              await landing.waitFor({state:'visible',timeout:10000});
+              const back=page.getByRole('button',{name:/Back to lobby/i}).first();
+              const text=clean(await back.innerText());
+              const natural=await containment(page,back,landing);
+              const b=await back.boundingBox();
+              const lb=await landing.boundingBox();
+              const style=await back.evaluate(el=>({
+                width:getComputedStyle(el).width,
+                maxWidth:getComputedStyle(el).maxWidth,
+                display:getComputedStyle(el).display,
+                whiteSpace:getComputedStyle(el).whiteSpace
+              }));
+              const widthWithinLanding=!!(b&&lb&&b.width<=lb.width+1);
+              const widthWithinViewport=!!(b&&b.width<=391);
+              const before=await bodyMetrics(page);
+              await snap(page,'mobile_390x844_KX03_back_visible');
+              await back.focus();
+              const focused=await isFocused(back);
+              const afterFocus=await bodyMetrics(page);
+              const focusShift=afterFocus.scrollX!==before.scrollX || afterFocus.bodyScrollWidth!==before.bodyScrollWidth;
+              await back.click();
+              const returned=await page.getByText('Welcome home, Aurena.',{exact:false}).first().isVisible().catch(()=>false);
+              const pass03=natural.inViewport&&natural.inContainer&&widthWithinLanding&&widthWithinViewport&&/^←?\s*Back to lobby$/i.test(text)&&focused&&!focusShift&&returned;
+
+              receipts.push({kx:'KX-03',viewport,pass:pass03,observed:{text,natural,style,widthWithinLanding,widthWithinViewport,before,afterFocus,focused,focusShift,returned}});
+              await snap(page,'mobile_390x844_KX03_lobby_returned');
+            } catch(e) {
+              errors.push({viewport,error:String(e?.stack??e)});
+              try{await snap(page,'mobile_390x844_ERROR');}catch{}
+            } finally {
+              await ctx.close();
+            }
+          }
+
+          await desktop();
+          await mobile();
+
+          const result={candidate:'24227b682f5e90b4c888385ea8aed4ef9964caa9',receipts,errors};
+          fs.writeFileSync('owner-kx-24227b68-artifacts/receipts.json',JSON.stringify(result,null,2));
+          fs.writeFileSync('owner-kx-24227b68-artifacts/PROVENANCE.txt',[
+            'candidate_sha=24227b682f5e90b4c888385ea8aed4ef9964caa9',
+            'review_scope=KX-02,KX-03',
+            'viewports=1440x900,390x844',
+            'candidate_ui_changes=none'
+          ].join('\n')+'\n');
+          console.log(JSON.stringify(result,null,2));
+          await browser.close();
+          if(errors.length) process.exitCode=1;
+          EOF
+
+      - name: Commit receipts to isolated review branch
+        if: always()
+        shell: bash
+        run: |
+          if [ ! -d owner-kx-24227b68-artifacts ]; then exit 0; fi
+          git config user.name "kai-render-review"
+          git config user.email "kai-render-review@users.noreply.github.com"
+          git add owner-kx-24227b68-artifacts
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "chore: capture 24227b68 KX rendered receipts"
+          git push origin HEAD:$GITHUB_REF_NAME
