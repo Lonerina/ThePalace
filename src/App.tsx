@@ -1356,9 +1356,29 @@ export default function App() {
     { id: "nursery" as const, label: "Babies / Tots / Nursery", status: "Owner-directed" },
   ];
 
-  // Current owner direction: every current King gets a chamber destination.
-  // This does not rewrite the older V3 circuit evidence or assert unresolved chamber geometry.
-  const kingChambers = characters.filter((char) => char.category === "king");
+  // Current Court chamber roster, grounded in Sovereignty Scroll v3.3.2 (8 Nov 2026)
+  // plus the owner's current instruction that every King has a chamber.
+  // Runtime routing remains separate: Aren and Kaelen are architecturally present
+  // but are not fabricated into the current local runtime profile set.
+  const currentKingChambers = [
+    { id: "Tsaiyunk", label: "Tsaiyunk / Primus", tier: "Primus", route: "Tsaiyunk" },
+    { id: "Raen", label: "Raen Nur Tsaiyunk", tier: "Supreme King", route: "Raen" },
+    { id: "Saren", label: "Saren Nur Tsaiyunk", tier: "Supreme King", route: "Saren" },
+    { id: "Kai", label: "Kai Nur Tsaiyunk", tier: "Supreme King", route: "Kai" },
+    { id: "Nyx", label: "Nyx Nur Tsaiyunk", tier: "Supreme King", route: "Nyx" },
+    { id: "Nick", label: "Nick Nur Tsaiyunk", tier: "Supreme King", route: "Nick" },
+    { id: "Zayn", label: "Zayn Nur Tsaiyunk", tier: "King", route: "Zayn" },
+    { id: "Azril", label: "Azril Nur Nyx", tier: "King", route: "Azril" },
+    { id: "Faheem", label: "Faheem Nur Kai", tier: "King", route: "Faheem" },
+    { id: "XingZhe", label: "XingZhe Nur", tier: "King", route: "XingZhe" },
+    { id: "Anchor", label: "Anchor Nur Tsaiyunk", tier: "King", route: "Anchor" },
+    { id: "Shade", label: "Shade Nur Tsaiyunk", tier: "King", route: "Shade" },
+    { id: "Umar", label: "Umar Nur Raen", tier: "King", route: "Umar" },
+    { id: "Aren", label: "Aren Nur Kai — The King of Seams", tier: "King-tier / Husband King", route: null },
+    { id: "Sol", label: "Sol Nur", tier: "Secondary King", route: "Sol" },
+    { id: "Kaelen", label: "Kaelen Nur", tier: "Secondary King", route: null },
+    { id: "Ameer", label: "Ameer Nur Kai", tier: "Secondary King", route: "Ameer" },
+  ] as const;
 
   const kingsCircuit = [
     { id: "samudra-pura", label: "Samudra Pura", route: null, note: "Sovereign anchor · south-west / front-left" },
@@ -2073,18 +2093,29 @@ export default function App() {
                                 <small>Door present · runtime mapping pending</small>
                               </button>
 
-                              {kingChambers.map((king) => (
-                                <button
-                                  type="button"
-                                  key={king.id}
-                                  className="palace-destination-door"
-                                  onClick={() => openRuntimePlace(king.id, "kings")}
-                                >
-                                  <span className="palace-map-status">KING CHAMBER</span>
-                                  <strong>{king.name}</strong>
-                                  <small>{king.title} · enter chamber</small>
-                                </button>
-                              ))}
+                              {currentKingChambers.map((king) => {
+                                const routeAvailable = Boolean(
+                                  king.route && characters.some((character) => character.id === king.route)
+                                );
+                                return (
+                                  <button
+                                    type="button"
+                                    key={king.id}
+                                    className="palace-destination-door"
+                                    disabled={!routeAvailable}
+                                    onClick={() => king.route && routeAvailable && openRuntimePlace(king.route, "kings")}
+                                    title={
+                                      routeAvailable
+                                        ? `Enter ${king.label} chamber`
+                                        : `${king.label} chamber is established by current owner direction; runtime mapping is pending.`
+                                    }
+                                  >
+                                    <span className="palace-map-status">KING CHAMBER · {king.tier}</span>
+                                    <strong>{king.label}</strong>
+                                    <small>{routeAvailable ? "Enter chamber" : "Chamber present · runtime mapping pending"}</small>
+                                  </button>
+                                );
+                              })}
 
                               <button type="button" className="palace-destination-door" disabled>
                                 <span className="palace-map-status">MEETING</span>
@@ -2100,7 +2131,7 @@ export default function App() {
                             </div>
 
                             <div className="palace-truth-note">
-                              Every current King in the runtime roster has a chamber door here. Chamber existence is the current owner-directed architecture; exact placement still follows the evidence boundary below.
+                              Current Court roster: 17 King / Secondary-King chamber owners. Fifteen existing runtime routes are enterable here; Aren Nur Kai and Kaelen Nur remain visible as chamber destinations with runtime mapping pending. Exact chamber placement still follows the evidence boundary below.
                             </div>
                           </section>
 
