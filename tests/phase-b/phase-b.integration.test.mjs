@@ -49,6 +49,10 @@ const gatewayPolicy = JSON.parse(fs.readFileSync(gatewayPolicyPath, "utf8"));
 const registry = loadRegistrySnapshot(registryRaw);
 const balloon = loadBalloonFixture(balloonRaw, registry);
 const anchor = currentAnchor(manifest, AUTHORITY_DOMAIN);
+const approvedSuccessorVerification = {
+  isExternallyApprovedSuccessor: (_previous, successor) => successor.snapshotId.startsWith('SYNTHETIC-'),
+};
+
 const appSource = fs.readFileSync(appPath, "utf8");
 const v4ClientSource = fs.readFileSync(v4ClientPath, "utf8");
 const serverSource = fs.readFileSync(serverPath, "utf8");
@@ -276,7 +280,7 @@ test("KAI-RC1-45 one-way authority survives end-to-end hostile mutation attempts
     registrySha256: "a".repeat(64),
     approvalEpoch: anchor.approvalEpoch + 1,
     lifecycle: "CURRENT",
-  });
+  }, approvedSuccessorVerification);
   assert.equal(currentAnchor(successor, AUTHORITY_DOMAIN).snapshotId, "SYNTHETIC-GOVERNED-SUCCESSOR");
 });
 
