@@ -10,6 +10,11 @@ const receipt = {
   locator: "successor-lineage-source",
 };
 
+const verification = {
+  isCurrentApprovedSnapshotRef: (ref) => ref === "registry-successor-approved",
+  isApprovedSanctuaryAllocationRef: (ref) => ref === "sanctuary-allocation-approved",
+};
+
 const unresolvedAxis = () => ({
   value: null,
   claim_state: "UNKNOWN",
@@ -144,7 +149,76 @@ test("sanctuary allocation requires prior approved snapshot and explicit allocat
   assert.ok(result.issues.some((issue) => issue.code === "SANCTUARY_ALLOCATION_REQUIRED"));
 });
 
-test("full promotion chain may reach sanctuary only with explicit approved references", () => {
+test("arbitrary snapshot reference cannot self-authorize promotion", () => {
+  const packet = validSourceIntake();
+  packet.records[0].promotion_state = "SNAPSHOT_APPROVED";
+  packet.records[0].pending_state = "BORN";
+  packet.records[0].birth_event = verifiedBirth();
+  packet.records[0].maternal_batch = verifiedBatch();
+  packet.records[0].approved_snapshot_ref = "forged-snapshot-ref";
+  const result = validateSuccessorHeirLifecyclePacket(packet, verification);
+  assert.equal(result.ok, false);
+  assert.ok(result.issues.some((issue) => issue.code === "APPROVED_SNAPSHOT_NOT_CURRENT"));
+});
+
+test("arbitrary sanctuary reference cannot self-authorize allocation", () => {
+  const packet = validSourceIntake();
+  packet.records[0].promotion_state = "SANCTUARY_ALLOCATED";
+  packet.records[0].pending_state = "BORN";
+  packet.records[0].birth_event = verifiedBirth();
+  packet.records[0].maternal_batch = verifiedBatch();
+  packet.records[0].approved_snapshot_ref = "registry-successor-approved";
+  packet.records[0].sanctuary_allocation_ref = "forged-sanctuary-ref";
+  const result = validateSuccessorHeirLifecyclePacket(packet, verification);
+  assert.equal(result.ok, false);
+  assert.ok(result.issues.some((issue) => issue.code === "SANCTUARY_ALLOCATION_NOT_APPROVED"));
+});
+
+test("verified birth event must use the locked value shape", () => {
+  const packet = validSourceIntake();
+  packet.records[0].promotion_state = "BIRTH_VERIFIED";
+  packet.records[0].pending_state = "BORN";
+  packet.records[0].birth_event = {
+    value: {},
+    claim_state: "VERIFIED",
+    authority_state: "OWNER CLOSURE",
+    source_receipts: [receipt],
+  };
+  const result = validateSuccessorHeirLifecyclePacket(packet);
+  assert.equal(result.ok, false);
+  assert.ok(result.issues.some((issue) => issue.code === "VERIFIED_VALUE_MALFORMED"));
+});
+
+test("verified maternal batch must use the locked value shape", () => {
+  const packet = validSourceIntake();
+  packet.records[0].promotion_state = "MATERNAL_BATCH_ASSIGNED";
+  packet.records[0].pending_state = "BORN";
+  packet.records[0].birth_event = verifiedBirth();
+  packet.records[0].maternal_batch = {
+    value: { batch_id: "" },
+    claim_state: "VERIFIED",
+    authority_state: "COURT RATIFIED",
+    source_receipts: [receipt],
+  };
+  const result = validateSuccessorHeirLifecyclePacket(packet);
+  assert.equal(result.ok, false);
+  assert.ok(result.issues.some((issue) => issue.code === "VERIFIED_VALUE_MALFORMED"));
+});
+
+test("verified axes reject malformed receipt shapes", () => {
+  const packet = validSourceIntake();
+  packet.records[0].promotion_state = "BIRTH_VERIFIED";
+  packet.records[0].pending_state = "BORN";
+  packet.records[0].birth_event = {
+    ...verifiedBirth(),
+    source_receipts: [{ source_id: "", version: "current", authority: "OWNER-ATTESTED", locator: "x" }],
+  };
+  const result = validateSuccessorHeirLifecyclePacket(packet);
+  assert.equal(result.ok, false);
+  assert.ok(result.issues.some((issue) => issue.code === "VERIFIED_RECEIPTS_MISSING"));
+});
+
+test("full promotion chain may reach sanctuary only with externally verified references", () => {
   const packet = validSourceIntake();
   packet.records[0].promotion_state = "SANCTUARY_ALLOCATED";
   packet.records[0].pending_state = "BORN";
@@ -152,6 +226,6 @@ test("full promotion chain may reach sanctuary only with explicit approved refer
   packet.records[0].maternal_batch = verifiedBatch();
   packet.records[0].approved_snapshot_ref = "registry-successor-approved";
   packet.records[0].sanctuary_allocation_ref = "sanctuary-allocation-approved";
-  const result = validateSuccessorHeirLifecyclePacket(packet);
+  const result = validateSuccessorHeirLifecyclePacket(packet, verification);
   assert.equal(result.ok, true);
 });
