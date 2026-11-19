@@ -224,12 +224,47 @@ test('KAI-RC1-15 rejected pending-name proposal leaves binding unchanged', () =>
   assert.equal(sanctuary().chambers.find((c) => c.binding?.entity_key === pending.entity_key).chamber_id, before);
 });
 
-test('KAI-RC1-16 Batch-2 discovery binds reserved HEIR_09 without shifting others', () => {
+test('KAI-RC1-16 Batch-2 discovery binds reserved HEIR_09 only from the approved registry snapshot', () => {
   const before = sanctuary();
   const beforeIds = before.chambers.map((c) => c.chamber_id);
-  const next = bindApprovedDiscovery({ state: mutableSanctuaryCopy(before), reservationKey: 'batch2-pending-discovery', entityKey: 'synthetic-approved-discovery', registrySnapshotId: 'SYNTHETIC-R5' });
+  const successor = cloneJson(registry);
+  successor.snapshot_id = 'SYNTHETIC-R5';
+  successor.entities.push({
+    entity_key: 'synthetic-approved-discovery',
+    canonical_name: 'Synthetic Approved Discovery',
+    name_status: 'CONFIRMED',
+    current_tier: 'HEIR_TIER',
+    registry_group: 'BATCH_2',
+    source_receipts: [{ source_id: 'synthetic-test', version: 'R5', authority: 'TEST', locator: 'KAI-RC1-16' }],
+    record_class: 'CURRENT_HEIR',
+    birth_batch: 'BATCH_2',
+    current_status: 'CURRENT_HEIR',
+    field_evidence: {
+      canonical_name: 'VERIFIED',
+      current_tier: 'VERIFIED',
+      birth_batch: 'VERIFIED',
+      current_status: 'VERIFIED',
+    },
+  });
+  const synced = preserveChambersAcrossRegistryRefresh(mutableSanctuaryCopy(before), successor);
+  const next = bindApprovedDiscovery({
+    state: synced,
+    reservationKey: 'batch2-pending-discovery',
+    entityKey: 'synthetic-approved-discovery',
+    registry: successor,
+  });
   assert.equal(next.chambers.find((c) => c.chamber_id === 'HEIR_09').binding.entity_key, 'synthetic-approved-discovery');
+  assert.equal(next.chambers.find((c) => c.chamber_id === 'HEIR_09').binding.registry_snapshot_id, 'SYNTHETIC-R5');
   assert.deepEqual(next.chambers.map((c) => c.chamber_id), beforeIds);
+});
+
+test('KAI-RC1-16A discovery binding rejects entity absent from approved registry', () => {
+  assert.throws(() => bindApprovedDiscovery({
+    state: mutableSanctuaryCopy(sanctuary()),
+    reservationKey: 'batch2-pending-discovery',
+    entityKey: 'synthetic-unapproved-discovery',
+    registry,
+  }), /not present in the approved registry snapshot/);
 });
 
 test('KAI-RC1-17 unresolved Batch-2 reserve is preserved', () => {
