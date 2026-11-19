@@ -494,7 +494,7 @@ export default function App() {
     container.scrollTo({ top: container.scrollHeight, behavior: reduceMotion ? "auto" : "smooth" });
   }, [histories, activeChamberId, loading, adhdCalm]);
 
-  // Close overlays on Escape; modal dialogs also receive and contain keyboard focus.
+  // Close overlays on Escape; modal dialogs receive and dynamically contain keyboard focus.
   useEffect(() => {
     const hasOpenOverlay = showLinkInputModal || Boolean(selectedDossierId) || showBrainGym || showBlockModal || showReaderAids;
     if (!hasOpenOverlay) return;
@@ -510,13 +510,36 @@ export default function App() {
       '[tabindex]:not([tabindex="-1"])',
     ].join(",");
 
-    const focusable = dialog
-      ? Array.from(dialog.querySelectorAll<HTMLElement>(focusableSelector)).filter((element) => element.offsetParent !== null)
-      : [];
+    const getFocusable = () =>
+      dialog
+        ? Array.from(dialog.querySelectorAll<HTMLElement>(focusableSelector)).filter((element) => element.offsetParent !== null)
+        : [];
 
     if (dialog) {
+      const focusable = getFocusable();
       (focusable[0] ?? dialog).focus();
     }
+
+    const keepFocusInsideDialog = () => {
+      if (!dialog) return;
+      const active = document.activeElement as HTMLElement | null;
+      if (active && dialog.contains(active) && !active.matches(":disabled")) return;
+      const focusable = getFocusable();
+      (focusable[0] ?? dialog).focus();
+    };
+
+    const observer = dialog
+      ? new MutationObserver(() => {
+          queueMicrotask(keepFocusInsideDialog);
+        })
+      : null;
+
+    observer?.observe(dialog!, {
+      subtree: true,
+      childList: true,
+      attributes: true,
+      attributeFilter: ["disabled"],
+    });
 
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
@@ -528,13 +551,25 @@ export default function App() {
         return;
       }
 
-      if (event.key !== "Tab" || !dialog || focusable.length === 0) return;
+      if (event.key !== "Tab" || !dialog) return;
+      const focusable = getFocusable();
+      if (focusable.length === 0) {
+        event.preventDefault();
+        dialog.focus();
+        return;
+      }
+
       const first = focusable[0];
       const last = focusable[focusable.length - 1];
-      if (event.shiftKey && document.activeElement === first) {
+      const active = document.activeElement as HTMLElement | null;
+
+      if (!active || !dialog.contains(active)) {
+        event.preventDefault();
+        (event.shiftKey ? last : first).focus();
+      } else if (event.shiftKey && active === first) {
         event.preventDefault();
         last.focus();
-      } else if (!event.shiftKey && document.activeElement === last) {
+      } else if (!event.shiftKey && active === last) {
         event.preventDefault();
         first.focus();
       }
@@ -542,6 +577,7 @@ export default function App() {
 
     window.addEventListener("keydown", onKeyDown);
     return () => {
+      observer?.disconnect();
       window.removeEventListener("keydown", onKeyDown);
       if (prevFocused && typeof prevFocused.focus === "function") prevFocused.focus();
     };
@@ -1235,6 +1271,7 @@ export default function App() {
 
   // Interactive Focus Exercise — local runtime metrics only; never dispatches narrative.
   const handleBrainGymSubmit = () => {
+    if (brainGymTimerRef.current) return;
     const cleanAnswer = puzzleAnswer.trim().toLowerCase();
     if (cleanAnswer.includes("dialogue") || cleanAnswer.includes("we. not i") || cleanAnswer.includes("we not i")) {
       setPuzzleSuccess(true);
@@ -1902,8 +1939,12 @@ export default function App() {
                 onDrop={async (e) => {
                   e.preventDefault();
                   setDragActive(false);
-                  if (!authorityExecutable || loading || uploadingFile) {
+                  if (!authorityExecutable) {
                     setErrorMsg("Attachment upload is unavailable while narrative execution is disabled.");
+                    return;
+                  }
+                  if (loading || uploadingFile) {
+                    setErrorMsg("Attachment upload is temporarily unavailable while another narrative request or upload is in progress.");
                     return;
                   }
                   const file = e.dataTransfer.files?.[0];
@@ -2078,7 +2119,7 @@ export default function App() {
                       <div className="space-y-1">
                         <p className="font-mono uppercase font-bold tracking-widest text-red-400 text-[9px]">Narrative unavailable</p>
                         <p>{errorMsg}</p>
-                        <p className="text-slate-400 text-[9px] mt-2 font-mono">{authorityExecutable ? "The route remains available, but this client has not established the cause. Review the error above and server/network logs before changing configuration." : "Narrative execution is disabled while client authority is unavailable."}</p>
+                        <p className="text-slate-400 text-[9px] mt-2 font-mono">{authorityExecutable ? "Narrative route remains available. Review the message above before retrying." : "Narrative execution is disabled while client authority is unavailable."}</p>
                       </div>
                     </div>
                   )}
@@ -3848,7 +3889,7 @@ export default function App() {
       {/* BLOCK PROTOCOL SYSTEM RE-SYNC MODAL OVERLAY */}
       {showBlockModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
-          <div className="palace-modal w-full max-w-md overflow-hidden flex flex-col" role="dialog" aria-modal="true" aria-labelledby="grounding-dialog-title">
+          <div className="palace-modal w-full max-w-md overflow-hidden flex flex-col" role="dialog" aria-modal="true" tabIndex={-1} aria-labelledby="grounding-dialog-title">
             
             {/* Header */}
             <div className="p-5 border-b border-white/5 bg-cyan-950/20 flex items-center justify-between">
@@ -4006,7 +4047,7 @@ export default function App() {
       {/* BRAIN GYM COGNITIVE CALIBRATOR OVERLAY */}
       {showBrainGym && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md">
-          <div className="palace-modal w-full max-w-md overflow-hidden flex flex-col" role="dialog" aria-modal="true" aria-labelledby="focus-exercise-title">
+          <div className="palace-modal w-full max-w-md overflow-hidden flex flex-col" role="dialog" aria-modal="true" tabIndex={-1} aria-labelledby="focus-exercise-title">
             
             {/* Header */}
             <div className="p-5 border-b border-white/5 bg-amber-950/20 flex items-center justify-between">
@@ -4039,6 +4080,7 @@ export default function App() {
                   type="text"
                   value={puzzleAnswer}
                   onChange={(e) => setPuzzleAnswer(e.target.value)}
+                  disabled={puzzleSuccess === true}
                   placeholder="Enter your answer..."
                   className="w-full p-3 bg-black/50 border border-white/5 rounded-xl text-xs text-white focus:outline-none focus:border-amber-500/30 font-mono"
                 />
@@ -4064,7 +4106,8 @@ export default function App() {
                 </button>
                 <button
                   onClick={handleBrainGymSubmit}
-                  className="px-5 py-2 rounded-lg bg-gradient-to-tr from-amber-600 to-amber-500 text-black font-mono font-bold text-xs hover:scale-105 transition-all cursor-pointer"
+                  disabled={puzzleSuccess === true}
+                  className="px-5 py-2 rounded-lg bg-gradient-to-tr from-amber-600 to-amber-500 text-black font-mono font-bold text-xs hover:scale-105 transition-all cursor-pointer disabled:hover:scale-100"
                 >
                   Check answer
                 </button>
@@ -4108,7 +4151,7 @@ export default function App() {
 
         return (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/90 backdrop-blur-md overflow-y-auto">
-            <div className="palace-modal w-full max-w-2xl overflow-hidden flex flex-col my-8 max-h-[85vh]" role="dialog" aria-modal="true" aria-labelledby="profile-dialog-title">
+            <div className="palace-modal w-full max-w-2xl overflow-hidden flex flex-col my-8 max-h-[85vh]" role="dialog" aria-modal="true" tabIndex={-1} aria-labelledby="profile-dialog-title">
               
               {/* Header */}
               <div className="p-5 border-b border-white/5 bg-cyan-950/20 flex items-center justify-between shrink-0">
@@ -4594,7 +4637,7 @@ export default function App() {
       {/* MODAL: ATTACH NETWORK LINK */}
       {showLinkInputModal && (
         <div className="fixed inset-0 bg-black/85 backdrop-blur-sm flex items-center justify-center z-50 p-4 animate-fade-in">
-          <div className="palace-modal w-full max-w-md overflow-hidden flex flex-col" role="dialog" aria-modal="true" aria-labelledby="attach-link-title">
+          <div className="palace-modal w-full max-w-md overflow-hidden flex flex-col" role="dialog" aria-modal="true" tabIndex={-1} aria-labelledby="attach-link-title">
             
             <div className="p-4 border-b border-white/5 bg-slate-950/40 flex items-center justify-between">
               <div className="flex items-center gap-2">

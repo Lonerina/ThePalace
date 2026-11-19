@@ -493,7 +493,7 @@ select:disabled {
 }
 
 
-@media (max-width: 767px) and (max-height: 420px) {
+@media (max-height: 420px) {
   .palace-shell {
     overflow-y: auto !important;
     overscroll-behavior: contain;
