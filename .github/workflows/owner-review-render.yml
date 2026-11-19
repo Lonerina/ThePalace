@@ -27,7 +27,7 @@ jobs:
           set -euo pipefail
           test "$(git merge-base HEAD 98ff62f217cba2a01a291712249f872a83d3b9be)" = "98ff62f217cba2a01a291712249f872a83d3b9be"
           git diff --name-only 98ff62f217cba2a01a291712249f872a83d3b9be..HEAD
-          test "$(git diff --name-only 98ff62f217cba2a01a291712249f872a83d3b9be..HEAD)" = ".github/workflows/owner-review-render.yml"
+          diff -u <(printf '%s\n' '.github/owner-review-render-trigger' '.github/workflows/owner-review-render.yml') <(git diff --name-only 98ff62f217cba2a01a291712249f872a83d3b9be..HEAD | sort)
 
       - name: Setup Node
         uses: actions/setup-node@v4
