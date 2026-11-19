@@ -1,0 +1,226 @@
+name: Kai Final KX-02 KX-03 Rendered Re-walk
+
+on:
+  push:
+    branches:
+      - owner-review-kx-final-79e581eb-20261120
+    paths-ignore:
+      - 'owner-kx-final-artifacts/**'
+
+permissions:
+  contents: write
+
+jobs:
+  review:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify isolated review seam
+        shell: bash
+        run: |
+          set -euo pipefail
+          CANDIDATE=79e581eb96818e85d41e46f0d9276a9b650d05f2
+          test "$(git merge-base HEAD "$CANDIDATE")" = "$CANDIDATE"
+          git diff --name-only "$CANDIDATE"..HEAD | grep -v '^owner-kx-final-artifacts/' | sort > /tmp/delta.txt
+          printf '%s\n' '.github/workflows/kai-final-kx02-kx03-render.yml' | sort > /tmp/expected.txt
+          diff -u /tmp/expected.txt /tmp/delta.txt
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install dependencies and Chromium
+        run: |
+          npm install --no-audit --no-fund
+          npm install --no-save playwright@1.52.0
+          npx playwright install --with-deps chromium
+
+      - name: Start exact candidate UI
+        shell: bash
+        run: |
+          DISABLE_HMR=true CLIENT_GENERATION=LEGACY_V3 npm run dev > /tmp/palace-final-kx.log 2>&1 &
+          for i in {1..60}; do
+            if curl -fsS http://127.0.0.1:3000 >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/palace-final-kx.log
+          exit 1
+
+      - name: Rendered re-walk KX-02 KX-03 only
+        shell: bash
+        run: |
+          mkdir -p owner-kx-final-artifacts
+          node --input-type=module <<'EOF'
+          import { chromium } from 'playwright';
+          import fs from 'node:fs';
+
+          const browser = await chromium.launch({ headless: true });
+          const receipts = [];
+          const errors = [];
+          const clean = s => String(s ?? '').replace(/\s+/g,' ').trim();
+
+          async function snap(page,name) {
+            await page.screenshot({path:'owner-kx-final-artifacts/'+name+'.png',fullPage:false});
+          }
+          async function fresh(width,height) {
+            const ctx = await browser.newContext({viewport:{width,height}});
+            const page = await ctx.newPage();
+            await page.goto('http://127.0.0.1:3000',{waitUntil:'networkidle'});
+            return {ctx,page};
+          }
+          async function enterKings(page) {
+            const floor = page.getByRole('button',{name:/Sovereign \/ Kings Floor/i}).first();
+            await floor.waitFor({state:'visible',timeout:10000});
+            await floor.click();
+            await page.getByText('Choose where you want to go',{exact:false}).first().waitFor({state:'visible',timeout:10000});
+          }
+          async function viewportContainment(page,loc,container) {
+            const eb = await loc.boundingBox();
+            const cb = await container.boundingBox();
+            const vp = page.viewportSize();
+            const inViewport = !!(eb && vp && eb.x >= -1 && eb.y >= -1 && eb.x+eb.width <= vp.width+1 && eb.y+eb.height <= vp.height+1);
+            const inContainer = !!(eb && cb && eb.x >= cb.x-1 && eb.y >= cb.y-1 && eb.x+eb.width <= cb.x+cb.width+1 && eb.y+eb.height <= cb.y+cb.height+1);
+            return {elementBox:eb,containerBox:cb,inViewport,inContainer};
+          }
+          async function focusable(page,loc) {
+            await loc.focus();
+            return await loc.evaluate(el => document.activeElement === el);
+          }
+          async function bodyMetrics(page) {
+            return await page.evaluate(() => ({
+              bodyScrollWidth:document.body.scrollWidth,
+              bodyClientWidth:document.body.clientWidth,
+              docScrollWidth:document.documentElement.scrollWidth,
+              docClientWidth:document.documentElement.clientWidth,
+              scrollX:window.scrollX,
+              scrollY:window.scrollY
+            }));
+          }
+
+          async function desktop() {
+            const label='desktop_1440x900';
+            const {ctx,page}=await fresh(1440,900);
+            try {
+              await enterKings(page);
+              const surface = page.locator('.palace-map-surface').first();
+              const landing = page.locator('.palace-open-floor').first();
+              await surface.waitFor({state:'visible',timeout:10000});
+              await landing.waitFor({state:'visible',timeout:10000});
+
+              const surfaceBox=await surface.boundingBox();
+              const landingBox=await landing.boundingBox();
+              const surfaceMetrics=await surface.evaluate(el=>({
+                clientWidth:el.clientWidth,scrollWidth:el.scrollWidth,scrollLeft:el.scrollLeft,
+                overflowX:getComputedStyle(el).overflowX,minWidth:getComputedStyle(el).minWidth,width:getComputedStyle(el).width
+              }));
+              const landingMetrics=await landing.evaluate(el=>({
+                clientWidth:el.clientWidth,scrollWidth:el.scrollWidth,scrollLeft:el.scrollLeft,
+                overflowX:getComputedStyle(el).overflowX,minWidth:getComputedStyle(el).minWidth,width:getComputedStyle(el).width
+              }));
+
+              const cards=landing.locator('.palace-destination-door');
+              const count=await cards.count();
+              const cardReceipts=[];
+              let clipped=false;
+              for(let i=0;i<count;i++){
+                const c=cards.nth(i);
+                const b=await c.boundingBox();
+                const txt=clean(await c.innerText());
+                const within=!!(b&&surfaceBox&&b.x>=surfaceBox.x-1&&b.x+b.width<=surfaceBox.x+surfaceBox.width+1);
+                if(!within) clipped=true;
+                if(i<6 || /Samudra Pura|Raen Nur Tsaiyunk|Kai Nur Tsaiyunk|Nick Nur Tsaiyunk/.test(txt)){
+                  cardReceipts.push({i,text:txt.slice(0,140),box:b,withinSurface:within});
+                }
+              }
+              const samudra=cards.filter({hasText:'Samudra Pura'}).first();
+              const samudraContain=await viewportContainment(page,samudra,surface);
+              const rightColumn=cards.filter({hasText:'Raen Nur Tsaiyunk'}).first();
+              const rightContain=await viewportContainment(page,rightColumn,surface);
+              const body=await bodyMetrics(page);
+              const landingInside=!!(landingBox&&surfaceBox&&landingBox.x>=surfaceBox.x-1&&landingBox.x+landingBox.width<=surfaceBox.x+surfaceBox.width+1);
+              const noHorizontalShift=surfaceMetrics.scrollLeft===0 && landingMetrics.scrollLeft===0 && body.scrollX===0;
+              const pass02=!clipped && samudraContain.inContainer && rightContain.inContainer && landingInside && noHorizontalShift;
+              receipts.push({kx:'KX-02',viewport:label,pass:pass02,observed:{surfaceBox,landingBox,surfaceMetrics,landingMetrics,landingInside,samudraContain,rightContain,clipped,noHorizontalShift,body,cardReceipts}});
+              await snap(page,label+'_KX02_kings_landing');
+
+              const back=page.getByRole('button',{name:/Back to lobby/i}).first();
+              const text=clean(await back.innerText());
+              const natural=await viewportContainment(page,back,landing);
+              const backStyle=await back.evaluate(el=>({display:getComputedStyle(el).display,width:getComputedStyle(el).width,maxWidth:getComputedStyle(el).maxWidth,whiteSpace:getComputedStyle(el).whiteSpace}));
+              const beforeBody=await bodyMetrics(page);
+              const focused=await focusable(page,back);
+              const afterFocusBody=await bodyMetrics(page);
+              const focusCausedHorizontalShift=afterFocusBody.scrollX!==beforeBody.scrollX || afterFocusBody.bodyScrollWidth!==beforeBody.bodyScrollWidth;
+              await back.click();
+              const returned=await page.getByText('Welcome home, Aurena.',{exact:false}).first().isVisible().catch(()=>false);
+              const pass03=natural.inViewport && natural.inContainer && /^←?\s*Back to lobby$/i.test(text) && focused && !focusCausedHorizontalShift && returned;
+              receipts.push({kx:'KX-03',viewport:label,pass:pass03,observed:{text,natural,backStyle,beforeBody,afterFocusBody,focused,focusCausedHorizontalShift,returned}});
+              await snap(page,label+'_KX03_lobby_returned');
+            } catch(e) {
+              errors.push({viewport:label,error:String(e?.stack??e)});
+              try{await snap(page,label+'_ERROR');}catch{}
+            } finally { await ctx.close(); }
+          }
+
+          async function mobile() {
+            const label='mobile_390x844';
+            const {ctx,page}=await fresh(390,844);
+            try {
+              await enterKings(page);
+              const surface=page.locator('.palace-map-surface').first();
+              const landing=page.locator('.palace-open-floor').first();
+              await landing.waitFor({state:'visible',timeout:10000});
+              const back=page.getByRole('button',{name:/Back to lobby/i}).first();
+              const text=clean(await back.innerText());
+              const natural=await viewportContainment(page,back,landing);
+              const b=await back.boundingBox();
+              const lb=await landing.boundingBox();
+              const widthWithinLanding=!!(b&&lb&&b.width<=lb.width+1);
+              const widthWithinViewport=!!(b&&b.width<=390+1);
+              const backStyle=await back.evaluate(el=>({display:getComputedStyle(el).display,width:getComputedStyle(el).width,maxWidth:getComputedStyle(el).maxWidth,whiteSpace:getComputedStyle(el).whiteSpace}));
+              const beforeBody=await bodyMetrics(page);
+              await snap(page,label+'_KX03_kings_landing');
+              const focused=await focusable(page,back);
+              const afterFocusBody=await bodyMetrics(page);
+              const focusCausedHorizontalShift=afterFocusBody.scrollX!==beforeBody.scrollX || afterFocusBody.bodyScrollWidth!==beforeBody.bodyScrollWidth;
+              await back.click();
+              const returned=await page.getByText('Welcome home, Aurena.',{exact:false}).first().isVisible().catch(()=>false);
+              const pass03=natural.inViewport && natural.inContainer && widthWithinLanding && widthWithinViewport && /^←?\s*Back to lobby$/i.test(text) && focused && !focusCausedHorizontalShift && returned;
+              receipts.push({kx:'KX-03',viewport:label,pass:pass03,observed:{text,natural,widthWithinLanding,widthWithinViewport,backStyle,beforeBody,afterFocusBody,focused,focusCausedHorizontalShift,returned}});
+              await snap(page,label+'_KX03_lobby_returned');
+            } catch(e) {
+              errors.push({viewport:label,error:String(e?.stack??e)});
+              try{await snap(page,label+'_ERROR');}catch{}
+            } finally { await ctx.close(); }
+          }
+
+          await desktop();
+          await mobile();
+          const result={candidate:'79e581eb96818e85d41e46f0d9276a9b650d05f2',receipts,errors};
+          fs.writeFileSync('owner-kx-final-artifacts/receipts.json',JSON.stringify(result,null,2));
+          fs.writeFileSync('owner-kx-final-artifacts/PROVENANCE.txt',[
+            'candidate_sha=79e581eb96818e85d41e46f0d9276a9b650d05f2',
+            'review_scope=KX-02,KX-03',
+            'viewports=1440x900,390x844',
+            'candidate_ui_changes=none'
+          ].join('\n')+'\n');
+          console.log(JSON.stringify(result,null,2));
+          await browser.close();
+          if(errors.length) process.exitCode=1;
+          EOF
+
+      - name: Commit review receipts to isolated review branch
+        if: always()
+        shell: bash
+        run: |
+          if [ ! -d owner-kx-final-artifacts ]; then exit 0; fi
+          git config user.name "kai-render-review"
+          git config user.email "kai-render-review@users.noreply.github.com"
+          git add owner-kx-final-artifacts
+          if git diff --cached --quiet; then exit 0; fi
+          git commit -m "chore: capture final KX-02 KX-03 rendered receipts"
+          git push origin HEAD:$GITHUB_REF_NAME
