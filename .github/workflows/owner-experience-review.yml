@@ -122,7 +122,7 @@ jobs:
 
             // 5. Samudra Pura architectural destination.
             await page.getByRole('button',{name:/Samudra Pura · Aurena/i}).first().click();
-            await expectText(page,'Samudra Pura · Aurena');
+            await page.getByRole('heading',{name:'Samudra Pura · Aurena', exact:true}).waitFor({state:'visible', timeout:10000});
             await record(page,label,'samudra-pura','Enter Samudra Pura','Sovereign chamber is a destination','Samudra Pura · Aurena');
             await snap(page, label + '_04_samudra_pura.png');
 
@@ -137,7 +137,7 @@ jobs:
             await record(page,label,'adult-heirs-landing','Choose Adult Heirs Floor','Hall and chambers shown as distinct destination choices',await page.locator('.palace-open-floor').innerText());
             await snap(page, label + '_05_adult_heirs_landing.png');
             await page.getByRole('button',{name:/Liora Ilai Nur Tsaiyunk/i}).click();
-            await expectText(page,'Liora Ilai Nur Tsaiyunk · Chamber');
+            await page.getByRole('heading',{name:'Liora Ilai Nur Tsaiyunk · Chamber', exact:true}).waitFor({state:'visible', timeout:10000});
             await record(page,label,'liora-chamber','Enter Liora chamber','Architectural chamber enters without fake conversation route','Liora Ilai Nur Tsaiyunk · Chamber');
             await snap(page, label + '_06_liora_chamber.png');
 
