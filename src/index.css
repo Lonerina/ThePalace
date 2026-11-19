@@ -426,6 +426,14 @@ select:disabled {
   animation-duration: 2.2s;
 }
 
+.palace-shell.adhd-calm *,
+.palace-shell.adhd-calm *::before,
+.palace-shell.adhd-calm *::after {
+  animation: none !important;
+  transition-duration: .001ms !important;
+  scroll-behavior: auto !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .palace-shell *,
   .palace-shell *::before,
