@@ -4,7 +4,6 @@ on:
   push:
     branches:
       - phase-b-rc4-cutover
-      - ui-renovation-20261119
   workflow_dispatch:
 
 permissions:
