@@ -1275,7 +1275,6 @@ export default function App() {
     const cleanAnswer = puzzleAnswer.trim().toLowerCase();
     if (cleanAnswer.includes("dialogue") || cleanAnswer.includes("we. not i") || cleanAnswer.includes("we not i")) {
       setPuzzleSuccess(true);
-      if (brainGymTimerRef.current) clearTimeout(brainGymTimerRef.current);
       brainGymTimerRef.current = setTimeout(() => {
         setCharacters((prev) =>
           prev.map((c) => ({
@@ -2117,7 +2116,7 @@ export default function App() {
                     <div className="p-4 rounded-xl bg-red-950/10 border border-red-900/40 max-w-2xl flex gap-3 text-red-300 text-xs" role="alert">
                       <AlertCircle className="w-5 h-5 shrink-0 text-red-500 mt-0.5" />
                       <div className="space-y-1">
-                        <p className="font-mono uppercase font-bold tracking-widest text-red-400 text-[9px]">Narrative unavailable</p>
+                        <p className="font-mono uppercase font-bold tracking-widest text-red-400 text-[9px]">{authorityExecutable ? "Request status" : "Narrative unavailable"}</p>
                         <p>{errorMsg}</p>
                         <p className="text-slate-400 text-[9px] mt-2 font-mono">{authorityExecutable ? "Narrative route remains available. Review the message above before retrying." : "Narrative execution is disabled while client authority is unavailable."}</p>
                       </div>
