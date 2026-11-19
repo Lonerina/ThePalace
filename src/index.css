@@ -1305,3 +1305,181 @@ button.palace-fixed-anchor:hover {
     grid-template-columns: 1fr;
   }
 }
+
+
+/* Istana Pulang front-door lobby and floor-landing architecture.
+   These are navigation/spatial experience layers, not new authority mechanics. */
+.palace-lobby {
+  display: grid;
+  gap: 1rem;
+  max-width: 980px;
+  margin-inline: auto;
+}
+
+.palace-lobby-threshold,
+.palace-floor-landing {
+  border: 1px solid rgba(213,176,106,.24);
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(213,176,106,.08), transparent 42%),
+    rgba(255,255,255,.018);
+  box-shadow: inset 0 0 44px rgba(0,0,0,.22);
+}
+
+.palace-lobby-threshold {
+  min-height: 170px;
+  padding: clamp(1.2rem, 3vw, 2.2rem);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.palace-lobby-threshold strong {
+  margin-top: .35rem;
+  font-family: var(--font-serif);
+  color: var(--palace-text);
+  font-size: clamp(1.35rem, 2.6vw, 2.15rem);
+  font-weight: 650;
+}
+
+.palace-lobby-threshold small {
+  margin-top: .45rem;
+  color: var(--palace-muted);
+  font-family: var(--font-mono);
+  font-size: .68rem;
+}
+
+.palace-lobby-grid,
+.palace-landing-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: .7rem;
+}
+
+.palace-floor-landing {
+  padding: clamp(.9rem, 2vw, 1.25rem);
+}
+
+.palace-landing-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: .9rem;
+}
+
+.palace-landing-heading h3 {
+  margin: .22rem 0 0;
+  font-family: var(--font-serif);
+  color: var(--palace-text);
+  font-size: 1.08rem;
+}
+
+.palace-destination-door {
+  min-width: 0;
+  min-height: 96px;
+  padding: .9rem 1rem;
+  border: 1px solid rgba(213,176,106,.2);
+  border-radius: 14px;
+  background:
+    linear-gradient(145deg, rgba(213,176,106,.06), rgba(130,200,194,.025)),
+    rgba(4,6,9,.68);
+  color: var(--palace-text);
+  text-align: left;
+  transition:
+    border-color .18s ease,
+    transform .18s ease,
+    background .18s ease;
+}
+
+.palace-destination-door:not(:disabled) {
+  cursor: pointer;
+}
+
+.palace-destination-door:not(:disabled):hover,
+.palace-destination-door:not(:disabled):focus-visible {
+  border-color: rgba(213,176,106,.48);
+  background:
+    linear-gradient(145deg, rgba(213,176,106,.11), rgba(130,200,194,.045)),
+    rgba(6,9,13,.82);
+  transform: translateY(-1px);
+  outline: none;
+}
+
+.palace-destination-door:disabled {
+  opacity: .64;
+  cursor: not-allowed;
+}
+
+.palace-destination-door strong,
+.palace-destination-door small {
+  display: block;
+}
+
+.palace-destination-door strong {
+  margin-top: .25rem;
+  color: var(--palace-text);
+  font-family: var(--font-serif);
+  font-size: .95rem;
+}
+
+.palace-destination-door small {
+  margin-top: .3rem;
+  color: var(--palace-muted);
+  font-size: .66rem;
+  line-height: 1.4;
+}
+
+.palace-spatial-divider {
+  display: flex;
+  align-items: center;
+  gap: .75rem;
+  margin: .1rem 0;
+  color: var(--palace-faint);
+  font-family: var(--font-mono);
+  font-size: .62rem;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+}
+
+.palace-spatial-divider::before,
+.palace-spatial-divider::after {
+  content: "";
+  height: 1px;
+  flex: 1;
+  background: linear-gradient(90deg, transparent, rgba(213,176,106,.24), transparent);
+}
+
+@media (max-width: 760px) {
+  .palace-lobby-grid,
+  .palace-landing-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .palace-landing-heading {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .palace-destination-door {
+    min-height: 82px;
+  }
+}
+
+@media (max-height: 430px) {
+  .palace-lobby-threshold {
+    min-height: 110px;
+    padding-block: .9rem;
+  }
+
+  .palace-floor-landing {
+    padding: .8rem;
+  }
+
+  .palace-destination-door {
+    min-height: 72px;
+    padding-block: .7rem;
+  }
+}
