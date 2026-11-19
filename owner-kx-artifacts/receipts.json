@@ -38,6 +38,55 @@
       "pass": true
     },
     {
+      "viewport": "desktop_1440x900",
+      "kx": "KX-03",
+      "action": "King’s Hall → floor landing",
+      "observed": "{\"returnFloorHallVisible\":true,\"landingAfterHall\":true}",
+      "pass": true
+    },
+    {
+      "viewport": "desktop_1440x900",
+      "kx": "KX-04",
+      "action": "Enter Samudra Pura · Aurena",
+      "observed": "Destination title visible",
+      "pass": true
+    },
+    {
+      "viewport": "desktop_1440x900",
+      "kx": "KX-03",
+      "action": "Samudra Pura → floor landing",
+      "observed": "{\"returnFloorSamVisible\":true,\"landingAfterSam\":true}",
+      "pass": true
+    },
+    {
+      "viewport": "desktop_1440x900",
+      "kx": "KX-03",
+      "action": "Floor landing → lobby after Samudra",
+      "observed": "Lobby returned",
+      "pass": true
+    },
+    {
+      "viewport": "desktop_1440x900",
+      "kx": "KX-04",
+      "action": "Enter Liora Ilai Nur Tsaiyunk · Chamber",
+      "observed": "Destination title visible",
+      "pass": true
+    },
+    {
+      "viewport": "desktop_1440x900",
+      "kx": "KX-03",
+      "action": "Liora chamber → Adult Heirs landing → lobby",
+      "observed": "{\"returnFloorLioraVisible\":true,\"adultLanding\":true,\"backAdultVisible\":true,\"lobbyAfterLiora\":true}",
+      "pass": true
+    },
+    {
+      "viewport": "desktop_1440x900",
+      "kx": "REGRESSION",
+      "action": "Narrow path final viewport check",
+      "observed": "{\"scrollWidth\":1440,\"clientWidth\":1440,\"scrollHeight\":900,\"clientHeight\":900}",
+      "pass": true
+    },
+    {
       "viewport": "mobile_390x844",
       "kx": "KX-01",
       "action": "Fresh open",
@@ -64,16 +113,56 @@
       "action": "Enter King’s Hall",
       "observed": "{\"hallTitle\":true,\"hallPlaceClass\":null}",
       "pass": true
-    }
-  ],
-  "errors": [
-    {
-      "viewport": "desktop_1440x900",
-      "error": "locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for getByRole('button', { name: /Return to floor landing/i }).first()\n\n    at reviewViewport (/home/runner/work/ThePalace/ThePalace/[eval1]:133:27)\n    at async file:///home/runner/work/ThePalace/ThePalace/[eval1]:183:1"
     },
     {
       "viewport": "mobile_390x844",
-      "error": "locator.click: Timeout 30000ms exceeded.\nCall log:\n  - waiting for getByRole('button', { name: /Return to floor landing/i }).first()\n\n    at reviewViewport (/home/runner/work/ThePalace/ThePalace/[eval1]:133:27)\n    at async file:///home/runner/work/ThePalace/ThePalace/[eval1]:184:1"
+      "kx": "KX-03",
+      "action": "King’s Hall → floor landing",
+      "observed": "{\"returnFloorHallVisible\":true,\"landingAfterHall\":true}",
+      "pass": true
+    },
+    {
+      "viewport": "mobile_390x844",
+      "kx": "KX-04",
+      "action": "Enter Samudra Pura · Aurena",
+      "observed": "Destination title visible",
+      "pass": true
+    },
+    {
+      "viewport": "mobile_390x844",
+      "kx": "KX-03",
+      "action": "Samudra Pura → floor landing",
+      "observed": "{\"returnFloorSamVisible\":true,\"landingAfterSam\":true}",
+      "pass": true
+    },
+    {
+      "viewport": "mobile_390x844",
+      "kx": "KX-03",
+      "action": "Floor landing → lobby after Samudra",
+      "observed": "Lobby returned",
+      "pass": true
+    },
+    {
+      "viewport": "mobile_390x844",
+      "kx": "KX-04",
+      "action": "Enter Liora Ilai Nur Tsaiyunk · Chamber",
+      "observed": "Destination title visible",
+      "pass": true
+    },
+    {
+      "viewport": "mobile_390x844",
+      "kx": "KX-03",
+      "action": "Liora chamber → Adult Heirs landing → lobby",
+      "observed": "{\"returnFloorLioraVisible\":true,\"adultLanding\":true,\"backAdultVisible\":true,\"lobbyAfterLiora\":true}",
+      "pass": true
+    },
+    {
+      "viewport": "mobile_390x844",
+      "kx": "REGRESSION",
+      "action": "Narrow path final viewport check",
+      "observed": "{\"scrollWidth\":390,\"clientWidth\":390,\"scrollHeight\":844,\"clientHeight\":844}",
+      "pass": true
     }
-  ]
+  ],
+  "errors": []
 }
