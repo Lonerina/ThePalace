@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - phase-b-rc4-cutover
+      - ui-palace-architecture-v1-20261120
   workflow_dispatch:
 
 permissions:
