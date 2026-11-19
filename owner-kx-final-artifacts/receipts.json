@@ -1,14 +1,263 @@
 {
   "candidate": "79e581eb96818e85d41e46f0d9276a9b650d05f2",
-  "receipts": [],
-  "errors": [
+  "receipts": [
     {
+      "kx": "KX-02",
       "viewport": "desktop_1440x900",
-      "error": "locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n  - waiting for locator('.palace-open-floor').first() to be visible\n\n    at desktop (/home/runner/work/ThePalace/ThePalace/[eval1]:55:19)\n    at async file:///home/runner/work/ThePalace/ThePalace/[eval1]:144:1"
+      "pass": false,
+      "observed": {
+        "surfaceBox": {
+          "x": 286,
+          "y": 76,
+          "width": 1154,
+          "height": 788
+        },
+        "landingBox": {
+          "x": 311.59375,
+          "y": 303.46875,
+          "width": 1790.78125,
+          "height": 1440.671875
+        },
+        "surfaceMetrics": {
+          "clientWidth": 1153,
+          "scrollWidth": 1816,
+          "scrollLeft": 0,
+          "overflowX": "auto",
+          "minWidth": "0px",
+          "width": "1154px"
+        },
+        "landingMetrics": {
+          "clientWidth": 1789,
+          "scrollWidth": 1789,
+          "scrollLeft": 0,
+          "overflowX": "visible",
+          "minWidth": "0px",
+          "width": "1790.78px"
+        },
+        "landingInside": false,
+        "samudraContain": {
+          "elementBox": {
+            "x": 1212.578125,
+            "y": 395.8125,
+            "width": 868.796875,
+            "height": 104.671875
+          },
+          "containerBox": {
+            "x": 286,
+            "y": 76,
+            "width": 1154,
+            "height": 788
+          },
+          "inViewport": false,
+          "inContainer": false
+        },
+        "rightContain": {
+          "elementBox": {
+            "x": 1212.578125,
+            "y": 511.671875,
+            "width": 868.796875,
+            "height": 104.671875
+          },
+          "containerBox": {
+            "x": 286,
+            "y": 76,
+            "width": 1154,
+            "height": 788
+          },
+          "inViewport": false,
+          "inContainer": false
+        },
+        "clipped": true,
+        "noHorizontalShift": true,
+        "body": {
+          "bodyScrollWidth": 1440,
+          "bodyClientWidth": 1440,
+          "docScrollWidth": 1440,
+          "docClientWidth": 1440,
+          "scrollX": 0,
+          "scrollY": 0
+        },
+        "cardReceipts": [
+          {
+            "i": 0,
+            "text": "HALL King’s Hall Enter hall · conversation mapping separate",
+            "box": {
+              "x": 332.59375,
+              "y": 395.3439636230469,
+              "width": 868.796875,
+              "height": 104.67190551757812
+            },
+            "withinSurface": true
+          },
+          {
+            "i": 1,
+            "text": "SOVEREIGN CHAMBER Samudra Pura · Aurena Enter chamber · conversation mapping separate",
+            "box": {
+              "x": 1212.578125,
+              "y": 395.8125,
+              "width": 868.796875,
+              "height": 104.671875
+            },
+            "withinSurface": false
+          },
+          {
+            "i": 2,
+            "text": "KING CHAMBER · Primus Tsaiyunk / Primus Enter chamber",
+            "box": {
+              "x": 332.59375,
+              "y": 511.671875,
+              "width": 868.796875,
+              "height": 104.671875
+            },
+            "withinSurface": true
+          },
+          {
+            "i": 3,
+            "text": "KING CHAMBER · Supreme King Raen Nur Tsaiyunk Enter chamber",
+            "box": {
+              "x": 1212.578125,
+              "y": 511.671875,
+              "width": 868.796875,
+              "height": 104.671875
+            },
+            "withinSurface": false
+          },
+          {
+            "i": 4,
+            "text": "KING CHAMBER · Supreme King Saren Nur Tsaiyunk Enter chamber",
+            "box": {
+              "x": 332.59375,
+              "y": 627.53125,
+              "width": 868.796875,
+              "height": 104.671875
+            },
+            "withinSurface": true
+          },
+          {
+            "i": 5,
+            "text": "KING CHAMBER · Supreme King Kai Nur Tsaiyunk Enter chamber",
+            "box": {
+              "x": 1212.578125,
+              "y": 627.53125,
+              "width": 868.796875,
+              "height": 104.671875
+            },
+            "withinSurface": false
+          },
+          {
+            "i": 7,
+            "text": "KING CHAMBER · Supreme King Nick Nur Tsaiyunk Enter chamber",
+            "box": {
+              "x": 1212.578125,
+              "y": 743.390625,
+              "width": 868.796875,
+              "height": 104.671875
+            },
+            "withinSurface": false
+          }
+        ]
+      }
     },
     {
+      "kx": "KX-03",
+      "viewport": "desktop_1440x900",
+      "pass": false,
+      "observed": {
+        "text": "← Back to lobby",
+        "natural": {
+          "elementBox": {
+            "x": 1955.171875,
+            "y": 324.46875,
+            "width": 126.203125,
+            "height": 38
+          },
+          "containerBox": {
+            "x": 311.59375,
+            "y": 303.46875,
+            "width": 1790.78125,
+            "height": 1440.671875
+          },
+          "inViewport": false,
+          "inContainer": true
+        },
+        "backStyle": {
+          "display": "flex",
+          "width": "126.203px",
+          "maxWidth": "100%",
+          "whiteSpace": "normal"
+        },
+        "beforeBody": {
+          "bodyScrollWidth": 1440,
+          "bodyClientWidth": 1440,
+          "docScrollWidth": 1440,
+          "docClientWidth": 1440,
+          "scrollX": 0,
+          "scrollY": 0
+        },
+        "afterFocusBody": {
+          "bodyScrollWidth": 1440,
+          "bodyClientWidth": 1440,
+          "docScrollWidth": 1440,
+          "docClientWidth": 1440,
+          "scrollX": 0,
+          "scrollY": 0
+        },
+        "focused": true,
+        "focusCausedHorizontalShift": false,
+        "returned": true
+      }
+    },
+    {
+      "kx": "KX-03",
       "viewport": "mobile_390x844",
-      "error": "locator.waitFor: Timeout 10000ms exceeded.\nCall log:\n  - waiting for locator('.palace-open-floor').first() to be visible\n\n    at mobile (/home/runner/work/ThePalace/ThePalace/[eval1]:119:19)\n    at async file:///home/runner/work/ThePalace/ThePalace/[eval1]:145:1"
+      "pass": false,
+      "observed": {
+        "text": "← Back to lobby",
+        "natural": {
+          "elementBox": {
+            "x": 31.390625,
+            "y": 562.015625,
+            "width": 1760,
+            "height": 38
+          },
+          "containerBox": {
+            "x": 16,
+            "y": 473.671875,
+            "width": 1790.78125,
+            "height": 2642.046875
+          },
+          "inViewport": false,
+          "inContainer": true
+        },
+        "widthWithinLanding": true,
+        "widthWithinViewport": false,
+        "backStyle": {
+          "display": "flex",
+          "width": "1760px",
+          "maxWidth": "100%",
+          "whiteSpace": "normal"
+        },
+        "beforeBody": {
+          "bodyScrollWidth": 390,
+          "bodyClientWidth": 390,
+          "docScrollWidth": 390,
+          "docClientWidth": 390,
+          "scrollX": 0,
+          "scrollY": 0
+        },
+        "afterFocusBody": {
+          "bodyScrollWidth": 390,
+          "bodyClientWidth": 390,
+          "docScrollWidth": 390,
+          "docClientWidth": 390,
+          "scrollX": 0,
+          "scrollY": 0
+        },
+        "focused": true,
+        "focusCausedHorizontalShift": false,
+        "returned": true
+      }
     }
-  ]
+  ],
+  "errors": []
 }
