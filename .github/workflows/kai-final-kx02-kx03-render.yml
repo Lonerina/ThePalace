@@ -107,7 +107,7 @@ jobs:
             try {
               await enterKings(page);
               const surface = page.locator('.palace-map-surface').first();
-              const landing = page.locator('.palace-open-floor').first();
+              const landing = page.locator('.palace-floor-landing').first();
               await surface.waitFor({state:'visible',timeout:10000});
               await landing.waitFor({state:'visible',timeout:10000});
 
@@ -172,7 +172,7 @@ jobs:
             try {
               await enterKings(page);
               const surface=page.locator('.palace-map-surface').first();
-              const landing=page.locator('.palace-open-floor').first();
+              const landing=page.locator('.palace-floor-landing').first();
               await landing.waitFor({state:'visible',timeout:10000});
               const back=page.getByRole('button',{name:/Back to lobby/i}).first();
               const text=clean(await back.innerText());
