@@ -1878,3 +1878,58 @@ button.palace-fixed-anchor:hover {
     grid-template-columns: 1fr;
   }
 }
+
+
+/* === KX-02 / KX-03 rendered-width closure ===
+   The map surface must flex from the available workspace width, not its intrinsic content width.
+   This keeps the landing grid and return affordance inside the visible desktop/mobile surface. */
+.palace-workspace,
+.palace-main {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.palace-main {
+  flex-basis: 0%;
+}
+
+.palace-main > .flex-1 {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.palace-map-surface {
+  flex: 1 1 0% !important;
+  width: 0 !important;
+  min-width: 0 !important;
+  max-width: 100% !important;
+}
+
+.palace-map-header,
+.palace-floor-strip,
+.palace-map-body,
+.palace-floor-landing,
+.palace-landing-heading,
+.palace-landing-grid {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.palace-landing-heading > * {
+  min-width: 0;
+}
+
+.palace-back-lobby {
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+@media (max-width: 760px) {
+  .palace-back-lobby {
+    width: 100%;
+    min-width: 0;
+    white-space: normal;
+  }
+}
