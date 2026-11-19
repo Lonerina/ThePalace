@@ -582,8 +582,8 @@ select:disabled {
 }
 
 .palace-map-surface {
-  width: min(58vw, 820px);
-  flex: 0 1 820px;
+  width: 100%;
+  flex: 1 1 auto;
   border-right: 1px solid var(--palace-border);
   background:
     radial-gradient(circle at 50% 35%, rgba(28, 73, 87, .13), transparent 38%),
@@ -888,10 +888,6 @@ select:disabled {
 }
 
 @media (max-width: 1180px) {
-  .palace-map-surface {
-    width: 52vw;
-  }
-
   .palace-map-node {
     width: 96px;
   }
@@ -903,7 +899,7 @@ select:disabled {
   }
 
   .palace-map-surface {
-    width: min(58vw, 690px);
+    width: 100%;
   }
 }
 
