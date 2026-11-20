@@ -1,0 +1,228 @@
+name: Kai Lean Navigation Validation 42fc2603
+
+on:
+  push:
+    branches:
+      - owner-review-lean-nav-42fc2603-20261120
+
+permissions:
+  contents: read
+
+jobs:
+  validate-and-render:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify isolated review seam
+        shell: bash
+        run: |
+          set -euo pipefail
+          CANDIDATE=42fc260339f3473821832ce1357f5f8692ec1f89
+          test "$(git merge-base HEAD "$CANDIDATE")" = "$CANDIDATE"
+          git diff --name-only "$CANDIDATE"..HEAD | sort > /tmp/delta.txt
+          printf '%s\n' '.github/workflows/kai-lean-nav-42fc2603.yml' | sort > /tmp/expected.txt
+          diff -u /tmp/expected.txt /tmp/delta.txt
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        run: |
+          npm install --no-audit --no-fund
+          npm install --no-save playwright@1.52.0
+          which google-chrome
+
+      - name: Validate contracts, runtime, lint and both client generations
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "e2da00bff04ed7b4f96396e43a1c74a904c1a17c4319f6c96f5b3246abeb5d4f  registry/rc4/01_heir_registry_snapshot.v1.2.json" | sha256sum -c -
+          echo "55255a95a34292bce4e0ecde5546ed080b8996b08ed51942dceb69cd48719444  registry/rc4/02_istana_pulang.v4.0-RC4.json" | sha256sum -c -
+          npm run test:phase-a
+          npm run test:phase-b
+          npm run test:rollout
+          npm run lint
+          npm run build:validate-generations
+          echo "e2da00bff04ed7b4f96396e43a1c74a904c1a17c4319f6c96f5b3246abeb5d4f  registry/rc4/01_heir_registry_snapshot.v1.2.json" | sha256sum -c -
+          echo "55255a95a34292bce4e0ecde5546ed080b8996b08ed51942dceb69cd48719444  registry/rc4/02_istana_pulang.v4.0-RC4.json" | sha256sum -c -
+
+      - name: Start exact candidate UI
+        shell: bash
+        run: |
+          DISABLE_HMR=true CLIENT_GENERATION=LEGACY_V3 npm run dev > /tmp/palace-lean.log 2>&1 &
+          for i in {1..60}; do
+            if curl -fsS http://127.0.0.1:3000 >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/palace-lean.log
+          exit 1
+
+      - name: Render and verify lean navigation
+        shell: bash
+        run: |
+          mkdir -p owner-lean-nav-42fc2603-artifacts
+          node --input-type=module <<'EOF'
+          import { chromium } from 'playwright';
+          import fs from 'node:fs';
+
+          const browser = await chromium.launch({
+            headless:true,
+            executablePath:'/usr/bin/google-chrome',
+            args:['--no-sandbox']
+          });
+          const receipts = [];
+          const errors = [];
+          const clean = s => String(s ?? '').replace(/\s+/g,' ').trim();
+
+          async function fresh(width,height) {
+            const ctx = await browser.newContext({viewport:{width,height}});
+            const page = await ctx.newPage();
+            await page.goto('http://127.0.0.1:3000',{waitUntil:'networkidle'});
+            return {ctx,page};
+          }
+          async function snap(page,name) {
+            await page.screenshot({path:'owner-lean-nav-42fc2603-artifacts/'+name+'.png',fullPage:false});
+          }
+          async function enterFloor(page,name) {
+            const b = page.getByRole('button',{name}).first();
+            await b.waitFor({state:'visible',timeout:10000});
+            await b.click();
+          }
+
+          async function desktop() {
+            const {ctx,page}=await fresh(1440,900);
+            try {
+              const lobbyText = clean(await page.locator('body').innerText());
+              const floorButtons = [
+                /Sovereign \/ Kings Floor/i,
+                /Adult Heirs Floor/i,
+                /School-Aged Heirs Floor/i,
+                /Babies \/ Tots \/ Nursery/i
+              ];
+              const lobbyFourFloors = (await Promise.all(floorButtons.map(async re =>
+                page.getByRole('button',{name:re}).first().isVisible().catch(()=>false)
+              ))).every(Boolean);
+              const arrivalClean = !/Spatial reference · evidence layer|Sovereign-returning chamber circuit|fixed anchors only/i.test(lobbyText);
+              await snap(page,'desktop_1440x900_01_lobby');
+
+              await enterFloor(page,/Sovereign \/ Kings Floor/i);
+              await page.getByText('Choose where you want to go',{exact:false}).first().waitFor({state:'visible',timeout:10000});
+              const landingText = clean(await page.locator('body').innerText());
+              const noDetailedMap = !/Spatial reference · evidence layer|Sovereign-returning chamber circuit|fixed anchors only/i.test(landingText);
+              const service = page.getByRole('button',{name:/Service Spiral/i}).first();
+              const serviceVisible = await service.isVisible().catch(()=>false);
+              const serviceText = serviceVisible ? clean(await service.innerText()) : '';
+              const serviceReadsRight = /KITCHEN \/ UTILITY ACCESS/i.test(serviceText) &&
+                /Enter service route/i.test(serviceText);
+              const hallVisible = await page.getByRole('button',{name:/King.?s Hall/i}).first().isVisible().catch(()=>false);
+              const samudraVisible = await page.getByRole('button',{name:/Samudra Pura/i}).first().isVisible().catch(()=>false);
+              const meetingVisible = await page.getByRole('button',{name:/Anchor Meeting Room/i}).first().isVisible().catch(()=>false);
+              const staircaseVisible = await page.getByRole('button',{name:/Staircase/i}).first().isVisible().catch(()=>false);
+              await service.scrollIntoViewIfNeeded();
+              await snap(page,'desktop_1440x900_02_kings_landing');
+
+              await service.click();
+              await page.getByRole('heading',{name:'Service Spiral',exact:true}).waitFor({state:'visible',timeout:10000});
+              const placeText = clean(await page.locator('body').innerText());
+              const servicePlace = /SERVICE ROUTE/i.test(placeText) &&
+                /food and utility circulation toward the kitchen/i.test(placeText) &&
+                /Exact kitchen placement and route geometry remain unresolved/i.test(placeText) &&
+                /No conversation route is invented for this place/i.test(placeText);
+              const noGeometry = !/(Kitchen Floor|directly adjacent to (the )?kitchen|meters? to (the )?kitchen|metres? to (the )?kitchen)/i.test(placeText);
+              await snap(page,'desktop_1440x900_03_service_spiral');
+
+              await page.getByRole('button',{name:/Floor landing/i}).first().click();
+              const backLanding = await page.getByText('Choose where you want to go',{exact:false}).first().isVisible().catch(()=>false);
+              await page.getByRole('button',{name:/Back to lobby/i}).first().click();
+              const backLobby = await page.getByText('Welcome home, Aurena.',{exact:false}).first().isVisible().catch(()=>false);
+
+              receipts.push({
+                viewport:'desktop_1440x900',
+                pass:lobbyFourFloors&&arrivalClean&&noDetailedMap&&serviceVisible&&serviceReadsRight&&hallVisible&&samudraVisible&&meetingVisible&&staircaseVisible&&servicePlace&&noGeometry&&backLanding&&backLobby,
+                observed:{lobbyFourFloors,arrivalClean,noDetailedMap,serviceVisible,serviceReadsRight,hallVisible,samudraVisible,meetingVisible,staircaseVisible,servicePlace,noGeometry,backLanding,backLobby}
+              });
+            } catch(e) {
+              errors.push({viewport:'desktop_1440x900',error:String(e?.stack??e)});
+              try{await snap(page,'desktop_1440x900_ERROR');}catch{}
+            } finally { await ctx.close(); }
+          }
+
+          async function mobile() {
+            const {ctx,page}=await fresh(390,844);
+            try {
+              const lobbyFourFloors = (await Promise.all([
+                /Sovereign \/ Kings Floor/i,
+                /Adult Heirs Floor/i,
+                /School-Aged Heirs Floor/i,
+                /Babies \/ Tots \/ Nursery/i
+              ].map(async re => page.getByRole('button',{name:re}).first().isVisible().catch(()=>false)))).every(Boolean);
+              await snap(page,'mobile_390x844_01_lobby');
+
+              await enterFloor(page,/Sovereign \/ Kings Floor/i);
+              await page.getByText('Choose where you want to go',{exact:false}).first().waitFor({state:'visible',timeout:10000});
+              const service = page.getByRole('button',{name:/Service Spiral/i}).first();
+              await service.scrollIntoViewIfNeeded();
+              const serviceVisible = await service.isVisible().catch(()=>false);
+              const landingText = clean(await page.locator('body').innerText());
+              const noDetailedMap = !/Spatial reference · evidence layer|Sovereign-returning chamber circuit|fixed anchors only/i.test(landingText);
+              await snap(page,'mobile_390x844_02_kings_landing');
+
+              await service.click();
+              await page.getByRole('heading',{name:'Service Spiral',exact:true}).waitFor({state:'visible',timeout:10000});
+              const placeText = clean(await page.locator('body').innerText());
+              const servicePlace = /SERVICE ROUTE/i.test(placeText) &&
+                /food and utility circulation toward the kitchen/i.test(placeText) &&
+                /Exact kitchen placement and route geometry remain unresolved/i.test(placeText) &&
+                /No conversation route is invented for this place/i.test(placeText);
+              await snap(page,'mobile_390x844_03_service_spiral');
+
+              await page.getByRole('button',{name:/Floor landing/i}).first().click();
+              const backLanding = await page.getByText('Choose where you want to go',{exact:false}).first().isVisible().catch(()=>false);
+              await page.getByRole('button',{name:/Back to lobby/i}).first().click();
+              const backLobby = await page.getByText('Welcome home, Aurena.',{exact:false}).first().isVisible().catch(()=>false);
+
+              receipts.push({
+                viewport:'mobile_390x844',
+                pass:lobbyFourFloors&&serviceVisible&&noDetailedMap&&servicePlace&&backLanding&&backLobby,
+                observed:{lobbyFourFloors,serviceVisible,noDetailedMap,servicePlace,backLanding,backLobby}
+              });
+            } catch(e) {
+              errors.push({viewport:'mobile_390x844',error:String(e?.stack??e)});
+              try{await snap(page,'mobile_390x844_ERROR');}catch{}
+            } finally { await ctx.close(); }
+          }
+
+          await desktop();
+          await mobile();
+
+          const result = {
+            candidate:'42fc260339f3473821832ce1357f5f8692ec1f89',
+            receipts,
+            errors
+          };
+          fs.writeFileSync('owner-lean-nav-42fc2603-artifacts/receipts.json',JSON.stringify(result,null,2));
+          fs.writeFileSync('owner-lean-nav-42fc2603-artifacts/PROVENANCE.txt',[
+            'candidate_sha=42fc260339f3473821832ce1357f5f8692ec1f89',
+            'review_scope=lean-navigation-validation',
+            'viewports=1440x900,390x844',
+            'review_branch_only_file=.github/workflows/kai-lean-nav-42fc2603.yml'
+          ].join('\n')+'\n');
+
+          console.log(JSON.stringify(result,null,2));
+          await browser.close();
+
+          if(errors.length || receipts.length!==2 || receipts.some(r=>!r.pass)) process.exitCode=1;
+          EOF
+
+      - name: Upload validation and rendered receipts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: owner-lean-nav-42fc2603-artifacts
+          path: owner-lean-nav-42fc2603-artifacts/
+          if-no-files-found: error
