@@ -1,0 +1,240 @@
+name: Kai Kitchen Access Rendered Verification b3c2ca4
+
+on:
+  push:
+    branches:
+      - owner-review-kitchen-b3c2ca4-20261120
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify isolated review seam
+        shell: bash
+        run: |
+          set -euo pipefail
+          CANDIDATE=b3c2ca4cc976d50cd5f85f6034a27ccd388ed415
+          test "$(git merge-base HEAD "$CANDIDATE")" = "$CANDIDATE"
+          git diff --name-only "$CANDIDATE"..HEAD | sort > /tmp/delta.txt
+          printf '%s\n' '.github/workflows/kai-kitchen-b3c2ca4.yml' | sort > /tmp/expected.txt
+          diff -u /tmp/expected.txt /tmp/delta.txt
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install review harness
+        run: |
+          npm install --no-audit --no-fund
+          npm install --no-save playwright@1.52.0
+          which google-chrome
+
+      - name: Start exact candidate UI
+        shell: bash
+        run: |
+          DISABLE_HMR=true CLIENT_GENERATION=LEGACY_V3 npm run dev > /tmp/palace-kitchen.log 2>&1 &
+          for i in {1..60}; do
+            if curl -fsS http://127.0.0.1:3000 >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/palace-kitchen.log
+          exit 1
+
+      - name: Render and verify kitchen access only
+        shell: bash
+        run: |
+          mkdir -p owner-kitchen-b3c2ca4-artifacts
+          node --input-type=module <<'EOF'
+          import { chromium } from 'playwright';
+          import fs from 'node:fs';
+
+          const candidate = 'b3c2ca4cc976d50cd5f85f6034a27ccd388ed415';
+          const expectedBoundary = 'Kitchen access is established through the Service Spiral. Exact kitchen placement and route geometry remain unresolved.';
+          const browser = await chromium.launch({
+            headless: true,
+            executablePath: '/usr/bin/google-chrome',
+            args: ['--no-sandbox']
+          });
+
+          const receipts = [];
+          const errors = [];
+          const clean = s => String(s ?? '').replace(/\s+/g,' ').trim();
+
+          async function fresh(width,height) {
+            const ctx = await browser.newContext({viewport:{width,height}});
+            const page = await ctx.newPage();
+            await page.goto('http://127.0.0.1:3000',{waitUntil:'networkidle'});
+            return {ctx,page};
+          }
+
+          async function enterKings(page) {
+            const floor = page.getByRole('button',{name:/Sovereign \/ Kings Floor/i}).first();
+            await floor.waitFor({state:'visible',timeout:10000});
+            await floor.click();
+            await page.getByText('Choose where you want to go',{exact:false}).first().waitFor({state:'visible',timeout:10000});
+          }
+
+          async function visibleText(page) {
+            return clean(await page.locator('body').innerText());
+          }
+
+          async function runViewport(width,height,label) {
+            const {ctx,page}=await fresh(width,height);
+            try {
+              await enterKings(page);
+
+              const map = page.locator('.palace-kings-map').first();
+              const meeting = page.locator('.palace-anchor-meeting').first();
+              const service = page.locator('button.palace-anchor-service').first();
+              await Promise.all([
+                map.waitFor({state:'visible',timeout:10000}),
+                meeting.waitFor({state:'visible',timeout:10000}),
+                service.waitFor({state:'visible',timeout:10000})
+              ]);
+              await service.scrollIntoViewIfNeeded();
+
+              const mapBox = await map.boundingBox();
+              const meetingBox = await meeting.boundingBox();
+              const serviceBox = await service.boundingBox();
+              const serviceText = clean(await service.innerText());
+              const serviceTitle = await service.getAttribute('title');
+              const tagName = await service.evaluate(el=>el.tagName);
+              const disabled = await service.isDisabled();
+
+              const serviceCenterX = serviceBox ? serviceBox.x + serviceBox.width/2 : null;
+              const meetingCenterX = meetingBox ? meetingBox.x + meetingBox.width/2 : null;
+              const visiblyWest = serviceCenterX !== null && meetingCenterX !== null && serviceCenterX < meetingCenterX;
+              const inMap = !!(mapBox && serviceBox &&
+                serviceBox.x >= mapBox.x - 2 &&
+                serviceBox.y >= mapBox.y - 2 &&
+                serviceBox.x + serviceBox.width <= mapBox.x + mapBox.width + 2 &&
+                serviceBox.y + serviceBox.height <= mapBox.y + mapBox.height + 2);
+
+              const readsEnterable = tagName === 'BUTTON' && !disabled &&
+                /Service Spiral/i.test(serviceText) &&
+                /KITCHEN \/ UTILITY ACCESS/i.test(serviceText) &&
+                /West of Meeting Room/i.test(serviceText) &&
+                /enter service route/i.test(serviceText) &&
+                /Enter Service Spiral/i.test(serviceTitle ?? '');
+
+              await page.screenshot({
+                path:`owner-kitchen-b3c2ca4-artifacts/${label}_01_kings_service_spiral.png`,
+                fullPage:false
+              });
+
+              await service.click();
+
+              const kind = page.getByText('SERVICE ROUTE',{exact:true}).first();
+              const heading = page.getByRole('heading',{name:'Service Spiral',exact:true}).first();
+              const intro = page.getByText('A discreet palace service route carrying food and utility circulation toward the kitchen.',{exact:true}).first();
+              const boundary = page.getByText(expectedBoundary,{exact:true}).first();
+              const conversation = page.getByText('No conversation backend is invented for this destination.',{exact:false}).first();
+
+              await Promise.all([
+                kind.waitFor({state:'visible',timeout:10000}),
+                heading.waitFor({state:'visible',timeout:10000}),
+                intro.waitFor({state:'visible',timeout:10000}),
+                boundary.waitFor({state:'visible',timeout:10000}),
+                conversation.waitFor({state:'visible',timeout:10000})
+              ]);
+
+              const routeText = await visibleText(page);
+              const forbidden = {
+                kitchenFloor: /kitchen\s+floor/i.test(routeText),
+                kitchenAdjacent: /(kitchen[^.\n]{0,45}adjacent|adjacent[^.\n]{0,45}kitchen)/i.test(routeText),
+                kitchenDistance: /(kitchen[^.\n]{0,45}(meters?|metres?|feet|minutes?|distance)|distance[^.\n]{0,45}kitchen)/i.test(routeText),
+                inventedGeometry: /(exact corridor|turn left|turn right|meters?|metres?|feet away|steps away)/i.test(routeText) &&
+                  !/Exact kitchen placement and route geometry remain unresolved/i.test(routeText),
+                backendAvailable: /(conversation (is )?available|start conversation|enter conversation|chat with)/i.test(routeText)
+              };
+
+              const boundaryExact = clean(await boundary.innerText()) === expectedBoundary;
+              const placeFirst = await kind.isVisible() && await heading.isVisible() && await intro.isVisible();
+              const foodUtility = /food and utility circulation toward the kitchen/i.test(routeText);
+              const backendTruthful = /No conversation backend is invented for this destination/i.test(routeText) &&
+                /Spatial entry is active/i.test(routeText);
+              const noForbidden = Object.values(forbidden).every(v=>!v);
+
+              await page.screenshot({
+                path:`owner-kitchen-b3c2ca4-artifacts/${label}_02_service_route.png`,
+                fullPage:false
+              });
+
+              const floorReturn = page.getByRole('button',{name:/Floor landing/i}).first();
+              await floorReturn.click();
+              const landingReturned = await page.getByText('Choose where you want to go',{exact:false}).first().isVisible().catch(()=>false);
+              const serviceReturned = await page.locator('button.palace-anchor-service').first().isVisible().catch(()=>false);
+
+              const backLobby = page.getByRole('button',{name:/Back to lobby/i}).first();
+              await backLobby.scrollIntoViewIfNeeded();
+              const backVisible = await backLobby.isVisible().catch(()=>false);
+              await backLobby.click();
+              const lobbyReturned = await page.getByText('Welcome home, Aurena.',{exact:false}).first().isVisible().catch(()=>false);
+
+              const pass = visiblyWest && inMap && readsEnterable && placeFirst && foodUtility &&
+                boundaryExact && backendTruthful && noForbidden &&
+                landingReturned && serviceReturned && backVisible && lobbyReturned;
+
+              receipts.push({
+                viewport:label,
+                pass,
+                observed:{
+                  mapBox,meetingBox,serviceBox,visiblyWest,inMap,
+                  serviceText,serviceTitle,tagName,disabled,readsEnterable,
+                  route:{
+                    kindVisible:await kind.isVisible().catch(()=>false),
+                    headingVisible:await heading.isVisible().catch(()=>false),
+                    introVisible:await intro.isVisible().catch(()=>false),
+                    boundaryExact,foodUtility,backendTruthful,forbidden,noForbidden
+                  },
+                  navigation:{landingReturned,serviceReturned,backVisible,lobbyReturned}
+                }
+              });
+            } catch(e) {
+              errors.push({viewport:label,error:String(e?.stack ?? e)});
+              try {
+                await page.screenshot({
+                  path:`owner-kitchen-b3c2ca4-artifacts/${label}_ERROR.png`,
+                  fullPage:false
+                });
+              } catch {}
+            } finally {
+              await ctx.close();
+            }
+          }
+
+          await runViewport(1440,900,'desktop_1440x900');
+          await runViewport(390,844,'mobile_390x844');
+
+          const result = {candidate,receipts,errors};
+          fs.writeFileSync('owner-kitchen-b3c2ca4-artifacts/receipts.json',JSON.stringify(result,null,2));
+          fs.writeFileSync('owner-kitchen-b3c2ca4-artifacts/PROVENANCE.txt',[
+            `candidate_sha=${candidate}`,
+            'review_scope=kitchen-access-rendered-verification-only',
+            'viewports=1440x900,390x844',
+            'candidate_ui_changes=none'
+          ].join('\n')+'\n');
+
+          console.log(JSON.stringify(result,null,2));
+          await browser.close();
+
+          if (errors.length || receipts.some(r=>!r.pass) || receipts.length !== 2) {
+            process.exitCode = 1;
+          }
+          EOF
+
+      - name: Upload rendered receipts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: owner-kitchen-b3c2ca4-artifacts
+          path: owner-kitchen-b3c2ca4-artifacts/
+          if-no-files-found: error
