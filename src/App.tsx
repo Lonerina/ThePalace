@@ -2310,11 +2310,22 @@ export default function App() {
                               <small>North-side strategy / alignment space</small>
                             </div>
 
-                            <div className="palace-fixed-anchor palace-anchor-service">
-                              <span className="palace-map-status">FIXED</span>
+                            <button
+                              type="button"
+                              className="palace-fixed-anchor palace-anchor-service is-enterable"
+                              onClick={() => openArchitecturalPlace({
+                                id: "service-spiral",
+                                label: "Service Spiral",
+                                floor: "kings",
+                                kind: "movement",
+                                evidence: "Kitchen access is established through the Service Spiral. Exact kitchen placement and route geometry remain unresolved."
+                              })}
+                              title="Enter Service Spiral · kitchen / utility access"
+                            >
+                              <span className="palace-map-status">FIXED · KITCHEN / UTILITY ACCESS</span>
                               <strong>Service Spiral</strong>
-                              <small>West of Meeting Room · discreet food / utility circulation</small>
-                            </div>
+                              <small>West of Meeting Room · enter service route</small>
+                            </button>
 
                             <div className="palace-fixed-anchor palace-anchor-samudra">
                               <span className="palace-map-status">FIXED</span>
@@ -3349,23 +3360,27 @@ export default function App() {
                 </div>
                 <div className="palace-place-intro">
                   <span className="palace-place-kind">
-                    {architecturalPlace.kind === "hall"
-                      ? "PALACE HALL"
-                      : architecturalPlace.kind === "chamber"
-                        ? "PRIVATE CHAMBER"
-                        : architecturalPlace.kind === "meeting"
-                          ? "MEETING ROOM"
-                          : "PALACE THRESHOLD"}
+                    {architecturalPlace.id === "service-spiral"
+                      ? "SERVICE ROUTE"
+                      : architecturalPlace.kind === "hall"
+                        ? "PALACE HALL"
+                        : architecturalPlace.kind === "chamber"
+                          ? "PRIVATE CHAMBER"
+                          : architecturalPlace.kind === "meeting"
+                            ? "MEETING ROOM"
+                            : "PALACE THRESHOLD"}
                   </span>
                   <h2 id="palace-place-title">{architecturalPlace.label}</h2>
                   <p>
-                    {architecturalPlace.kind === "hall"
-                      ? "A shared palace room reached from this floor’s landing."
-                      : architecturalPlace.kind === "chamber"
-                        ? "A personal chamber destination within Istana Pulang."
-                        : architecturalPlace.kind === "meeting"
-                          ? "A dedicated room for meeting and alignment."
-                          : "A movement threshold connecting palace levels."}
+                    {architecturalPlace.id === "service-spiral"
+                      ? "A discreet palace service route carrying food and utility circulation toward the kitchen."
+                      : architecturalPlace.kind === "hall"
+                        ? "A shared palace room reached from this floor’s landing."
+                        : architecturalPlace.kind === "chamber"
+                          ? "A personal chamber destination within Istana Pulang."
+                          : architecturalPlace.kind === "meeting"
+                            ? "A dedicated room for meeting and alignment."
+                            : "A movement threshold connecting palace levels."}
                   </p>
                   <span className="palace-place-floor-label">{activeFloorLabel}</span>
                 </div>
