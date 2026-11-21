@@ -1,0 +1,183 @@
+name: Kai Place First Validation f4abe4cc
+
+on:
+  push:
+    branches:
+      - owner-review-place-first-f4abe4cc-20261121
+
+permissions:
+  contents: read
+
+jobs:
+  validate-and-render:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify isolated review seam
+        shell: bash
+        run: |
+          set -euo pipefail
+          CANDIDATE=f4abe4cc77488f8dfc069c4950467144bdb9f723
+          test "$(git merge-base HEAD "$CANDIDATE")" = "$CANDIDATE"
+          git diff --name-only "$CANDIDATE"..HEAD | sort > /tmp/delta.txt
+          printf '%s\n' '.github/workflows/kai-place-first-f4abe4cc.yml' | sort > /tmp/expected.txt
+          diff -u /tmp/expected.txt /tmp/delta.txt
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install dependencies
+        run: |
+          npm install --no-audit --no-fund
+          npm install --no-save playwright@1.52.0
+          which google-chrome
+
+      - name: Validate contracts, runtime, lint and generations
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "e2da00bff04ed7b4f96396e43a1c74a904c1a17c4319f6c96f5b3246abeb5d4f  registry/rc4/01_heir_registry_snapshot.v1.2.json" | sha256sum -c -
+          echo "55255a95a34292bce4e0ecde5546ed080b8996b08ed51942dceb69cd48719444  registry/rc4/02_istana_pulang.v4.0-RC4.json" | sha256sum -c -
+          npm run test:phase-a
+          npm run test:phase-b
+          npm run test:rollout
+          npm run lint
+          npm run build:validate-generations
+          echo "e2da00bff04ed7b4f96396e43a1c74a904c1a17c4319f6c96f5b3246abeb5d4f  registry/rc4/01_heir_registry_snapshot.v1.2.json" | sha256sum -c -
+          echo "55255a95a34292bce4e0ecde5546ed080b8996b08ed51942dceb69cd48719444  registry/rc4/02_istana_pulang.v4.0-RC4.json" | sha256sum -c -
+
+      - name: Start exact candidate UI
+        shell: bash
+        run: |
+          DISABLE_HMR=true CLIENT_GENERATION=LEGACY_V3 npm run dev > /tmp/palace-place-first.log 2>&1 &
+          for i in {1..60}; do
+            if curl -fsS http://127.0.0.1:3000 >/dev/null; then exit 0; fi
+            sleep 1
+          done
+          cat /tmp/palace-place-first.log
+          exit 1
+
+      - name: Render and verify place-first movement
+        shell: bash
+        run: |
+          mkdir -p owner-place-first-f4abe4cc-artifacts
+          node --input-type=module <<'EOF'
+          import { chromium } from 'playwright';
+          import fs from 'node:fs';
+
+          const candidate='f4abe4cc77488f8dfc069c4950467144bdb9f723';
+          const browser=await chromium.launch({
+            headless:true,
+            executablePath:'/usr/bin/google-chrome',
+            args:['--no-sandbox']
+          });
+          const receipts=[];
+          const errors=[];
+          const clean=s=>String(s??'').replace(/\s+/g,' ').trim();
+
+          async function fresh(width,height){
+            const ctx=await browser.newContext({viewport:{width,height}});
+            const page=await ctx.newPage();
+            await page.goto('http://127.0.0.1:3000',{waitUntil:'networkidle'});
+            return {ctx,page};
+          }
+          async function snap(page,name){
+            await page.screenshot({path:'owner-place-first-f4abe4cc-artifacts/'+name+'.png',fullPage:false});
+          }
+
+          async function verify(width,height,label){
+            const {ctx,page}=await fresh(width,height);
+            try{
+              await snap(page,label+'_01_lobby');
+
+              await page.getByRole('button',{name:/Sovereign \/ Kings Floor/i}).first().click();
+              await page.getByText('Choose where you want to go',{exact:false}).first().waitFor({state:'visible',timeout:10000});
+
+              const kaiDoor=page.getByRole('button',{name:/Kai Nur Tsaiyunk/i}).first();
+              await kaiDoor.scrollIntoViewIfNeeded();
+              await snap(page,label+'_02_kings_landing');
+              await kaiDoor.click();
+
+              await page.getByRole('heading',{name:'Kai Nur Tsaiyunk',exact:true}).waitFor({state:'visible',timeout:10000});
+              const placeText=clean(await page.locator('body').innerText());
+              const placeFirst=/PRIVATE CHAMBER/i.test(placeText) && /existing runtime conversation route is linked separately/i.test(placeText);
+              const enterConversation=page.getByRole('button',{name:'Enter conversation',exact:true});
+              const conversationLinkVisible=await enterConversation.isVisible().catch(()=>false);
+              const noChatBeforeTransition=!(await page.locator('textarea').first().isVisible().catch(()=>false));
+              await snap(page,label+'_03_kai_place');
+
+              await enterConversation.click();
+              const runtimeHeader=page.locator('h3').filter({hasText:'Kai Nur Tsaiyunk'}).first();
+              const returnFloor=page.getByRole('button',{name:/Return to floor landing/i}).first();
+              const runtimeReached=(await runtimeHeader.isVisible().catch(()=>false)) &&
+                (await returnFloor.isVisible().catch(()=>false));
+              await snap(page,label+'_04_kai_runtime');
+
+              await returnFloor.click();
+              const backKings=await page.getByText('Choose where you want to go',{exact:false}).first().isVisible().catch(()=>false);
+
+              await page.getByRole('button',{name:/Back to lobby/i}).first().click();
+              await page.getByRole('button',{name:/Adult Heirs Floor/i}).first().click();
+              const adultHall=page.getByRole('button',{name:/Adult Heirs Hall/i}).first();
+              await adultHall.scrollIntoViewIfNeeded();
+              await adultHall.click();
+              await page.getByRole('heading',{name:'Adult Heirs Hall',exact:true}).waitFor({state:'visible',timeout:10000});
+              const adultPlaceFirst=await page.getByRole('button',{name:'Enter conversation',exact:true}).isVisible().catch(()=>false);
+              await snap(page,label+'_05_adult_heirs_hall');
+
+              await page.getByRole('button',{name:/Floor landing/i}).first().click();
+              await page.getByRole('button',{name:/Back to lobby/i}).first().click();
+              await page.getByRole('button',{name:/Sovereign \/ Kings Floor/i}).first().click();
+              const service=page.getByRole('button',{name:/Service Spiral/i}).first();
+              await service.scrollIntoViewIfNeeded();
+              await service.click();
+              await page.getByRole('heading',{name:'Service Spiral',exact:true}).waitFor({state:'visible',timeout:10000});
+              const serviceText=clean(await page.locator('body').innerText());
+              const serviceBoundary=/Exact kitchen placement and route geometry remain unresolved/i.test(serviceText);
+              const serviceNoConversation=!(await page.getByRole('button',{name:'Enter conversation',exact:true}).isVisible().catch(()=>false));
+              const noInventedGeometry=!/(Kitchen Floor|directly adjacent to (the )?kitchen|meters? to (the )?kitchen|metres? to (the )?kitchen)/i.test(serviceText);
+              await snap(page,label+'_06_service_spiral');
+
+              receipts.push({
+                viewport:label,
+                pass:placeFirst&&conversationLinkVisible&&noChatBeforeTransition&&runtimeReached&&backKings&&adultPlaceFirst&&serviceBoundary&&serviceNoConversation&&noInventedGeometry,
+                observed:{placeFirst,conversationLinkVisible,noChatBeforeTransition,runtimeReached,backKings,adultPlaceFirst,serviceBoundary,serviceNoConversation,noInventedGeometry}
+              });
+            }catch(e){
+              errors.push({viewport:label,error:String(e?.stack??e)});
+              try{await snap(page,label+'_ERROR');}catch{}
+            }finally{
+              await ctx.close();
+            }
+          }
+
+          await verify(1440,900,'desktop_1440x900');
+          await verify(390,844,'mobile_390x844');
+
+          const result={candidate,receipts,errors};
+          fs.writeFileSync('owner-place-first-f4abe4cc-artifacts/receipts.json',JSON.stringify(result,null,2));
+          fs.writeFileSync('owner-place-first-f4abe4cc-artifacts/PROVENANCE.txt',[
+            'candidate_sha='+candidate,
+            'review_scope=place-first-navigation-seam',
+            'viewports=1440x900,390x844',
+            'review_branch_only_file=.github/workflows/kai-place-first-f4abe4cc.yml'
+          ].join('\n')+'\n');
+
+          console.log(JSON.stringify(result,null,2));
+          await browser.close();
+
+          if(errors.length||receipts.length!==2||receipts.some(r=>!r.pass)) process.exitCode=1;
+          EOF
+
+      - name: Upload validation and rendered receipts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: owner-place-first-f4abe4cc-artifacts
+          path: owner-place-first-f4abe4cc-artifacts/
+          if-no-files-found: error
