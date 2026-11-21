@@ -2225,7 +2225,7 @@ export default function App() {
                                       floor: "kings",
                                       kind: "chamber",
                                       evidence: routeAvailable
-                                        ? `${king.label} has a chamber here. An existing runtime conversation route is linked separately from the architectural place.`
+                                        ? `${king.label} has a chamber here.`
                                         : `${king.label} has a chamber here. Runtime mapping remains pending; no route is fabricated.`,
                                       runtimeRoute: routeAvailable && king.route ? king.route : undefined,
                                       runtimeFloor: routeAvailable ? "kings" : undefined
@@ -2315,7 +2315,7 @@ export default function App() {
                                 label: "Adult Heirs Hall",
                                 floor: "adult_heirs",
                                 kind: "hall",
-                                evidence: "Established shared hall on the Adult Heirs Floor. Its existing runtime discussion room remains a separate linked surface.",
+                                evidence: "Established shared hall on the Adult Heirs Floor.",
                                 runtimeRoute: "adult_heirs_floor",
                                 runtimeFloor: "adult_heirs"
                               })}
