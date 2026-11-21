@@ -105,7 +105,8 @@ jobs:
 
               await page.getByRole('heading',{name:'Kai Nur Tsaiyunk',exact:true}).waitFor({state:'visible',timeout:10000});
               const placeText=clean(await page.locator('body').innerText());
-              const placeFirst=/PRIVATE CHAMBER/i.test(placeText) && /existing runtime conversation route is linked separately/i.test(placeText);
+              const placeFirst=/PRIVATE CHAMBER/i.test(placeText) &&
+                /conversation route remains separate from this architectural place/i.test(placeText);
               const enterConversation=page.getByRole('button',{name:'Enter conversation',exact:true});
               const conversationLinkVisible=await enterConversation.isVisible().catch(()=>false);
               const noChatBeforeTransition=!(await page.locator('textarea').first().isVisible().catch(()=>false));
