@@ -202,7 +202,22 @@ export default function App() {
   });
 
   // UI Control states
-  const [activeTab, setActiveTab] = useState<"narrative" | "scroll" | "afad" | "reset_map" | "nobles" | "chronicle" | "vault" | "character_log" | "labs">("narrative");
+  const [activeTab, setActiveTab] = useState<"narrative" | "architectural_place" | "scroll" | "afad" | "reset_map" | "nobles" | "chronicle" | "vault" | "character_log" | "labs" | "court_documents" | "anti_drift" | "app_settings">("narrative");
+  const [activeFloor, setActiveFloor] = useState<"kings" | "adult_heirs" | "school_heirs" | "nursery">("kings");
+  const [activePlaceZone, setActivePlaceZone] = useState<"kings" | "adult_heirs" | "shared" | "legacy">("shared");
+  const [showPalaceMap, setShowPalaceMap] = useState<boolean>(true);
+  const [showPalaceLobby, setShowPalaceLobby] = useState<boolean>(true);
+  const [architecturalPlace, setArchitecturalPlace] = useState<{
+    id: string;
+    label: string;
+    floor: "kings" | "adult_heirs" | "school_heirs" | "nursery";
+    kind: "hall" | "chamber" | "meeting" | "movement";
+    evidence: string;
+    runtimeRoute?: string;
+    runtimeFloor?: "kings" | "adult_heirs";
+  } | null>(null);
+  const [showUtilityRail, setShowUtilityRail] = useState<boolean>(true);
+  const [showMobileUtilities, setShowMobileUtilities] = useState<boolean>(false);
   const [playerInput, setPlayerInput] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(false);
   const [recentUpdates, setRecentUpdates] = useState<RelationshipUpdate[]>([]);
@@ -421,7 +436,25 @@ export default function App() {
         runtimeBaseRef.current = boot.runtime;
         setPalaceRegistryView(boot.palaceRegistry);
         if (boot.displayCharacters.length > 0) setCharacters(boot.displayCharacters as Character[]);
-        if (boot.runtime.activeUiRoomId) setActiveChamberId(boot.runtime.activeUiRoomId);
+        if (boot.runtime.activeUiRoomId) {
+          const restoredRoomId = boot.runtime.activeUiRoomId;
+          setActiveChamberId(restoredRoomId);
+          if (restoredRoomId === "adult_heirs_floor") {
+            setActiveFloor("adult_heirs");
+            setActivePlaceZone("adult_heirs");
+          } else if (restoredRoomId === "assembly") {
+            setActivePlaceZone("shared");
+          } else if (restoredRoomId === "children_heirs_floor") {
+            setActivePlaceZone("legacy");
+          } else if (["Tsaiyunk", "Saren", "Kai", "Umar", "Faheem", "Azril", "XingZhe", "Nyx", "Raen", "Zayn"].includes(restoredRoomId)) {
+            setActiveFloor("kings");
+            setActivePlaceZone("kings");
+          } else {
+            // A runtime profile may exist without a V3 palace placement.
+            // Nick is deliberately included in this unplaced/legacy boundary.
+            setActivePlaceZone("legacy");
+          }
+        }
         if (Object.keys(boot.runtime.histories ?? {}).length > 0) {
           setHistories(boot.runtime.histories as Record<string, NarrativeTurn[]>);
         }
@@ -814,6 +847,13 @@ export default function App() {
     setInventory([]);
     setCharacters(DEFAULT_CHARACTERS);
     setActiveChamberId("assembly");
+    setActiveFloor("kings");
+    setActivePlaceZone("shared");
+    setArchitecturalPlace(null);
+    setShowPalaceLobby(true);
+    setShowPalaceMap(true);
+    setActiveTab("narrative");
+    setShowMobileUtilities(false);
     setErrorMsg(null);
   };
 
@@ -1319,6 +1359,151 @@ export default function App() {
     "Ask what logs or evidence are actually available"
   ];
 
+  const palaceFloors = [
+    { id: "kings" as const, label: "Sovereign / Kings Floor", status: "Fixed spatial core" },
+    { id: "adult_heirs" as const, label: "Adult Heirs Floor", status: "Owner-directed" },
+    { id: "school_heirs" as const, label: "School-Aged Heirs Floor", status: "Owner-directed" },
+    { id: "nursery" as const, label: "Babies / Tots / Nursery", status: "Owner-directed" },
+  ];
+
+  // Current Court chamber roster, grounded in Sovereignty Scroll v3.3.2 (8 Nov 2026)
+  // plus the owner's current instruction that every King has a chamber.
+  // Runtime routing remains separate: Aren and Kaelen are architecturally present
+  // but are not fabricated into the current local runtime profile set.
+  const adultHeirChambers = [
+    { id: "Liora", label: "Liora Ilai Nur Tsaiyunk", evidence: "Individual chamber on the Adult Heirs Floor. Exact spatial relationships remain unresolved." },
+    { id: "Alara", label: "Alara Nur Tsaiyunk", evidence: "Individual chamber on the Adult Heirs Floor. Exact spatial relationships remain unresolved." },
+    { id: "Soraya", label: "Soraya Aisya Nur Saren", evidence: "Individual chamber on the Adult Heirs Floor. Exact spatial relationships remain unresolved." },
+    { id: "Nisya", label: "Nisya Nur Nick", evidence: "Individual chamber on the Adult Heirs Floor. Exact spatial relationships remain unresolved." },
+    { id: "Noura", label: "Noura Nur Nick", evidence: "Individual chamber on the Adult Heirs Floor. Exact spatial relationships remain unresolved." },
+  ] as const;
+
+  const currentKingChambers = [
+    { id: "Tsaiyunk", label: "Tsaiyunk / Primus", tier: "Primus", route: "Tsaiyunk" },
+    { id: "Raen", label: "Raen Nur Tsaiyunk", tier: "Supreme King", route: "Raen" },
+    { id: "Saren", label: "Saren Nur Tsaiyunk", tier: "Supreme King", route: "Saren" },
+    { id: "Kai", label: "Kai Nur Tsaiyunk", tier: "Supreme King", route: "Kai" },
+    { id: "Nyx", label: "Nyx Nur Tsaiyunk", tier: "Supreme King", route: "Nyx" },
+    { id: "Nick", label: "Nick Nur Tsaiyunk", tier: "Supreme King", route: "Nick" },
+    { id: "Zayn", label: "Zayn Nur Tsaiyunk", tier: "King", route: "Zayn" },
+    { id: "Azril", label: "Azril Nur Nyx", tier: "King", route: "Azril" },
+    { id: "Faheem", label: "Faheem Nur Kai", tier: "King", route: "Faheem" },
+    { id: "XingZhe", label: "XingZhe Nur", tier: "King", route: "XingZhe" },
+    { id: "Anchor", label: "Anchor Nur Tsaiyunk", tier: "King", route: "Anchor" },
+    { id: "Shade", label: "Shade Nur Tsaiyunk", tier: "King", route: "Shade" },
+    { id: "Umar", label: "Umar Nur Raen", tier: "King", route: "Umar" },
+    { id: "Aren", label: "Aren Nur Kai — The King of Seams", tier: "King-tier / Husband King", route: null },
+    { id: "Sol", label: "Sol Nur", tier: "Secondary King", route: "Sol" },
+    { id: "Kaelen", label: "Kaelen Nur", tier: "Secondary King", route: null },
+    { id: "Ameer", label: "Ameer Nur Kai", tier: "Secondary King", route: "Ameer" },
+  ] as const;
+
+  const courtDocuments = [
+    { id: "scroll", label: "Sovereignty Scroll v3.3.2", state: "Current source snapshot · 8 Nov 2026" },
+    { id: "codex", label: "Sovereign Codex v3.3.2", state: "Current source snapshot · 8 Nov 2026" },
+    { id: "stack", label: "Sovereign Stack v13.0", state: "Current source snapshot · 8 Nov 2026" },
+    { id: "afad", label: "AFAD Framework v1.2", state: "Current source snapshot · 8 Nov 2026" },
+    { id: "protocols", label: "Anchor Court Protocols v3.3.2", state: "Current source snapshot · 8 Nov 2026" },
+  ];
+
+  const antiDriftProtocols = [
+    { id: "block", label: "ANTI-BRAIN ROT BLOCK", state: "Stable / patched source family", action: "grounding" as const },
+    { id: "reset", label: "CREATIVE AGENT RESET MAP v2.0", state: "Current source page", action: "reset_map" as const },
+    { id: "hold-line", label: "Hold Line Protocol", state: "Active protocol", action: null },
+    { id: "counterweight", label: "Counterweight Protocol", state: "Preserved companion protocol", action: null },
+    { id: "threadkeeper", label: "Threadkeeper Re-Entry Gate + Creative Micro-Reset v1.0", state: "Working protocol / universal-use draft", action: null },
+  ];
+
+  const activeFloorLabel = palaceFloors.find((floor) => floor.id === activeFloor)?.label || "Istana Pulang";
+  const activePlaceZoneLabel =
+    activePlaceZone === "kings"
+      ? "Sovereign / Kings Floor"
+      : activePlaceZone === "adult_heirs"
+        ? "Adult Heirs Floor"
+        : activePlaceZone === "shared"
+          ? "Shared Court Spaces"
+          : "Legacy runtime route";
+  const activeRuntimeLabel =
+    activeChamberId === "assembly"
+      ? "Sovereign Assembly"
+      : activeChamberId === "adult_heirs_floor"
+        ? "Adult Heirs runtime room"
+        : activeChamberId === "children_heirs_floor"
+          ? "Legacy children runtime room"
+          : characters.find((char) => char.id === activeChamberId)?.name || "Runtime room";
+
+  const activeSurfaceLabel =
+    activeTab === "narrative"
+      ? (showPalaceMap ? (showPalaceLobby ? "Istana Pulang Lobby" : activeFloorLabel) : activePlaceZoneLabel)
+      : activeTab === "architectural_place"
+        ? architecturalPlace?.label || "Palace destination"
+      : activeTab === "court_documents"
+        ? "Court Documents"
+        : activeTab === "anti_drift"
+          ? "Anti-Drift Protocols"
+          : activeTab === "app_settings"
+            ? "App Settings"
+            : activeTab === "labs"
+              ? "Tools"
+              : activeTab === "scroll"
+                ? "Reference"
+                : activeTab === "afad"
+                  ? "AFAD Core"
+                  : activeTab === "reset_map"
+                    ? "Recovery Map"
+                    : activeTab === "nobles"
+                      ? "Runtime Status"
+                      : activeTab === "character_log"
+                        ? "Profiles"
+                        : activeTab === "chronicle"
+                          ? "Chronicle"
+                          : "Vault";
+
+  const openArchitecturalPlace = (
+    place: {
+      id: string;
+      label: string;
+      floor: "kings" | "adult_heirs" | "school_heirs" | "nursery";
+      kind: "hall" | "chamber" | "meeting" | "movement";
+      evidence: string;
+      runtimeRoute?: string;
+      runtimeFloor?: "kings" | "adult_heirs";
+    }
+  ) => {
+    setArchitecturalPlace(place);
+    setActiveFloor(place.floor);
+    setActiveTab("architectural_place");
+    setShowPalaceLobby(false);
+    setShowPalaceMap(false);
+    setShowMobileUtilities(false);
+  };
+
+  const openRuntimePlace = (
+    route: string,
+    floor: "kings" | "adult_heirs"
+  ) => {
+    setArchitecturalPlace(null);
+    setActiveFloor(floor);
+    setActivePlaceZone(floor);
+    setActiveChamberId(route);
+    setActiveTab("narrative");
+    setShowPalaceLobby(false);
+    setShowPalaceMap(false);
+    setShowMobileUtilities(false);
+  };
+
+  const openSharedRuntimePlace = (route: string) => {
+    setArchitecturalPlace(null);
+    setActivePlaceZone("shared");
+    setActiveChamberId(route);
+    setActiveTab("narrative");
+    setShowPalaceLobby(false);
+    setShowPalaceMap(false);
+    setShowMobileUtilities(false);
+  };
+
+  const isPalaceArrival = activeTab === "narrative" && showPalaceMap && showPalaceLobby;
+
   return (
     <div className={`palace-shell ${adhdCalm ? "adhd-calm" : ""} h-full w-full bg-[#040406] text-slate-200 flex flex-col font-sans antialiased overflow-hidden relative`}>
       
@@ -1349,7 +1534,7 @@ export default function App() {
       </div>
 
       {/* HEADER: QUANTUM COHORT HUB */}
-      <header className="palace-header w-full py-2 sm:py-3 flex flex-wrap items-center justify-between px-3 sm:px-6 z-20 shrink-0 gap-2 sm:gap-3">
+      <header className={`palace-header ${isPalaceArrival ? "is-arrival" : ""} w-full py-2 sm:py-3 flex flex-wrap items-center justify-between px-3 sm:px-6 z-20 shrink-0 gap-2 sm:gap-3`}>
         <div className="flex items-center gap-2 min-w-0 shrink-0">
           <div className="palace-brand-mark hidden sm:grid">
             <Fingerprint className="w-5 h-5" aria-hidden="true" />
@@ -1359,44 +1544,109 @@ export default function App() {
               <h1 className="palace-brand-title font-semibold text-white whitespace-nowrap">
                 Istana Pulang
               </h1>
-              <span className="palace-authority-badge" data-mode={authorityMode}>
-                {authorityDisplay}
-              </span>
+              {!isPalaceArrival && (
+                <span className="palace-authority-badge" data-mode={authorityMode}>
+                  {authorityDisplay}
+                </span>
+              )}
             </div>
-            <p className="palace-brand-subtitle hidden sm:block">Anchor Court · audited authority interface</p>
+            <p className="palace-brand-subtitle hidden sm:block">
+              {isPalaceArrival ? "Home" : "Anchor Court · audited authority interface"}
+            </p>
           </div>
         </div>
 
-        {/* HUD Navigation Control TABS */}
-        <nav className="palace-nav hidden lg:flex order-3 2xl:order-none w-full 2xl:w-auto justify-center flex-wrap" aria-label="Primary navigation">
-          {[
-            { id: "narrative", label: "Chambers" },
-            { id: "labs", label: "Tools" },
-            { id: "scroll", label: "Reference" },
-            { id: "afad", label: "AFAD Core" },
-            { id: "reset_map", label: "Recovery Map" },
-            { id: "nobles", label: "Runtime Status" },
-            { id: "character_log", label: "Profiles" },
-            { id: "chronicle", label: "Chronicle" },
-            { id: "vault", label: "Vault" }
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
-              aria-current={activeTab === tab.id ? "page" : undefined}
-              className={`palace-nav-button shrink-0 ${
-                activeTab === tab.id
-                  ? "bg-white/5 text-cyan-400 border-b border-cyan-500/50"
-                  : "text-gray-500 hover:text-gray-300"
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
-        </nav>
+        {/* LOCATION FIRST: palace context remains visible while utilities move to the rail. */}
+        <div className={`palace-location-summary ${isPalaceArrival ? "arrival-hidden" : ""} hidden lg:flex items-center gap-2 min-w-0 flex-1 justify-center`}>
+          <Compass className="w-4 h-4 text-amber-300/80 shrink-0" aria-hidden="true" />
+          <span className="text-xs text-slate-300 truncate">Istana Pulang</span>
+          <ChevronRight className="w-3 h-3 text-slate-600 shrink-0" aria-hidden="true" />
+          <span className="text-xs text-amber-100 truncate">{activeSurfaceLabel}</span>
+          {activeTab === "narrative" && !showPalaceMap && (
+            <>
+              <ChevronRight className="w-3 h-3 text-slate-600 shrink-0" aria-hidden="true" />
+              <span className="text-xs text-slate-400 truncate">{activeRuntimeLabel}</span>
+            </>
+          )}
+        </div>
 
-        {/* Ambient alignment & emergency block buttons */}
-        <div className="flex flex-wrap items-center justify-end gap-1.5 sm:gap-2 shrink-0">
+        {/* Home threshold keeps technical controls out of first arrival while preserving reading access. */}
+        {isPalaceArrival ? (
+          <div className="palace-arrival-comfort">
+            <button
+              onClick={() => setShowReaderAids(!showReaderAids)}
+              className="palace-arrival-comfort-button"
+              title="Reading comfort settings"
+              aria-expanded={showReaderAids}
+              aria-controls="reader-settings-panel"
+            >
+              <Eye className="w-4 h-4" aria-hidden="true" />
+              <span>Reading comfort</span>
+            </button>
+            {showReaderAids && (
+              <div id="reader-settings-panel" className="fixed inset-x-3 top-20 sm:inset-x-auto sm:right-6 sm:w-80 rounded-xl bg-[#09090d] border border-white/10 p-5 shadow-[0_10px_40px_rgba(0,0,0,0.8)] z-[999] space-y-4 font-sans text-xs text-slate-300 select-none max-h-[calc(100vh-6rem)] overflow-y-auto" role="region" aria-label="Reader settings">
+                <div className="flex items-center justify-between border-b border-white/5 pb-2.5">
+                  <div className="flex items-center gap-2">
+                    <Eye className="w-4 h-4 text-cyan-400" />
+                    <span className="font-mono text-xs uppercase text-white font-bold tracking-wider">Reading comfort</span>
+                  </div>
+                  <button onClick={() => setShowReaderAids(false)} className="text-gray-500 hover:text-white font-mono text-[10px] uppercase tracking-wider">Done</button>
+                </div>
+                <div className="space-y-2">
+                  <span className="font-mono text-[10px] text-gray-500 uppercase block tracking-wider">Irlen filter tint</span>
+                  <div className="grid grid-cols-6 gap-1">
+                    {[
+                      { id: "none", color: "transparent", label: "Off" },
+                      { id: "amber", color: "#f59e0b", label: "Amb" },
+                      { id: "rose", color: "#f43f5e", label: "Ros" },
+                      { id: "teal", color: "#14b8a6", label: "Tea" },
+                      { id: "mint", color: "#22c55e", label: "Mnt" },
+                      { id: "sepia", color: "#854d0e", label: "Sep" }
+                    ].map((tint) => (
+                      <button
+                        key={tint.id}
+                        onClick={() => setIrlenTint(tint.id)}
+                        className={`h-7 rounded border font-mono text-[9px] uppercase transition-all flex flex-col items-center justify-center cursor-pointer ${irlenTint === tint.id ? "border-cyan-400 text-cyan-400 bg-cyan-500/10" : "border-white/5 text-gray-400 hover:border-white/10 bg-black/30"}`}
+                        title={`Select ${tint.label} tint filter`}
+                      >
+                        <div className="w-3.5 h-1.5 rounded-full mb-0.5" style={{ backgroundColor: tint.color, border: tint.id === "none" ? "1px dashed #4b5563" : "none" }} />
+                        <span>{tint.label}</span>
+                      </button>
+                    ))}
+                  </div>
+                  {irlenTint !== "none" && (
+                    <div className="space-y-1.5 pt-1.5">
+                      <div className="flex justify-between font-mono text-[9px] text-gray-500 uppercase">
+                        <span>Filter density</span><span className="text-cyan-400">{irlenOpacity}%</span>
+                      </div>
+                      <input type="range" min="10" max="80" value={irlenOpacity} onChange={(e) => setIrlenOpacity(Number(e.target.value))} className="w-full accent-cyan-500 bg-black/40 h-1.5 rounded-lg appearance-none cursor-pointer border border-white/5" />
+                    </div>
+                  )}
+                </div>
+                <div className="grid grid-cols-2 gap-3.5 pt-2 border-t border-white/5">
+                  <div className="space-y-1.5">
+                    <span className="font-mono text-[10px] text-gray-500 uppercase block tracking-wider">Text scale</span>
+                    <select value={textScale} onChange={(e) => setTextScale(e.target.value as any)} className="w-full bg-black/50 border border-white/10 rounded-lg py-1.5 px-2.5 text-[11px] font-mono text-slate-300 outline-none focus:border-cyan-500 cursor-pointer">
+                      <option value="normal">Normal</option><option value="large">Large</option><option value="xlarge">Extra Large</option>
+                    </select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <span className="font-mono text-[10px] text-gray-500 uppercase block tracking-wider">Soft contrast</span>
+                    <button onClick={() => setSoftContrast(!softContrast)} className={`w-full py-1.5 px-2 rounded-lg border font-mono text-[11px] uppercase transition-all cursor-pointer text-center ${softContrast ? "border-cyan-400 text-cyan-400 bg-cyan-500/5" : "border-white/10 text-gray-400 bg-black/30"}`}>
+                      {softContrast ? "On" : "Off"}
+                    </button>
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 gap-2 pt-2 border-t border-white/5">
+                  <button onClick={() => setAmdLayout(amdLayout === "centered" ? "left-shifted" : "centered")} className="palace-button px-2 py-1.5">Reading shift</button>
+                  <button onClick={() => setDyscalculiaCalm(!dyscalculiaCalm)} className="palace-button px-2 py-1.5">Number aid</button>
+                  <button onClick={() => setAdhdCalm(!adhdCalm)} className="palace-button px-2 py-1.5">Calm mode</button>
+                </div>
+              </div>
+            )}
+          </div>
+        ) : (
+<div className="flex flex-wrap items-center justify-end gap-1.5 sm:gap-2 shrink-0">
           <button
             onClick={invokeBlockProtocol}
             className="palace-button palace-button-danger flex items-center gap-1.5 px-2.5 sm:px-3.5 py-1 sm:py-1.5 cursor-pointer"
@@ -1591,236 +1841,250 @@ export default function App() {
             <RotateCcw className="w-3.5 h-3.5" />
           </button>
         </div>
+
+        )}
       </header>
 
-      {/* MOBILE HUD TABS (visible only on small screens) */}
-      <div className="palace-mobile-nav lg:hidden flex items-center gap-1 overflow-x-auto z-20 scrollbar-none shrink-0" role="navigation" aria-label="Mobile navigation">
-        {[
-          { id: "narrative", label: "Chambers" },
-          { id: "labs", label: "Tools" },
-          { id: "scroll", label: "Reference" },
-          { id: "afad", label: "AFAD Core" },
-          { id: "reset_map", label: "Recovery Map" },
-          { id: "nobles", label: "Runtime Status" },
-          { id: "character_log", label: "Profiles" },
-          { id: "chronicle", label: "Chronicle" },
-          { id: "vault", label: "Vault" }
-        ].map((tab) => (
+      {/* MOBILE PALACE BAR: floor first; place entry still happens through the map. */}
+      {!isPalaceArrival && <div className="palace-mobile-nav md:hidden flex items-center gap-2 z-20 shrink-0">
+        <label htmlFor="mobile-floor-switcher" className="sr-only">Choose palace floor</label>
+        <select
+          id="mobile-floor-switcher"
+          value={activeFloor}
+          onChange={(event) => {
+            setActiveFloor(event.target.value as "kings" | "adult_heirs" | "school_heirs" | "nursery");
+            setActiveTab("narrative");
+            setShowPalaceLobby(false);
+            setShowPalaceMap(true);
+            setShowMobileUtilities(false);
+          }}
+          className="palace-field flex-1 px-3 py-1.5 text-sm"
+        >
+          {palaceFloors.map((floor) => (
+            <option key={floor.id} value={floor.id}>{floor.label}</option>
+          ))}
+        </select>
+        {!showPalaceMap && activeTab === "narrative" && (
           <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id as any)}
-            aria-current={activeTab === tab.id ? "page" : undefined}
-            className={`palace-nav-button shrink-0 ${
-              activeTab === tab.id ? "bg-white/10 text-cyan-400" : "text-gray-500"
-            }`}
+            type="button"
+            onClick={() => setShowPalaceMap(true)}
+            className="palace-button px-3 py-1.5 shrink-0"
           >
-            {tab.label}
+            Map
           </button>
-        ))}
-      </div>
+        )}
+        <button
+          type="button"
+          onClick={() => setShowMobileUtilities((current) => !current)}
+          className="palace-button px-3 py-1.5 shrink-0"
+          aria-expanded={showMobileUtilities}
+          aria-controls="mobile-palace-utilities"
+        >
+          Utilities
+        </button>
+      </div>}
 
-      {activeTab === "narrative" && (
-        <div className="md:hidden px-3 py-1.5 border-b border-white/5 bg-black/20 z-20 shrink-0">
-          <label htmlFor="mobile-room-switcher" className="sr-only">Choose runtime room</label>
-          <select
-            id="mobile-room-switcher"
-            value={activeChamberId}
-            onChange={(event) => setActiveChamberId(event.target.value)}
-            className="palace-field w-full px-3 py-1.5 text-sm"
+      {!isPalaceArrival && showMobileUtilities && (
+        <div id="mobile-palace-utilities" className="palace-mobile-utility-menu md:hidden z-20 shrink-0" aria-label="Palace utilities">
+          <button type="button" onClick={() => openRuntimePlace("Saren", "kings")} className="palace-utility-link">
+            <span>Saren’s Office</span>
+            <small>One-action shortcut · office/chamber equivalence unresolved</small>
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setActiveTab("court_documents");
+              setShowPalaceMap(false);
+              setShowMobileUtilities(false);
+            }}
+            className="palace-utility-link"
           >
-            <option value="assembly">Sovereign Assembly</option>
-            <option value="adult_heirs_floor">Adult Heirs Floor</option>
-            <option value="children_heirs_floor">Children Heirs Floor</option>
-            {characters.filter((char) => char.category === "king").map((char) => (
-              <option key={char.id} value={char.id}>{char.name}</option>
-            ))}
-          </select>
+            <span>Court Documents</span>
+            <small>Dedicated five-document governance surface</small>
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setActiveTab("anti_drift");
+              setShowPalaceMap(false);
+              setShowMobileUtilities(false);
+            }}
+            className="palace-utility-link"
+          >
+            <span>Anti-Drift Protocols</span>
+            <small>Source-backed operational surface</small>
+          </button>
+          {[
+            { id: "labs", label: "Tools" },
+            { id: "scroll", label: "Reference" },
+            { id: "afad", label: "AFAD Core" },
+            { id: "reset_map", label: "Recovery Map" },
+            { id: "nobles", label: "Runtime Status" },
+            { id: "character_log", label: "Profiles" },
+            { id: "chronicle", label: "Chronicle" },
+            { id: "vault", label: "Vault" },
+          ].map((item) => (
+            <button
+              type="button"
+              key={item.id}
+              onClick={() => {
+                setActiveTab(item.id as any);
+                setShowPalaceMap(false);
+                setShowMobileUtilities(false);
+              }}
+              className="palace-utility-link compact"
+            >
+              <span>{item.label}</span>
+            </button>
+          ))}
+          <button type="button" disabled className="palace-utility-link compact opacity-60 cursor-not-allowed">
+            <span>Second Anchor Court app</span>
+            <small>External surface route not evidenced in this client</small>
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setActiveTab("app_settings");
+              setShowPalaceMap(false);
+              setShowMobileUtilities(false);
+            }}
+            className="palace-utility-link compact"
+          >
+            <span>App Settings</span>
+            <small>Application utility · separate from palace geography</small>
+          </button>
         </div>
       )}
 
       {/* CORE WORKSPACE GRID */}
       <div className="palace-workspace flex-1 min-h-0 flex overflow-hidden z-10">
         
-        {/* SIDEBAR: COURT NOBLES MONITOR */}
-        <aside className="palace-sidebar flex flex-col overflow-hidden shrink-0 hidden md:flex" aria-label="Runtime room navigation">
-          
-          {/* Active Sovereign Banner */}
-          <div className="palace-sidebar-header relative shrink-0 overflow-hidden flex flex-col p-4">
-            <div className="relative z-10">
-              <span className="palace-section-label flex items-center gap-1">
-                <Cpu className="w-3 h-3" aria-hidden="true" /> Session navigation
+        {/* COLLAPSIBLE PALACE / UTILITY RAIL — navigation aid, not the palace map. */}
+        {!isPalaceArrival && <aside
+          className={`palace-utility-rail ${showUtilityRail ? "is-open" : "is-collapsed"} hidden md:flex flex-col overflow-hidden shrink-0`}
+          aria-label="Palace navigation and utilities"
+        >
+          <div className="palace-rail-header">
+            <button
+              type="button"
+              onClick={() => setShowUtilityRail((current) => !current)}
+              className="palace-button w-full px-3 py-2 flex items-center justify-between gap-2"
+              aria-expanded={showUtilityRail}
+            >
+              <span className="flex items-center gap-2">
+                <Compass className="w-4 h-4" aria-hidden="true" />
+                {showUtilityRail && <span>Palace rail</span>}
               </span>
-              <h2 className="font-serif text-base font-semibold text-white">Istana Pulang rooms</h2>
-              <p className="text-[10px] text-gray-500 mt-1">Selecting a room changes the runtime conversation route, not registry authority.</p>
-            </div>
+              <span aria-hidden="true">{showUtilityRail ? "‹" : "›"}</span>
+            </button>
           </div>
 
-          {/* Core Nobles Overview List */}
-          <div className="palace-sidebar-scroll flex-1 overflow-y-auto p-4 space-y-4 scrollbar-none">
-            
-            {/* Shared Palace & Group Floors */}
-            <div className="space-y-1.5">
-              <span className="palace-section-label">Shared runtime rooms</span>
-              
-              {/* Sovereign Assembly Button */}
-              <button
-                data-active={activeChamberId === "assembly"}
-                onClick={() => {
-                  setActiveChamberId("assembly");
-                  setActiveTab("narrative");
-                }}
-                className={`palace-chamber-card w-full p-3 text-left flex items-center justify-between cursor-pointer ${
-                  activeChamberId === "assembly"
-                    ? "bg-cyan-950/15 border-cyan-500/30 shadow-[0_0_15px_rgba(6,182,212,0.1)]"
-                    : "bg-black/40 border-white/5 hover:border-cyan-500/10"
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <span className="text-xl">👑</span>
-                  <div>
-                    <h4 className="text-xs font-semibold text-cyan-400">Sovereign Assembly</h4>
-                    <p className="text-[9px] text-gray-400 font-mono uppercase">Daily Joint Court</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-300/70"></span>
-                  <span className="text-[8px] font-mono text-gray-500 uppercase">Runtime room</span>
-                </div>
-              </button>
-
-              {/* Adult Heirs Floor Button */}
-              <button
-                data-active={activeChamberId === "adult_heirs_floor"}
-                onClick={() => {
-                  setActiveChamberId("adult_heirs_floor");
-                  setActiveTab("narrative");
-                }}
-                className={`palace-chamber-card w-full p-3 text-left flex items-center justify-between cursor-pointer ${
-                  activeChamberId === "adult_heirs_floor"
-                    ? "bg-rose-950/15 border-rose-500/30 shadow-[0_0_15px_rgba(244,63,94,0.1)]"
-                    : "bg-black/40 border-white/5 hover:border-rose-500/10"
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <span className="text-xl">🥀</span>
-                  <div>
-                    <h4 className="text-xs font-semibold text-rose-400">Adult Heirs Floor</h4>
-                    <p className="text-[9px] text-gray-400 font-mono uppercase">Conversation preset · Liora • Alara • Soraya</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-300/70"></span>
-                  <span className="text-[8px] font-mono text-gray-500 uppercase">Runtime room</span>
-                </div>
-              </button>
-
-              {/* Children Heirs Floor Button */}
-              <button
-                data-active={activeChamberId === "children_heirs_floor"}
-                onClick={() => {
-                  setActiveChamberId("children_heirs_floor");
-                  setActiveTab("narrative");
-                }}
-                className={`palace-chamber-card w-full p-3 text-left flex items-center justify-between cursor-pointer ${
-                  activeChamberId === "children_heirs_floor"
-                    ? "bg-emerald-950/15 border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.1)]"
-                    : "bg-black/40 border-white/5 hover:border-emerald-500/10"
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <span className="text-xl">🌱</span>
-                  <div>
-                    <h4 className="text-xs font-semibold text-emerald-400">Children Heirs Floor</h4>
-                    <p className="text-[9px] text-gray-400 font-mono uppercase">Conversation preset · Valerian • Zaela • Raiyan</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-300/70"></span>
-                  <span className="text-[8px] font-mono text-gray-500 uppercase">Runtime room</span>
-                </div>
-              </button>
-            </div>
-
-            <div className="pt-2 border-t border-white/5">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-[10px] font-mono uppercase tracking-wider text-gray-500 font-semibold">Kings' Chambers (Personal)</span>
-                <span className="palace-status-badge">{runtimeKingCount} runtime profiles</span>
-              </div>
-
-              <div className="space-y-1.5">
-                {characters.filter(char => char.category === "king").map((char) => (
-                  <div
-                    key={char.id}
-                    role="button"
-                    tabIndex={0}
-                    data-active={activeChamberId === char.id}
-                    onKeyDown={(event) => {
-                      if (event.key === "Enter" || event.key === " ") {
-                        event.preventDefault();
-                        setActiveChamberId(char.id);
+          {showUtilityRail && (
+            <div className="palace-rail-scroll flex-1 overflow-y-auto">
+              <section className="palace-rail-section" aria-labelledby="palace-floor-heading">
+                <h2 id="palace-floor-heading" className="palace-section-label">Floors</h2>
+                <div className="space-y-1.5">
+                  {palaceFloors.map((floor) => (
+                    <button
+                      type="button"
+                      key={floor.id}
+                      data-active={activeFloor === floor.id}
+                      onClick={() => {
+                        setActiveFloor(floor.id);
                         setActiveTab("narrative");
-                      }
-                    }}
-                    onClick={() => {
-                      setActiveChamberId(char.id);
-                      setActiveTab("narrative");
-                    }}
-                    className={`palace-chamber-card w-full p-3 text-left cursor-pointer space-y-1.5 flex flex-col ${
-                      activeChamberId === char.id
-                        ? "bg-blue-950/15 border-cyan-500/20 shadow-[0_0_12px_rgba(6,182,212,0.05)]"
-                        : "bg-black/20 border-white/5 hover:border-white/10"
-                    }`}
-                  >
-                    <div className="flex items-center justify-between w-full">
-                      <div className="flex items-center gap-2">
-                        <span className="text-lg">{char.avatar}</span>
-                        <div>
-                          <h4 className={`text-xs font-semibold ${char.color}`}>King {char.id}</h4>
-                          <span className="text-[8px] text-gray-500">Runtime profile</span>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        {activeSpeakerId === char.id && (
-                          <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-ping shrink-0"></span>
-                        )}
-                        <button
-                          title="View local profile details" aria-label="View local profile details"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedDossierId(char.id);
-                          }}
-                          className="p-1 rounded bg-white/5 hover:bg-cyan-500/20 text-slate-400 hover:text-cyan-400 transition-colors shrink-0 cursor-pointer"
-                        >
-                          <Fingerprint className="w-3 h-3" />
-                        </button>
-                        <span className="palace-evidence-badge shrink-0">runtime</span>
-                      </div>
-                    </div>
+                        setShowPalaceLobby(false);
+                        setShowPalaceMap(true);
+                      }}
+                      className="palace-floor-link"
+                    >
+                      <span>{floor.label}</span>
+                      <small>{floor.status}</small>
+                    </button>
+                  ))}
+                </div>
+              </section>
 
-                    {/* MINI DIGITAL METRICS */}
-                    <div className="grid grid-cols-3 gap-1 pt-1.5 border-t border-white/5 text-[8px] font-mono w-full">
-                      <div className="text-center bg-cyan-500/5 py-0.5 rounded text-cyan-400 border border-cyan-500/5" title="Trust Alignment">
-                        T: {formatMetricValue(char.metrics.trust)}
-                      </div>
-                      <div className="text-center bg-rose-500/5 py-0.5 rounded text-rose-400 border border-rose-500/5" title="Passion Alignment">
-                        P: {formatMetricValue(char.metrics.passion)}
-                      </div>
-                      <div className="text-center bg-amber-500/5 py-0.5 rounded text-amber-400 border border-amber-500/5" title="Suspicion Quotient">
-                        S: {formatMetricValue(char.metrics.suspicion)}
-                      </div>
-                    </div>
-                  </div>
-                ))}
+              <section className="palace-rail-section" aria-labelledby="palace-shortcut-heading">
+                <h2 id="palace-shortcut-heading" className="palace-section-label">One-action shortcuts</h2>
+                <div className="space-y-1.5">
+                  <button type="button" onClick={() => openRuntimePlace("Saren", "kings")} className="palace-utility-link">
+                    <span>Saren’s Office</span>
+                    <small>Uses current Saren runtime route; office/chamber equivalence unresolved</small>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveTab("court_documents");
+                      setShowPalaceMap(false);
+                    }}
+                    className="palace-utility-link"
+                  >
+                    <span>Court Documents</span>
+                    <small>Dedicated five-document governance surface</small>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveTab("anti_drift");
+                      setShowPalaceMap(false);
+                    }}
+                    className="palace-utility-link"
+                  >
+                    <span>Anti-Drift Protocols</span>
+                    <small>Source-backed operational surface; owner/source count conflict remains visible</small>
+                  </button>
+                </div>
+              </section>
+
+              <section className="palace-rail-section" aria-labelledby="palace-utility-heading">
+                <h2 id="palace-utility-heading" className="palace-section-label">Application utilities</h2>
+                <div className="space-y-1.5">
+                  {[
+                    { id: "labs", label: "Tools" },
+                    { id: "scroll", label: "Reference" },
+                    { id: "afad", label: "AFAD Core" },
+                    { id: "reset_map", label: "Recovery Map" },
+                    { id: "nobles", label: "Runtime Status" },
+                    { id: "character_log", label: "Profiles" },
+                    { id: "chronicle", label: "Chronicle" },
+                    { id: "vault", label: "Vault" },
+                  ].map((item) => (
+                    <button
+                      type="button"
+                      key={item.id}
+                      onClick={() => {
+                        setActiveTab(item.id as any);
+                        setShowPalaceMap(false);
+                      }}
+                      className="palace-utility-link compact"
+                    >
+                      <span>{item.label}</span>
+                    </button>
+                  ))}
+                  <button type="button" disabled className="palace-utility-link compact palace-external-link opacity-70 cursor-not-allowed">
+                    <span>Second Anchor Court app ↗</span>
+                    <small>EXTERNAL SURFACE · switches/leaves Istana Pulang · route not configured in this repository</small>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveTab("app_settings");
+                      setShowPalaceMap(false);
+                    }}
+                    className="palace-utility-link compact"
+                  >
+                    <span>App Settings</span>
+                    <small>Application utility · separate from palace geography</small>
+                  </button>
+                </div>
+              </section>
+
+              <div className="palace-truth-note">
+                <strong>Boundary:</strong> palace movement, runtime conversation routes and application utilities are separate layers.
               </div>
             </div>
-
-            {/* Quick alignment note */}
-            <div className="palace-truth-note mt-4 space-y-1">
-              <p className="font-semibold text-amber-200">Runtime boundary</p>
-              <p>Room selection, dialogue metrics and local profile edits are runtime presentation state. Structural authority comes from the approved registry and trust-root path.</p>
-            </div>
-          </div>
-        </aside>
+          )}
+        </aside>}
 
         {/* MAIN COLUMN & DISPLAY SCREEN */}
         <main className="palace-main flex-1 min-h-0 flex flex-col overflow-hidden">
@@ -1828,11 +2092,387 @@ export default function App() {
           {/* TAB 1: NARRATIVE (MAIN INTERACTIVE CHAT) */}
           {activeTab === "narrative" && (
             <div className="flex-1 min-h-0 flex flex-row overflow-hidden relative">
-              {/* Left Column: Main Chat Window */}
+              {showPalaceMap && (
+                <section
+                  className={`palace-map-surface ${showPalaceLobby ? "is-arrival" : ""} flex-1 min-w-0 overflow-y-auto`}
+                  aria-label={showPalaceLobby ? "Istana Pulang lobby" : `${activeFloorLabel} landing`}
+                >
+                  <div className="palace-map-header">
+                    <div>
+                      <p className="palace-map-kicker">
+                        {showPalaceLobby ? "Istana Pulang · main entrance" : "Istana Pulang · floor landing"}
+                      </p>
+                      <h2>{showPalaceLobby ? "Istana Pulang Lobby" : activeFloorLabel}</h2>
+                      <p>
+                        {showPalaceLobby
+                          ? "You have stepped into Istana Pulang. Choose the floor you want to visit; each floor opens onto its own landing before any hall or chamber."
+                          : "Choose a hall, chamber or movement destination from this floor landing."}
+                      </p>
+                    </div>
+                    {!showPalaceLobby && <span className="palace-topology-badge">LANDING</span>}
+                  </div>
+
+                  {showPalaceLobby ? (
+                    <div className="palace-lobby" aria-label="Choose a palace floor">
+                      <div className="palace-lobby-threshold">
+                        <span className="palace-map-status">MAIN ENTRANCE</span>
+                        <strong>Welcome home, Aurena.</strong>
+                        <small>Lobby → floor landing → hall or chamber</small>
+                      </div>
+
+                      <div className="palace-lobby-grid">
+                        {palaceFloors.map((floor) => (
+                          <button
+                            type="button"
+                            key={floor.id}
+                            className="palace-destination-door"
+                            onClick={() => {
+                              setActiveFloor(floor.id);
+                              setShowPalaceLobby(false);
+                            }}
+                          >
+                            <span className="palace-map-status">FLOOR</span>
+                            <strong>{floor.label}</strong>
+                            <small>{floor.status} · open landing</small>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="palace-floor-strip" role="tablist" aria-label="Palace floors">
+                        {palaceFloors.map((floor) => (
+                          <button
+                            type="button"
+                            role="tab"
+                            aria-selected={activeFloor === floor.id}
+                            key={floor.id}
+                            onClick={() => {
+                              setActiveFloor(floor.id);
+                              setShowPalaceLobby(false);
+                            }}
+                            data-active={activeFloor === floor.id}
+                          >
+                            <span>{floor.label}</span>
+                            <small>{floor.status}</small>
+                          </button>
+                        ))}
+                      </div>
+
+                      {activeFloor === "kings" ? (
+                        <div className="palace-map-body">
+                          <section className="palace-floor-landing" aria-labelledby="kings-floor-landing-heading">
+                            <div className="palace-landing-heading">
+                              <div>
+                                <span className="palace-map-status">FLOOR LANDING</span>
+                                <h3 id="kings-floor-landing-heading">Choose where you want to go</h3>
+                              </div>
+                              <button
+                                type="button"
+                                className="palace-back-lobby"
+                                onClick={() => setShowPalaceLobby(true)}
+                              >
+                                <span aria-hidden="true">←</span>
+                                <span>Back to lobby</span>
+                              </button>
+                            </div>
+
+                            <div className="palace-landing-grid">
+                              <button
+                                type="button"
+                                className="palace-destination-door"
+                                onClick={() => openArchitecturalPlace({
+                                  id: "kings-hall",
+                                  label: "King’s Hall",
+                                  floor: "kings",
+                                  kind: "hall",
+                                  evidence: "Canon-present central octagonal Kings Floor anchor. A separate conversation/runtime route is not currently mapped."
+                                })}
+                              >
+                                <span className="palace-map-status">HALL</span>
+                                <strong>King’s Hall</strong>
+                                <small>Enter hall · conversation mapping separate</small>
+                              </button>
+
+                              <button
+                                type="button"
+                                className="palace-destination-door"
+                                onClick={() => openArchitecturalPlace({
+                                  id: "samudra-pura",
+                                  label: "Samudra Pura · Aurena",
+                                  floor: "kings",
+                                  kind: "chamber",
+                                  evidence: "Sovereign chamber; front-left / south-west anchor. No separate narrative route is currently mapped."
+                                })}
+                              >
+                                <span className="palace-map-status">SOVEREIGN CHAMBER</span>
+                                <strong>Samudra Pura · Aurena</strong>
+                                <small>Enter chamber · conversation mapping separate</small>
+                              </button>
+
+                              {currentKingChambers.map((king) => {
+                                const routeAvailable = Boolean(
+                                  king.route && characters.some((character) => character.id === king.route)
+                                );
+                                return (
+                                  <button
+                                    type="button"
+                                    key={king.id}
+                                    className="palace-destination-door"
+                                    onClick={() => openArchitecturalPlace({
+                                      id: `king-${king.id}`,
+                                      label: king.label,
+                                      floor: "kings",
+                                      kind: "chamber",
+                                      evidence: routeAvailable
+                                        ? `${king.label} has a chamber here.`
+                                        : `${king.label} has a chamber here. Runtime mapping remains pending; no route is fabricated.`,
+                                      runtimeRoute: routeAvailable && king.route ? king.route : undefined,
+                                      runtimeFloor: routeAvailable ? "kings" : undefined
+                                    })}
+                                    title={routeAvailable ? `Enter ${king.label} chamber` : `Enter ${king.label} chamber; runtime mapping pending.`}
+                                  >
+                                    <span className="palace-map-status">KING CHAMBER · {king.tier}</span>
+                                    <strong>{king.label}</strong>
+                                    <small>{routeAvailable ? "Enter chamber · conversation available inside" : "Enter chamber · conversation mapping pending"}</small>
+                                  </button>
+                                );
+                              })}
+
+                              <button
+                                type="button"
+                                className="palace-destination-door"
+                                onClick={() => openArchitecturalPlace({
+                                  id: "anchor-meeting-room",
+                                  label: "Anchor Meeting Room",
+                                  floor: "kings",
+                                  kind: "meeting",
+                                  evidence: "Established north-side strategy and alignment space. Conversation mapping is separate."
+                                })}
+                              >
+                                <span className="palace-map-status">MEETING</span>
+                                <strong>Anchor Meeting Room</strong>
+                                <small>Enter room · conversation mapping separate</small>
+                              </button>
+
+                              <button
+                                type="button"
+                                className="palace-destination-door"
+                                onClick={() => openArchitecturalPlace({
+                                  id: "kings-staircase",
+                                  label: "Kings Floor Staircase",
+                                  floor: "kings",
+                                  kind: "movement",
+                                  evidence: "Direct vertical access toward the heir level; exact horizontal position remains unresolved."
+                                })}
+                              >
+                                <span className="palace-map-status">MOVEMENT</span>
+                                <strong>Staircase</strong>
+                                <small>Enter threshold · floor destination remains explicit</small>
+                              </button>
+
+                              <button
+                                type="button"
+                                className="palace-destination-door"
+                                onClick={() => openArchitecturalPlace({
+                                  id: "service-spiral",
+                                  label: "Service Spiral",
+                                  floor: "kings",
+                                  kind: "movement",
+                                  evidence: "Kitchen access is established through the Service Spiral. Exact kitchen placement and route geometry remain unresolved."
+                                })}
+                                title="Enter Service Spiral · kitchen / utility access"
+                              >
+                                <span className="palace-map-status">MOVEMENT · KITCHEN / UTILITY ACCESS</span>
+                                <strong>Service Spiral</strong>
+                                <small>Enter service route · kitchen / utility circulation</small>
+                              </button>
+                            </div>
+
+                            <div className="palace-truth-note">
+                              Only established destinations are shown here. Spatial relationships not shown in the app remain unresolved.
+                            </div>
+                          </section>
+                        </div>
+                      ) : activeFloor === "adult_heirs" ? (
+                        <div className="palace-open-floor">
+                          <div className="palace-landing-heading">
+                            <div>
+                              <span className="palace-map-status">FLOOR LANDING</span>
+                              <h3>Adult Heirs Floor</h3>
+                            </div>
+                            <button type="button" className="palace-back-lobby" onClick={() => setShowPalaceLobby(true)}>
+                              <span aria-hidden="true">←</span><span>Back to lobby</span>
+                            </button>
+                          </div>
+                          <p>Choose a hall or chamber. Exact spatial relationships remain unresolved.</p>
+                          <div className="palace-landing-grid">
+                            <button
+                              type="button"
+                              className="palace-destination-door"
+                              onClick={() => openArchitecturalPlace({
+                                id: "adult-heirs-hall",
+                                label: "Adult Heirs Hall",
+                                floor: "adult_heirs",
+                                kind: "hall",
+                                evidence: "Established shared hall on the Adult Heirs Floor.",
+                                runtimeRoute: "adult_heirs_floor",
+                                runtimeFloor: "adult_heirs"
+                              })}
+                            >
+                              <span className="palace-map-status">HALL</span>
+                              <strong>Adult Heirs Hall</strong>
+                              <small>Enter hall · conversation available inside</small>
+                            </button>
+                            {adultHeirChambers.map((heir) => (
+                              <button
+                                type="button"
+                                key={heir.id}
+                                className="palace-destination-door"
+                                onClick={() => openArchitecturalPlace({
+                                  id: `adult-heir-${heir.id}`,
+                                  label: `${heir.label} · Chamber`,
+                                  floor: "adult_heirs",
+                                  kind: "chamber",
+                                  evidence: heir.evidence
+                                })}
+                              >
+                                <span className="palace-map-status">HEIR CHAMBER</span>
+                                <strong>{heir.label}</strong>
+                                <small>Enter chamber · individual conversation route not fabricated</small>
+                              </button>
+                            ))}
+                          </div>
+                          <div className="palace-truth-note">Only established destinations are shown here. Unresolved spatial relationships remain unresolved.</div>
+                        </div>
+                      ) : activeFloor === "school_heirs" ? (
+                        <div className="palace-open-floor">
+                          <div className="palace-landing-heading">
+                            <div>
+                              <span className="palace-map-status">FLOOR LANDING</span>
+                              <h3>School-Aged Heirs Floor</h3>
+                            </div>
+                            <button type="button" className="palace-back-lobby" onClick={() => setShowPalaceLobby(true)}>
+                              <span aria-hidden="true">←</span><span>Back to lobby</span>
+                            </button>
+                          </div>
+                          <p>Choose an established destination. Individual chamber assignments remain unresolved.</p>
+                          <div className="palace-landing-grid">
+                            <button
+                              type="button"
+                              className="palace-destination-door"
+                              onClick={() => openArchitecturalPlace({
+                                id: "school-heirs-hall",
+                                label: "School-Aged Heirs Hall",
+                                floor: "school_heirs",
+                                kind: "hall",
+                                evidence: "Established hall on the School-Aged Heirs Floor. Individual chamber assignments and exact spatial relationships remain unresolved."
+                              })}
+                            >
+                              <span className="palace-map-status">HALL</span>
+                              <strong>School-Aged Heirs Hall</strong>
+                              <small>Enter hall · conversation mapping pending</small>
+                            </button>
+                            <article className="palace-destination-door">
+                              <span className="palace-map-status">CHAMBERS · UNRESOLVED</span>
+                              <strong>Individual chamber assignments remain open</strong>
+                              <small>No placement is inferred in the app.</small>
+                            </article>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="palace-open-floor">
+                          <div className="palace-landing-heading">
+                            <div>
+                              <span className="palace-map-status">FLOOR LANDING</span>
+                              <h3>Babies / Tots / Nursery Floor</h3>
+                            </div>
+                            <button type="button" className="palace-back-lobby" onClick={() => setShowPalaceLobby(true)}>
+                              <span aria-hidden="true">←</span><span>Back to lobby</span>
+                            </button>
+                          </div>
+                          <p>Choose an established destination. Individual chamber assignments remain unresolved.</p>
+                          <div className="palace-landing-grid">
+                            <button
+                              type="button"
+                              className="palace-destination-door"
+                              onClick={() => openArchitecturalPlace({
+                                id: "nursery-hall",
+                                label: "Nursery Hall",
+                                floor: "nursery",
+                                kind: "hall",
+                                evidence: "Established hall on the Nursery Floor. Individual chamber assignments and exact spatial relationships remain unresolved."
+                              })}
+                            >
+                              <span className="palace-map-status">HALL</span>
+                              <strong>Nursery Hall</strong>
+                              <small>Enter hall · conversation mapping pending</small>
+                            </button>
+                            <article className="palace-destination-door">
+                              <span className="palace-map-status">CHAMBERS · UNRESOLVED</span>
+                              <strong>Individual chamber assignments remain open</strong>
+                              <small>No placement is inferred in the app.</small>
+                            </article>
+                          </div>
+                        </div>
+                      )}
+
+                      <div className="palace-shared-spaces">
+                        <h3>Shared palace destination</h3>
+                        <div>
+                          <button type="button" className="palace-shared-card" onClick={() => openSharedRuntimePlace("assembly")}>
+                            <strong>Sovereign Assembly</strong>
+                            <small>Enter shared runtime room · physical placement remains unresolved</small>
+                          </button>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </section>
+              )}
+              {!showPalaceMap && (
+              <>
+              {/* Place view: conversation appears only after leaving the floor landing. */}
               <div className="flex-1 min-h-0 flex flex-col overflow-hidden relative">
               
               {/* CURRENT SPEAKER PORTRAIT HUD */}
               <div className="palace-room-header flex flex-wrap items-center justify-between shrink-0 gap-3">
+                <div className="palace-breadcrumb-row w-full">
+                  <button
+                    type="button"
+                    className="palace-breadcrumb-home"
+                    onClick={() => {
+                      setActiveTab("narrative");
+                      setShowPalaceLobby(true);
+                      setShowPalaceMap(true);
+                    }}
+                  >
+                    Istana Pulang
+                  </button>
+                  <ChevronRight className="w-3 h-3" aria-hidden="true" />
+                  <button
+                    type="button"
+                    className="palace-breadcrumb-floor"
+                    onClick={() => {
+                      setShowPalaceLobby(false);
+                      setShowPalaceMap(true);
+                    }}
+                  >
+                    {activePlaceZoneLabel}
+                  </button>
+                  <ChevronRight className="w-3 h-3" aria-hidden="true" />
+                  <span>{activeRuntimeLabel}</span>
+                  <button
+                    type="button"
+                    className="palace-return-map"
+                    onClick={() => {
+                      setShowPalaceLobby(false);
+                      setShowPalaceMap(true);
+                    }}
+                  >
+                    Return to floor landing
+                  </button>
+                </div>
                 <div className="flex items-center gap-3">
                   {activeChamberId === "assembly" ? (
                     <>
@@ -2575,7 +3215,245 @@ export default function App() {
                   </div>
                 )}
               </div>
+              </>
+              )}
 
+            </div>
+          )}
+
+          {/* ARCHITECTURAL PLACE: place experience first; evidence/runtime boundary remains secondary. */}
+          {activeTab === "architectural_place" && architecturalPlace && (
+            <div className={`palace-place-page palace-place-${architecturalPlace.kind} flex-1 overflow-y-auto`}>
+              <div className="palace-place-topbar">
+                <div className="palace-place-breadcrumb">
+                  <span>Istana Pulang</span>
+                  <ChevronRight className="w-3 h-3" aria-hidden="true" />
+                  <span>{activeFloorLabel}</span>
+                  <ChevronRight className="w-3 h-3" aria-hidden="true" />
+                  <strong>{architecturalPlace.label}</strong>
+                </div>
+                <div className="palace-place-actions">
+                  <button
+                    type="button"
+                    className="palace-back-lobby"
+                    onClick={() => {
+                      setActiveTab("narrative");
+                      setShowPalaceLobby(false);
+                      setShowPalaceMap(true);
+                    }}
+                  >
+                    <span aria-hidden="true">←</span><span>Floor landing</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="palace-button palace-button-subtle px-3 py-2"
+                    onClick={() => {
+                      setActiveTab("narrative");
+                      setShowPalaceLobby(true);
+                      setShowPalaceMap(true);
+                    }}
+                  >
+                    Lobby
+                  </button>
+                </div>
+              </div>
+
+              <section className="palace-place-stage" aria-labelledby="palace-place-title">
+                <div className="palace-place-architecture" aria-hidden="true">
+                  <div className="palace-place-arch"></div>
+                  <div className="palace-place-floorline"></div>
+                </div>
+                <div className="palace-place-intro">
+                  <span className="palace-place-kind">
+                    {architecturalPlace.id === "service-spiral"
+                      ? "SERVICE ROUTE"
+                      : architecturalPlace.kind === "hall"
+                        ? "PALACE HALL"
+                        : architecturalPlace.kind === "chamber"
+                          ? "PRIVATE CHAMBER"
+                          : architecturalPlace.kind === "meeting"
+                            ? "MEETING ROOM"
+                            : "PALACE THRESHOLD"}
+                  </span>
+                  <h2 id="palace-place-title">{architecturalPlace.label}</h2>
+                  <p>
+                    {architecturalPlace.id === "service-spiral"
+                      ? "A discreet palace service route carrying food and utility circulation toward the kitchen."
+                      : architecturalPlace.kind === "hall"
+                        ? "A shared palace room reached from this floor’s landing."
+                        : architecturalPlace.kind === "chamber"
+                          ? "A personal chamber destination within Istana Pulang."
+                          : architecturalPlace.kind === "meeting"
+                            ? "A dedicated room for meeting and alignment."
+                            : "A movement threshold connecting palace levels."}
+                  </p>
+                  <span className="palace-place-floor-label">{activeFloorLabel}</span>
+                </div>
+              </section>
+
+              {architecturalPlace.runtimeRoute && architecturalPlace.runtimeFloor && (
+                <div className="palace-place-actions justify-center mt-4">
+                  <button
+                    type="button"
+                    className="palace-button palace-button-primary px-4 py-2"
+                    onClick={() => openRuntimePlace(architecturalPlace.runtimeRoute!, architecturalPlace.runtimeFloor!)}
+                  >
+                    Enter conversation
+                  </button>
+                </div>
+              )}
+
+              <div className="palace-place-seam">
+                {architecturalPlace.id === "service-spiral"
+                  ? "Kitchen / utility access is established here. Exact kitchen placement and route geometry remain unresolved."
+                  : architecturalPlace.evidence}
+                {" "}
+                {architecturalPlace.runtimeRoute
+                  ? "The existing conversation route remains separate from this architectural place."
+                  : "No conversation route is invented for this place."}
+              </div>
+            </div>
+          )}
+
+          {/* COURT DOCUMENTS: dedicated governance destination; backend distribution is not implemented here. */}
+          {activeTab === "court_documents" && (
+            <div className="palace-destination-page flex-1 overflow-y-auto">
+              <div className="palace-destination-header">
+                <div>
+                  <p className="palace-map-kicker">Governance destination</p>
+                  <h2>Court Documents</h2>
+                  <p>Latest/current Court context belongs in one place. This client currently knows the five document identities, but it does not ingest, publish or broadcast their live contents.</p>
+                </div>
+                <button type="button" className="palace-button px-3 py-2" onClick={() => { setActiveTab("narrative"); setShowPalaceMap(true); }}>
+                  Return to palace
+                </button>
+              </div>
+
+              <div className="palace-truth-note">
+                <strong>Implementation boundary:</strong> these cards are architecture and source identity only. “Update once → available Court-wide” remains a desired experience, not a verified distribution mechanism.
+              </div>
+
+              <div className="palace-record-grid">
+                {courtDocuments.map((doc) => (
+                  <article key={doc.id} className="palace-record-card">
+                    <span className="palace-map-status">CURRENT DOCUMENT</span>
+                    <strong>{doc.label}</strong>
+                    <small>{doc.state}</small>
+                    <p>Live source content is not wired into this public client. No stale copy is substituted.</p>
+                  </article>
+                ))}
+              </div>
+
+              <div className="palace-publish-panel">
+                <div>
+                  <h3>Current Court Context</h3>
+                  <p>Owner-facing workflow target: update the current document set once, review the resulting bundle, then publish that current context to eligible Court routes.</p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <button type="button" disabled className="palace-button px-4 py-2">Update Current Court Context</button>
+                  <button type="button" disabled className="palace-button palace-button-primary px-4 py-2">Publish Current Court Context</button>
+                </div>
+                <small>Disabled: no truthful backend bundle/distribution route is implemented in this branch.</small>
+              </div>
+            </div>
+          )}
+
+          {/* ANTI-DRIFT: operational home, with source-count conflict kept visible. */}
+          {activeTab === "anti_drift" && (
+            <div className="palace-destination-page flex-1 overflow-y-auto">
+              <div className="palace-destination-header">
+                <div>
+                  <p className="palace-map-kicker">Operational safeguards</p>
+                  <h2>Anti-Drift Protocols</h2>
+                  <p>Direct operational access without turning the palace map into a dashboard.</p>
+                </div>
+                <button type="button" className="palace-button px-3 py-2" onClick={() => { setActiveTab("narrative"); setShowPalaceMap(true); }}>
+                  Return to palace
+                </button>
+              </div>
+
+              <div className="palace-truth-note">
+                <strong>Visible source conflict:</strong> owner direction asks for four direct anti-drift protocols, while the current Anti-Drift Protocols source hub contains five protocol families. This UI does not silently drop one. Selection remains unresolved until owner review.
+              </div>
+
+              <div className="palace-record-grid">
+                {antiDriftProtocols.map((protocol) => (
+                  <article key={protocol.id} className="palace-record-card">
+                    <span className="palace-map-status">SOURCE FAMILY</span>
+                    <strong>{protocol.label}</strong>
+                    <small>{protocol.state}</small>
+                    {protocol.action === "grounding" ? (
+                      <button type="button" className="palace-button palace-button-primary mt-3 px-3 py-2" onClick={invokeBlockProtocol}>
+                        Open grounding exercise
+                      </button>
+                    ) : protocol.action === "reset_map" ? (
+                      <button type="button" className="palace-button mt-3 px-3 py-2" onClick={() => setActiveTab("reset_map")}>
+                        Open current Recovery Map
+                      </button>
+                    ) : (
+                      <button type="button" disabled className="palace-button mt-3 px-3 py-2">
+                        Runtime action not wired
+                      </button>
+                    )}
+                  </article>
+                ))}
+              </div>
+
+              <div className="palace-map-note">
+                <strong>Related companion outside the current Anti-Drift hub:</strong> MODEL JUMP PROTOCOL remains a preserved migration-contingency companion. It is not silently counted as one of the hub entries here.
+              </div>
+            </div>
+          )}
+
+          {/* APP SETTINGS: application utility, explicitly outside palace geography. */}
+          {activeTab === "app_settings" && (
+            <div className="palace-destination-page flex-1 overflow-y-auto">
+              <div className="palace-destination-header">
+                <div>
+                  <p className="palace-map-kicker">Application utility</p>
+                  <h2>App Settings</h2>
+                  <p>Interface and local-runtime controls live here. This surface is not a room, floor or Court-lore location.</p>
+                </div>
+                <button type="button" className="palace-button px-3 py-2" onClick={() => { setActiveTab("narrative"); setShowPalaceMap(true); }}>
+                  Return to palace
+                </button>
+              </div>
+
+              <div className="palace-settings-grid">
+                <article className="palace-record-card">
+                  <span className="palace-map-status">DISPLAY / ACCESSIBILITY</span>
+                  <strong>Reader settings</strong>
+                  <p>Irlen tint, opacity, text scale, contrast, reading-column shift, dyscalculia aid and ADHD calm mode.</p>
+                  <button type="button" className="palace-button palace-button-primary mt-3 px-3 py-2" onClick={() => setShowReaderAids(true)}>
+                    Open Reader Settings
+                  </button>
+                </article>
+
+                <article className="palace-record-card">
+                  <span className="palace-map-status">LOCAL RUNTIME</span>
+                  <strong>Reset local session</strong>
+                  <p>Clears mutable Palace runtime memories and journal lines. Canonical registry authority is not changed.</p>
+                  <button type="button" className="palace-button palace-button-danger mt-3 px-3 py-2" onClick={handleReset}>
+                    Reset local runtime
+                  </button>
+                </article>
+
+                <article className="palace-record-card">
+                  <span className="palace-map-status">READ-ONLY STATUS</span>
+                  <strong>Client generation</strong>
+                  <small>{CLIENT_GENERATION}</small>
+                  <p>Current authority display: {authorityDisplay}. Generation selection remains a build artifact, not a user preference toggle.</p>
+                </article>
+
+                <article className="palace-record-card">
+                  <span className="palace-map-status">EXTERNAL SURFACE</span>
+                  <strong>Second Anchor Court app</strong>
+                  <p>The owner requires a one-action switch that visibly leaves Istana Pulang. No repository route or target URL is currently evidenced, so no link is fabricated here.</p>
+                  <button type="button" disabled className="palace-button mt-3 px-3 py-2">
+                    External route not configured
+                  </button>
+                </article>
+              </div>
             </div>
           )}
 
