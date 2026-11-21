@@ -213,6 +213,8 @@ export default function App() {
     floor: "kings" | "adult_heirs" | "school_heirs" | "nursery";
     kind: "hall" | "chamber" | "meeting" | "movement";
     evidence: string;
+    runtimeRoute?: string;
+    runtimeFloor?: "kings" | "adult_heirs";
   } | null>(null);
   const [showUtilityRail, setShowUtilityRail] = useState<boolean>(true);
   const [showMobileUtilities, setShowMobileUtilities] = useState<boolean>(false);
@@ -1464,6 +1466,8 @@ export default function App() {
       floor: "kings" | "adult_heirs" | "school_heirs" | "nursery";
       kind: "hall" | "chamber" | "meeting" | "movement";
       evidence: string;
+      runtimeRoute?: string;
+      runtimeFloor?: "kings" | "adult_heirs";
     }
   ) => {
     setArchitecturalPlace(place);
@@ -2215,24 +2219,22 @@ export default function App() {
                                     type="button"
                                     key={king.id}
                                     className="palace-destination-door"
-                                    onClick={() => {
-                                      if (king.route && routeAvailable) {
-                                        openRuntimePlace(king.route, "kings");
-                                        return;
-                                      }
-                                      openArchitecturalPlace({
-                                        id: `king-${king.id}`,
-                                        label: king.label,
-                                        floor: "kings",
-                                        kind: "chamber",
-                                        evidence: `${king.label} has a chamber under current owner direction. Runtime mapping remains pending; no route is fabricated.`
-                                      });
-                                    }}
-                                    title={routeAvailable ? `Enter ${king.label} chamber` : `Enter ${king.label} chamber shell; runtime mapping pending.`}
+                                    onClick={() => openArchitecturalPlace({
+                                      id: `king-${king.id}`,
+                                      label: king.label,
+                                      floor: "kings",
+                                      kind: "chamber",
+                                      evidence: routeAvailable
+                                        ? `${king.label} has a chamber here. An existing runtime conversation route is linked separately from the architectural place.`
+                                        : `${king.label} has a chamber here. Runtime mapping remains pending; no route is fabricated.`,
+                                      runtimeRoute: routeAvailable && king.route ? king.route : undefined,
+                                      runtimeFloor: routeAvailable ? "kings" : undefined
+                                    })}
+                                    title={routeAvailable ? `Enter ${king.label} chamber` : `Enter ${king.label} chamber; runtime mapping pending.`}
                                   >
                                     <span className="palace-map-status">KING CHAMBER · {king.tier}</span>
                                     <strong>{king.label}</strong>
-                                    <small>{routeAvailable ? "Enter chamber" : "Enter chamber · conversation mapping pending"}</small>
+                                    <small>{routeAvailable ? "Enter chamber · conversation available inside" : "Enter chamber · conversation mapping pending"}</small>
                                   </button>
                                 );
                               })}
@@ -2305,10 +2307,22 @@ export default function App() {
                           </div>
                           <p>Choose a hall or chamber. Exact spatial relationships remain unresolved.</p>
                           <div className="palace-landing-grid">
-                            <button type="button" className="palace-destination-door" onClick={() => openRuntimePlace("adult_heirs_floor", "adult_heirs")}>
+                            <button
+                              type="button"
+                              className="palace-destination-door"
+                              onClick={() => openArchitecturalPlace({
+                                id: "adult-heirs-hall",
+                                label: "Adult Heirs Hall",
+                                floor: "adult_heirs",
+                                kind: "hall",
+                                evidence: "Established shared hall on the Adult Heirs Floor. Its existing runtime discussion room remains a separate linked surface.",
+                                runtimeRoute: "adult_heirs_floor",
+                                runtimeFloor: "adult_heirs"
+                              })}
+                            >
                               <span className="palace-map-status">HALL</span>
                               <strong>Adult Heirs Hall</strong>
-                              <small>Enter shared runtime room · current Liora / Alara / Soraya conversation surface</small>
+                              <small>Enter hall · conversation available inside</small>
                             </button>
                             {adultHeirChambers.map((heir) => (
                               <button
@@ -3277,11 +3291,26 @@ export default function App() {
                 </div>
               </section>
 
+              {architecturalPlace.runtimeRoute && architecturalPlace.runtimeFloor && (
+                <div className="palace-place-actions justify-center mt-4">
+                  <button
+                    type="button"
+                    className="palace-button palace-button-primary px-4 py-2"
+                    onClick={() => openRuntimePlace(architecturalPlace.runtimeRoute!, architecturalPlace.runtimeFloor!)}
+                  >
+                    Enter conversation
+                  </button>
+                </div>
+              )}
+
               <div className="palace-place-seam">
                 {architecturalPlace.id === "service-spiral"
                   ? "Kitchen / utility access is established here. Exact kitchen placement and route geometry remain unresolved."
                   : architecturalPlace.evidence}
-                {" "}No conversation route is invented for this place.
+                {" "}
+                {architecturalPlace.runtimeRoute
+                  ? "The existing conversation route remains separate from this architectural place."
+                  : "No conversation route is invented for this place."}
               </div>
             </div>
           )}
