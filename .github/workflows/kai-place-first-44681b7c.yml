@@ -112,9 +112,10 @@ jobs:
               await snap(page,label+'_03_kai_place');
 
               await enterConversation.click();
-              const runtimeHeader=await page.getByText(/Kai Nur Tsaiyunk/i).first().isVisible().catch(()=>false);
+              const runtimeHeader=page.locator('h3').filter({hasText:'Kai Nur Tsaiyunk'}).first();
               const returnFloor=page.getByRole('button',{name:/Return to floor landing/i}).first();
-              const runtimeReached=runtimeHeader && await returnFloor.isVisible().catch(()=>false);
+              const runtimeReached=(await runtimeHeader.isVisible().catch(()=>false)) &&
+                (await returnFloor.isVisible().catch(()=>false));
               await snap(page,label+'_04_kai_runtime');
 
               await returnFloor.click();
